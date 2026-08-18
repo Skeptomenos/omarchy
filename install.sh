@@ -116,10 +116,17 @@ install_omarchy_packages() {
 ensure_arm_package_repo() {
   grep -q '^\[omarchy-aarch64\]' /etc/pacman.conf && return 0
 
-  local block
+  local block repo_url="${OMARCHY_ARM_PACKAGE_SERVER:-}"
   block=$(sed -n '/^\[omarchy-aarch64\]/,/^Server[[:space:]]*=/p' \
     "$checkout/default/pacman/pacman-stable.conf")
   [[ -n $block ]] || fail "default/pacman/pacman-stable.conf has no [omarchy-aarch64] section."
+
+  if [[ -n $repo_url ]]; then
+    [[ $repo_url =~ ^(https?|file)://[^[:space:]]+$ ]] ||
+      fail "OMARCHY_ARM_PACKAGE_SERVER must be an http(s) or file URL."
+    block=$(printf '%s\n' "$block" | awk -v url="$repo_url" \
+      '{ if ($0 ~ /^Server[[:space:]]*=/) print "Server = " url; else print }')
+  fi
 
   log "Adding the Omarchy ARM package repo"
   printf '\n%s\n' "$block" | sudo tee -a /etc/pacman.conf >/dev/null
@@ -175,8 +182,20 @@ package_is_unavailable_here() {
   return 1
 }
 
+resolve_package_for_arch() {
+  local package="$1"
+
+  # The Omarchy package is still x86_64-only, while the AUR binary package
+  # ships the native ARM release and provides tensaku=0.26.7.
+  if [[ $(uname -m) == "aarch64" && $package == "tensaku" ]]; then
+    printf '%s\n' "${OMARCHY_TENSAKU_PACKAGE:-tensaku-bin}"
+  else
+    printf '%s\n' "$package"
+  fi
+}
+
 install_default_package_set() {
-  local package skipped=() unbuildable=() attempt_unavailable=0
+  local requested_package install_package skipped=() unbuildable=() attempt_unavailable=0
 
   load_unavailable_packages
   if should_attempt_unavailable; then
@@ -184,14 +203,23 @@ install_default_package_set() {
   fi
 
   log "Installing the default package set (AUR builds take a while)"
-  while read -r package; do
-    # These compile a dependency chain for hours before failing an architecture
-    # check, so do not start them unless asked to.
-    if (( ! attempt_unavailable )) && package_is_unavailable_here "$package"; then
-      unbuildable+=("$package")
+  while read -r requested_package; do
+    # Arch Linux ARM does not publish mise. ensure_mise installs the pinned
+    # official ARM binary after the package phase, before user provisioning.
+    if [[ $(uname -m) == "aarch64" && $requested_package == "mise" ]]; then
       continue
     fi
-    yay -S --needed --noconfirm "$package" </dev/null || skipped+=("$package")
+
+    # These compile a dependency chain for hours before failing an architecture
+    # check, so do not start them unless asked to.
+    if (( ! attempt_unavailable )) && package_is_unavailable_here "$requested_package"; then
+      unbuildable+=("$requested_package")
+      continue
+    fi
+
+    install_package=$(resolve_package_for_arch "$requested_package")
+    yay -S --needed --noconfirm "$install_package" </dev/null ||
+      skipped+=("$requested_package")
   done < <(grep -vE '^\s*(#|$)' "$checkout/install/omarchy-base.packages")
 
   if (( ${#unbuildable[@]} )); then
@@ -205,6 +233,32 @@ install_default_package_set() {
   if (( ${#skipped[@]} )); then
     warn "Skipped packages with no aarch64 build: ${skipped[*]}"
   fi
+}
+
+ensure_mise() {
+  command -v mise >/dev/null 2>&1 && return 0
+
+  local version="${OMARCHY_MISE_VERSION:-2026.8.6}"
+  local checksum="${OMARCHY_MISE_SHA256:-f9bd051912beb8861bf248289bfb2d8c281ff00fcdf1e44d730b8ea7e859e9a4}"
+  local url="${OMARCHY_MISE_URL:-https://github.com/jdx/mise/releases/download/v${version}/mise-v${version}-linux-arm64}"
+  local download actual
+
+  command -v curl >/dev/null 2>&1 || sudo pacman -S --needed --noconfirm curl
+  command -v sha256sum >/dev/null 2>&1 || fail "sha256sum is required to verify the ARM mise binary."
+
+  download=$(mktemp)
+  trap 'rm -f "$download"' RETURN
+  log "Installing the verified ARM mise binary (v$version)"
+  curl --fail --location --retry 3 --silent --show-error "$url" -o "$download" ||
+    fail "Could not download mise from $url."
+  actual=$(sha256sum "$download" | awk '{print $1}')
+  [[ $actual == "$checksum" ]] ||
+    fail "mise checksum mismatch: expected $checksum, got $actual."
+
+  sudo install -Dm0755 "$download" /usr/local/bin/mise
+  trap - RETURN
+  rm -f "$download"
+  command -v mise >/dev/null 2>&1 || fail "The verified mise binary was not installed."
 }
 
 seed_user_defaults() {
@@ -231,6 +285,7 @@ main() {
   install_omarchy_packages
   ensure_arm_package_repo
   install_default_package_set
+  ensure_mise
   seed_user_defaults
   run_system_setup
 

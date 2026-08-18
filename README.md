@@ -139,8 +139,8 @@ That is the whole install. It takes roughly 40 minutes on a good connection,
 almost all of it building the AUR packages in the default set, and it:
 
 - installs `yay` if you do not already have it
-- builds the four Omarchy packages from this checkout, since Omarchy's own
-  package repo has no Apple Silicon builds
+- builds the four Omarchy packages from this checkout, plus the ARM `herdr` and
+  `ttfx` packages listed in `install/omarchy-aarch64-build.packages`
 - adds the Apple Silicon package repo, installs the default package set,
   seeds your home directory, and runs system and user setup
 
@@ -152,6 +152,20 @@ Notes:
   has gained ARM support since. `OMARCHY_TRY_UNAVAILABLE=1 bash install.sh`
   forces the attempt.
 - If mirrors fail, run `bash fix-mirrors.sh` from the repository root and retry.
+- On ARM, `tensaku` is resolved to the AUR's `tensaku-bin` package. It provides
+  the `tensaku` package name and the native aarch64 release. Set
+  `OMARCHY_TENSAKU_PACKAGE=tensaku` when an ARM repository later publishes the
+  official package under its original name.
+- Arch Linux ARM does not currently provide `mise`. The installer therefore
+  installs the pinned, checksum-verified official ARM binary before user
+  provisioning. Rotate it with `OMARCHY_MISE_VERSION` and
+  `OMARCHY_MISE_SHA256` together; use `OMARCHY_MISE_URL` only when the matching
+  checksum is also supplied.
+- The default ARM repository is the community `scottjones/omarchy-pkgs-aarch64`
+  release channel. For a controlled personal channel, set
+  `OMARCHY_ARM_PACKAGE_SERVER` to an `https://` or `file://` repository before
+  running the installer. The variable is intentionally not set in this tree
+  because no personal package repository exists yet.
 
 ---
 

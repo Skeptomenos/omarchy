@@ -1,0 +1,5 @@
+# ARM packages that are part of the Omarchy profile but are missing or stale in
+# the external ARM repository. They are built from the supplied omarchy-pkgs
+# checkout before the default package set is installed.
+herdr
+ttfx

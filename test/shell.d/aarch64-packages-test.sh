@@ -40,6 +40,35 @@ for package in herdr omacalc omacut omawrite; do
 done
 pass "packages the ARM repo provides are installed, not skipped"
 
+arm_builds="$ROOT/install/omarchy-aarch64-build.packages"
+[[ -f $arm_builds ]] || fail "the Apple Silicon installer declares its native ARM package builds"
+for package in herdr ttfx; do
+  grep -qxF "$package" "$arm_builds" ||
+    fail "the ARM build list includes the validated native package" "$package is missing"
+done
+grep -qF 'omarchy-aarch64-build.packages' "$ROOT/build-packages.sh" ||
+  fail "the package builder consumes the ARM build list"
+pass "validated Herdr and TTFX ARM builds are part of the Mac package path"
+
+# The official Tensaku package is still x86_64-only. The AUR binary package is
+# a native ARM provider, so both fresh installs and later migrations must use
+# the same override.
+grep -qF 'OMARCHY_TENSAKU_PACKAGE' "$ROOT/install.sh" ||
+  fail "the fresh installer exposes the Tensaku ARM package override"
+grep -qF 'tensaku-bin' "$ROOT/install.sh" ||
+  fail "the fresh installer defaults Tensaku to the ARM binary package"
+grep -qF 'OMARCHY_TENSAKU_PACKAGE' "$ROOT/bin/omarchy-pkg-add" ||
+  fail "the migration package helper exposes the Tensaku ARM package override"
+pass "Tensaku uses one explicit ARM package override for install and migration"
+
+# Mise is required by user provisioning but is not in the Arch Linux ARM
+# package repositories. The installer must bootstrap it before provisioning.
+grep -qF 'ensure_mise' "$ROOT/install.sh" ||
+  fail "the installer bootstraps mise before user provisioning"
+grep -qF 'OMARCHY_MISE_SHA256' "$ROOT/install.sh" ||
+  fail "the mise bootstrap verifies its downloaded ARM binary"
+pass "mise has a verified ARM bootstrap path"
+
 # Without a repo carrying them, herdr pulls zig0.15 and builds it for hours
 # before aarch64 rejects it.
 for config in "$ROOT"/default/pacman/pacman*.conf; do
@@ -50,6 +79,10 @@ for config in "$ROOT"/default/pacman/pacman*.conf; do
     fail "the ARM repo is reached by Server, not an Include" "in: $(basename "$config")"
 done
 pass "every shipped pacman config offers the Omarchy ARM repo"
+
+grep -qF 'OMARCHY_ARM_PACKAGE_SERVER' "$ROOT/install.sh" ||
+  fail "the ARM package repository can be redirected to a controlled channel"
+pass "the ARM package repository has an explicit owner-controlled override"
 
 # The shipped config only reaches /etc during post-install, which runs after the
 # package set. Adding the repo any later leaves herdr building zig from source

@@ -3,8 +3,10 @@
 # Build the Omarchy packages for Apple Silicon from this checkout.
 #
 # omarchy, omarchy-settings, omarchy-keyring, and ttf-jetbrains-mono-nerd-basic
-# are all arch=any, so they need no architecture-specific build. The only Apple
-# Silicon delta is the limine bootloader stack, patched out below.
+# are all arch=any, so they need no architecture-specific build. The Apple
+# Silicon delta also includes the ARM package recipes listed in
+# install/omarchy-aarch64-build.packages. Keeping those builds here makes a
+# fresh install independent of a stale external ARM package mirror.
 
 set -euo pipefail
 
@@ -21,12 +23,18 @@ readonly limine_dependencies=(
   limine-snapper-sync
 )
 
-readonly packages=(
+packages=(
   omarchy-keyring
   ttf-jetbrains-mono-nerd-basic
   omarchy-settings
   omarchy
 )
+
+if [[ $(uname -m) == "aarch64" && -f "$checkout/install/omarchy-aarch64-build.packages" ]]; then
+  while read -r package; do
+    [[ -n $package ]] && packages+=("$package")
+  done < <(grep -vE '^[[:space:]]*(#|$)' "$checkout/install/omarchy-aarch64-build.packages")
+fi
 
 log() {
   printf '\033[32m==>\033[0m %s\n' "$*"
@@ -84,8 +92,31 @@ install_build_dependencies() {
     while read -r dependency; do
       [[ -n $dependency ]] || continue
       build_dependencies+=("$dependency")
-    done < <(sed -n '/^makedepends=(/,/^)/p' "$pkgbuild_source/$package/PKGBUILD" |
-      sed '1d;$d' | tr -d "'\"" | tr -d ' ')
+    done < <(
+      awk '
+        /^[[:space:]]*makedepends=\(/ {
+          line = $0
+          sub(/^[^=]*=\(/, "", line)
+          if (line ~ /\)[[:space:]]*$/) {
+            sub(/\)[[:space:]]*$/, "", line)
+            print line
+            inside = 0
+          } else {
+            print line
+            inside = 1
+          }
+          next
+        }
+        inside {
+          if ($0 ~ /^[[:space:]]*\)/) {
+            inside = 0
+          } else {
+            print
+          }
+        }
+      ' "$pkgbuild_source/$package/PKGBUILD" |
+        tr -d "'\"" | tr -s '[:space:]' '\n'
+    )
   done
 
   (( ${#build_dependencies[@]} )) || return 0

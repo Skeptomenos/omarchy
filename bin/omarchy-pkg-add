@@ -9,28 +9,49 @@
 # Arch Linux ARM's repos (e.g. x86-only packages). Filter to what is actually
 # installable here so those installs skip cleanly with a warning instead of
 # hard-failing the whole migration.
+resolve_package_for_arch() {
+  local package="$1"
+
+  if [[ $(uname -m) == "aarch64" && $package == "tensaku" ]]; then
+    printf '%s\n' "${OMARCHY_TENSAKU_PACKAGE:-tensaku-bin}"
+  else
+    printf '%s\n' "$package"
+  fi
+}
+
 to_install=()
 for pkg in "$@"; do
-  if pacman -Q "$pkg" &>/dev/null || pacman -Si "$pkg" &>/dev/null; then
-    to_install+=("$pkg")
+  install_pkg=$(resolve_package_for_arch "$pkg")
+
+  if pacman -Q "$pkg" &>/dev/null; then
+    continue
+  elif pacman -Si "$install_pkg" &>/dev/null; then
+    to_install+=("$install_pkg")
+  elif [[ $install_pkg == "tensaku-bin" && $EUID != 0 && $(command -v yay 2>/dev/null) ]]; then
+    # tensaku-bin is an AUR package, not an Arch Linux ARM repository package.
+    # The fresh Mac installer installs yay before migrations run.
+    to_install+=("$install_pkg")
   else
-    echo -e "\033[33mSkipping '$pkg': not available in the repos on this system\033[0m" >&2
+    echo -e "\033[33mSkipping '$pkg': no ARM-compatible package source is available\033[0m" >&2
   fi
 done
 
 ((${#to_install[@]})) || exit 0
 
-if omarchy-pkg-missing "${to_install[@]}"; then
-  if (( EUID == 0 )); then
-    pacman -S --noconfirm --needed "${to_install[@]}" || exit 1
+if (( EUID == 0 )); then
+  pacman -S --noconfirm --needed "${to_install[@]}" || exit 1
+else
+  if [[ " ${to_install[*]} " == *" tensaku-bin "* ]]; then
+    yay -S --noconfirm --needed "${to_install[@]}" || exit 1
   else
     sudo pacman -S --noconfirm --needed "${to_install[@]}" || exit 1
   fi
 fi
 
-for pkg in "${to_install[@]}"; do
+for pkg in "$@"; do
+  install_pkg=$(resolve_package_for_arch "$pkg")
   # Secondary check to handle states where pacman doesn't actually register an error
-  if ! pacman -Q "$pkg" &>/dev/null; then
+  if ! pacman -Q "$pkg" &>/dev/null && ! pacman -Q "$install_pkg" &>/dev/null; then
     echo -e "\033[31mError: Package '$pkg' did not install\033[0m" >&2
     exit 1
   fi
