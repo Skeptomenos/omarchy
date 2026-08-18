@@ -12,6 +12,7 @@ A concise, beginner-friendly guide to install Omarchy Mac (Asahi Alarm + Omarchy
 - Start installer — `curl https://asahi-alarm.org/installer-bootstrap.sh | sh`
 - Installing Omarchy 4 once Arch is booted — [Install Omarchy Mac](#install-omarchy-mac)
 - Upgrading from 3.x to Quattro (Omarchy 4) — [docs/upgrade-to-quattro.md](docs/upgrade-to-quattro.md)
+- Apple Silicon Wi-Fi repair — [docs/apple-silicon-wifi.md](docs/apple-silicon-wifi.md)
 - The Omarchy manual — [manual/](manual/)
 - External monitor guide — https://codeberg.org/malik-na/omarchy-mac/discussions/73
 - Support — https://buymeacoffee.com/malik2015no
@@ -179,6 +180,10 @@ Notes:
 ## Troubleshooting & FAQ
 
 ### I lost network during install
+
+On Apple Silicon, first check the dedicated guide for missing Asahi vendor
+firmware and BCM4387 authentication timeouts:
+[Apple Silicon Wi-Fi repair](docs/apple-silicon-wifi.md).
 
 1. Try the interactive UI: `nmtui`.
 2. If that fails, use NetworkManager CLI:
