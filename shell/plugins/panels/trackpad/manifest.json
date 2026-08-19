@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "id": "omarchy.trackpad",
+  "name": "Trackpad",
+  "version": "1.0.0",
+  "author": "Omarchy",
+  "description": "Draggable sliders for trackpad scroll speed, pointer speed, natural scrolling, and workspace gestures. Summon with: omarchy-shell shell summon omarchy.trackpad",
+  "kinds": [
+    "panel"
+  ],
+  "entryPoints": {
+    "panel": "Panel.qml"
+  }
+}
