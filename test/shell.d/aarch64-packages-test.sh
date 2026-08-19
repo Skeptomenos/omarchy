@@ -62,12 +62,22 @@ grep -qF 'OMARCHY_TENSAKU_PACKAGE' "$ROOT/bin/omarchy-pkg-add" ||
 pass "Tensaku uses one explicit ARM package override for install and migration"
 
 # Mise is required by user provisioning but is not in the Arch Linux ARM
-# package repositories. The installer must bootstrap it before provisioning.
-grep -qF 'ensure_mise' "$ROOT/install.sh" ||
+# package repositories. Keep Basecamp's generic mise-bin package declaration,
+# but resolve it back to the logical mise contract before the ARM package loop
+# and bootstrap the verified official binary before provisioning.
+grep -qxF 'mise-bin' "$base_packages" ||
+  fail "the generic package set retains Basecamp's mise-bin package"
+grep -qF '$package == "mise-bin"' "$ROOT/install.sh" ||
+  fail "the Apple Silicon installer resolves mise-bin for ARM"
+grep -qF '$install_package == "mise"' "$ROOT/install.sh" ||
+  fail "the Apple Silicon package loop skips the logical mise package"
+grep -qF 'install/helpers/mise.sh' "$ROOT/install.sh" ||
+  fail "the installer loads the shared verified mise bootstrap"
+grep -qF 'omarchy_ensure_arm_mise' "$ROOT/install.sh" ||
   fail "the installer bootstraps mise before user provisioning"
-grep -qF 'OMARCHY_MISE_SHA256' "$ROOT/install.sh" ||
+grep -qF 'OMARCHY_MISE_SHA256' "$ROOT/install/helpers/mise.sh" ||
   fail "the mise bootstrap verifies its downloaded ARM binary"
-pass "mise has a verified ARM bootstrap path"
+pass "mise keeps the generic package and verified ARM bootstrap paths"
 
 # Without a repo carrying them, herdr pulls zig0.15 and builds it for hours
 # before aarch64 rejects it.
