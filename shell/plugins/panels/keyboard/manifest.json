@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "id": "omarchy.keyboard",
+  "name": "Keyboard Backlight",
+  "version": "1.0.0",
+  "author": "Omarchy",
+  "description": "Keyboard backlight brightness control and Apple Silicon shortcut reference. Summon with: omarchy-shell shell summon omarchy.keyboard",
+  "kinds": [
+    "panel"
+  ],
+  "entryPoints": {
+    "panel": "Panel.qml"
+  }
+}

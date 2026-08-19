@@ -13,6 +13,7 @@ A concise, beginner-friendly guide to install Omarchy Mac (Asahi Alarm + Omarchy
 - Installing Omarchy 4 once Arch is booted — [Install Omarchy Mac](#install-omarchy-mac)
 - Upgrading from 3.x to Quattro (Omarchy 4) — [docs/upgrade-to-quattro.md](docs/upgrade-to-quattro.md)
 - Apple Silicon Wi-Fi repair — [docs/apple-silicon-wifi.md](docs/apple-silicon-wifi.md)
+- Apple Silicon keyboard backlight — [docs/apple-silicon-keyboard-backlight.md](docs/apple-silicon-keyboard-backlight.md)
 - The Omarchy manual — [manual/](manual/)
 - External monitor guide — https://codeberg.org/malik-na/omarchy-mac/discussions/73
 - Support — https://buymeacoffee.com/malik2015no
@@ -174,10 +175,19 @@ Notes:
 
 - Reboot and select the Linux entry.
 - Verify display, keyboard, touchpad, Wi‑Fi, and external monitor support.
+- If the keyboard stays dark, see the [Apple Silicon keyboard backlight guide](docs/apple-silicon-keyboard-backlight.md)
+  for diagnostics, Shift+F1/F2 controls, and the settings panel.
 
 ---
 
 ## Troubleshooting & FAQ
+
+### The keyboard backlight stays dark
+
+On supported Apple Silicon MacBooks, the backlight can start at zero even when
+the kernel device is working. See the
+[Apple Silicon keyboard backlight guide](docs/apple-silicon-keyboard-backlight.md)
+to verify the device, use Shift+F1/F2, or open the Setup > Keyboard slider.
 
 ### I lost network during install
 
