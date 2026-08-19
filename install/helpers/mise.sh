@@ -16,7 +16,7 @@ omarchy_filter_mise_packages_for_arch() {
   done
 }
 
-omarchy_ensure_arm_mise() {
+omarchy_ensure_arm_mise() (
   if command -v mise >/dev/null 2>&1 && mise --version >/dev/null 2>&1; then
     return 0
   fi
@@ -38,7 +38,7 @@ omarchy_ensure_arm_mise() {
   fi
 
   download=$(mktemp) || return 1
-  trap 'rm -f "$download"' RETURN
+  trap 'rm -f "$download"' EXIT
 
   echo "Installing the verified ARM mise binary (v$version)"
   if ! curl --fail --location --retry 3 --silent --show-error "$url" -o "$download"; then
@@ -55,14 +55,11 @@ omarchy_ensure_arm_mise() {
     echo "Could not install the verified ARM mise binary." >&2
     return 1
   fi
-  trap - RETURN
-  rm -f "$download"
-
   if ! command -v mise >/dev/null 2>&1 || ! mise --version >/dev/null 2>&1; then
     echo "The verified ARM mise binary was installed but does not run." >&2
     return 1
   fi
-}
+)
 
 omarchy_ensure_mise_for_arch() {
   if [[ $(uname -m) == "aarch64" ]]; then

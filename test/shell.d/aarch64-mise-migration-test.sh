@@ -130,6 +130,31 @@ fi
 [[ ! -x $bad_checksum_bin/mise ]] || fail "a checksum mismatch never installs mise"
 pass "the ARM migration retains checksum verification"
 
+trap_scope_error=""
+if ! trap_scope_error=$(
+  PATH="$bad_checksum_bin" \
+    MISE_TEST_ARCH="aarch64" \
+    MISE_TEST_BIN="$bad_checksum_bin" \
+    MISE_TEST_LOG="$bad_checksum_log" \
+    MISE_TEST_PAYLOAD="$payload" \
+    OMARCHY_MISE_HELPER="$helper" \
+    OMARCHY_MISE_SHA256="wrong-checksum" \
+    OMARCHY_MISE_URL="https://example.test/mise-arm64" \
+    /bin/bash -euo pipefail -c '
+      source "$OMARCHY_MISE_HELPER"
+      if omarchy_ensure_arm_mise 2>/dev/null; then
+        exit 1
+      fi
+
+      return_after_failure() { return 0; }
+      return_after_failure
+      [[ -z $(trap -p RETURN) ]]
+    ' 2>&1
+); then
+  fail "a caught ARM mise bootstrap failure leaves no RETURN trap" "$trap_scope_error"
+fi
+pass "a caught ARM mise bootstrap failure leaves no RETURN trap"
+
 x86_bin=$(make_fake_bin x86)
 x86_log="$tmpdir/x86.log"
 run_migration "$x86_bin" x86_64 "$payload_checksum" "$x86_log"
