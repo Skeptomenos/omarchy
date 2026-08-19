@@ -2,4 +2,5 @@
 # the external ARM repository. They are built from the supplied omarchy-pkgs
 # checkout before the default package set is installed.
 herdr
+quickshell-git
 ttfx

@@ -42,13 +42,13 @@ pass "packages the ARM repo provides are installed, not skipped"
 
 arm_builds="$ROOT/install/omarchy-aarch64-build.packages"
 [[ -f $arm_builds ]] || fail "the Apple Silicon installer declares its native ARM package builds"
-for package in herdr ttfx; do
+for package in herdr quickshell-git ttfx; do
   grep -qxF "$package" "$arm_builds" ||
     fail "the ARM build list includes the validated native package" "$package is missing"
 done
 grep -qF 'omarchy-aarch64-build.packages' "$ROOT/build-packages.sh" ||
   fail "the package builder consumes the ARM build list"
-pass "validated Herdr and TTFX ARM builds are part of the Mac package path"
+pass "validated native ARM builds are part of the Mac package path"
 
 # The official Tensaku package is still x86_64-only. The AUR binary package is
 # a native ARM provider, so both fresh installs and later migrations must use
