@@ -135,17 +135,23 @@ switch_checkout_to_quattro() {
 }
 
 install_quattro_packages() {
-  local package skipped=()
+  local package packages=() skipped=()
+
+  source "$checkout/install/helpers/mise.sh"
 
   log "Installing the Quattro package set (this builds AUR packages and takes a while)"
-  while read -r package; do
+  mapfile -t packages < <(grep -vE '^\s*(#|$)' "$checkout/install/omarchy-base.packages")
+  mapfile -t packages < <(omarchy_filter_mise_packages_for_arch "${packages[@]}")
+  for package in "${packages[@]}"; do
     if ! yay -S --needed --noconfirm "$package" </dev/null; then
       skipped+=("$package")
     fi
-  done < <(grep -vE '^\s*(#|$)' "$checkout/install/omarchy-base.packages")
+  done
 
   # Apple GPUs cannot run gpu-screen-recorder; screen recording falls back to wf-recorder.
   yay -S --needed --noconfirm wf-recorder </dev/null
+
+  omarchy_ensure_mise_for_arch
 
   if (( ${#skipped[@]} )); then
     warn "Skipped packages that would not install on aarch64: ${skipped[*]}"

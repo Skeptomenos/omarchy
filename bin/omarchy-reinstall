@@ -5,6 +5,8 @@
 
 set -e
 
+source "$OMARCHY_PATH/install/helpers/mise.sh"
+
 echo -e "This will reinstall all default Omarchy packages and reset default configs.\nWarning: user config changes will be overwritten.\n"
 
 if gum confirm "Are you sure you want to reinstall and lose config changes?"; then
@@ -13,7 +15,10 @@ if gum confirm "Are you sure you want to reinstall and lose config changes?"; th
 
   echo "Reinstalling missing Omarchy packages"
   mapfile -t packages < <(grep -v '^#' "$OMARCHY_PATH/install/omarchy-base.packages" | grep -v '^$')
+  mapfile -t packages < <(omarchy_filter_mise_packages_for_arch "${packages[@]}")
   sudo pacman -Syu --noconfirm --needed "${packages[@]}"
+
+  omarchy_ensure_mise_for_arch
 
   echo "Resetting all Omarchy configs"
   cp -R ~/.local/share/omarchy/config/* ~/.config/

@@ -3,6 +3,7 @@
 set -euo pipefail
 
 source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/base-test.sh"
+source "$OMARCHY_PATH/install/helpers/mise.sh"
 
 status=0
 
@@ -12,7 +13,11 @@ verify_core_packages() {
 
   while IFS= read -r package; do
     [[ -z $package || $package == \#* ]] && continue
-    pacman -Q "$package" >/dev/null 2>&1 || missing+=("$package")
+    if omarchy_is_arm_mise_package "$package"; then
+      mise --version >/dev/null 2>&1 || missing+=("$package")
+    else
+      pacman -Q "$package" >/dev/null 2>&1 || missing+=("$package")
+    fi
   done <"$OMARCHY_PATH/install/omarchy-base.packages"
 
   (( ${#missing[@]} == 0 )) || fail "all Omarchy core packages are installed" "missing packages: ${missing[*]}"

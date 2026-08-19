@@ -1,5 +1,21 @@
 #!/bin/bash
 
+omarchy_is_arm_mise_package() {
+  local package="${1:-}"
+
+  [[ $(uname -m) == "aarch64" && ( $package == "mise" || $package == "mise-bin" ) ]]
+}
+
+omarchy_filter_mise_packages_for_arch() {
+  local package
+
+  for package in "$@"; do
+    if ! omarchy_is_arm_mise_package "$package"; then
+      printf '%s\n' "$package"
+    fi
+  done
+}
+
 omarchy_ensure_arm_mise() {
   if command -v mise >/dev/null 2>&1 && mise --version >/dev/null 2>&1; then
     return 0
@@ -45,5 +61,11 @@ omarchy_ensure_arm_mise() {
   if ! command -v mise >/dev/null 2>&1 || ! mise --version >/dev/null 2>&1; then
     echo "The verified ARM mise binary was installed but does not run." >&2
     return 1
+  fi
+}
+
+omarchy_ensure_mise_for_arch() {
+  if [[ $(uname -m) == "aarch64" ]]; then
+    omarchy_ensure_arm_mise
   fi
 }
