@@ -9,9 +9,10 @@ here on 2026-08-19 with core-dump forensics. Read this together with
 ## Pitfall 1: plugin hot-reload plants a delayed use-after-free
 
 Every save of a local plugin triggers `Local plugin changed, reloading: <id>`, which
-destroys and recreates IpcHandlers. During the churn a duplicate handler for target
-`osd` (`shell/plugins/osd/Osd.qml`) is transiently registered. This log line means
-the IPC handler registry is already corrupted:
+destroys and recreates IpcHandlers. Before the guard below landed, every reload
+stranded a freed handler for target `osd` (`shell/plugins/osd/Osd.qml`) in the
+registry. A recurring warning for one target on each reload is the signature
+(see "Reading the duplicate warning" below):
 
 ```
 WARN scene: QML IpcHandler at .../Osd.qml[...]: Handler was registered but will not
@@ -30,7 +31,31 @@ null during QML destruction, so the destructor **silently skips deregistration**
 pointer; the next handler for the same target is rejected as a duplicate.
 Services escape because their `enabled` bindings flip false while the context
 is still alive. The exposed case is a **keepLoaded panel** whose IpcHandler
-dies through plugin-reload teardown — OSD is the only one today.
+dies through plugin-reload teardown.
+
+Severity: the registry does not only *read* the stale pointer. `deregisterHandler`
+promotes `knownHandlers.first()` into the active map and ends with
+`handler->registeredState = ...` — a **write** through the pointer. A stranded
+freed handler can therefore be promoted and written to, which corrupts allocator
+metadata and crashes later in unrelated code. See
+[basecamp/omarchy#7362](https://github.com/basecamp/omarchy/issues/7362), the
+same trigger on x86_64 crashing in glib and QV4 GC.
+
+### Reading the duplicate warning: two different patterns
+
+The warning alone does not prove a leak. Tell them apart by shape:
+
+- **Accumulation (the bug).** One target warns again on *every* plugin reload,
+  indefinitely. Only `osd` did this here — 28 warnings across two days, one per
+  reload, until the guard landed.
+- **Transient overlap (benign).** Many targets warn in the *same second*, once,
+  then never again. A synchronized bar rebuild registers the new widgets before
+  the old ones deregister. Ten `omarchy.*` bar and panel targets did this in five
+  one-second bursts on 2026-08-18, then stopped; the registry stayed healthy and
+  every target kept working.
+
+Verify with `quickshell -p <shell dir> ipc show`: healthy output lists each
+target once, with its full function list and no empty-name entries.
 
 **Working guard** (validated; apply to any keepLoaded panel's IpcHandler, and
 remove once quickshell deregisters correctly on destruction):
@@ -91,5 +116,7 @@ once — it compounds.
 - The binary is stripped and Arch Linux ARM publishes no debug packages or
   debuginfod, so symbolize by module offset (`quickshell + 0x...`) and instruction
   patterns, not names.
-- These crashes are upstream quickshell bugs — do not file them against
-  basecamp/omarchy.
+- The memory bugs themselves are upstream quickshell bugs; file them at
+  quickshell-mirror/quickshell, not basecamp/omarchy. What *does* belong to
+  Omarchy is its own shell QML — the `Component.onDestruction` guard and the
+  plugin-reload path that triggers the bug (see basecamp/omarchy#7362).
