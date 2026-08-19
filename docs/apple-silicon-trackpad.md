@@ -75,35 +75,25 @@ Hyprland names the device after its MTP HID interface —
 `touchpad|trackpad`, so every touchpad-guarded menu entry was hidden on
 Apple Silicon. The pattern now also matches `multi-touch`.
 
-## Trackpad settings panel
+## Trackpad settings UI and Mac-style gestures
 
-`omarchy-trackpad-settings` backs a settings UI for the trackpad:
+A settings UI (sliders for scroll speed, pointer speed, and workspace swipe
+speed; toggles for natural scrolling and four-finger gestures) exists as
+Mac-like UX. Per the placement rules it lives outside this fork, in
+user-level config:
 
-- **Omarchy menu**: Setup > Trackpad — natural scrolling and workspace
-  gesture toggles, plus "Sliders…" which summons the panel.
-- **Slider panel**: `omarchy-shell shell summon omarchy.trackpad` — draggable
-  sliders for scroll speed, pointer speed, and workspace swipe speed, plus
-  the two toggles. Scroll and pointer speed apply live while dragging.
-- **CLI**: `omarchy trackpad settings get|toggle|set <key> [value]` with keys
-  `natural_scroll`, `scroll_factor`, `sensitivity`, `gestures`,
-  `swipe_speed`.
+- `~/.local/bin/trackpad-settings` — get/toggle/set backend; persists to
+  `~/.config/hypr/trackpad-ui.lua` and applies via `hyprctl reload`.
+- `~/.config/omarchy/plugins/david.trackpad/` — the slider panel
+  (`omarchy-shell shell summon david.trackpad`).
+- `~/.config/omarchy/extensions/omarchy-menu.jsonc` — Setup > Trackpad menu
+  entries, guarded by `omarchy-hw-touchpad`.
+- `~/.config/hypr/hyprland.lua` — requires `hypr.trackpad-ui` after
+  `hypr/input.lua` so the panel's values win.
 
-Settings persist to `~/.config/hypr/trackpad-ui.lua`, which
-`config/hypr/hyprland.lua` requires right after `hypr/input.lua` so the
-panel's values override manual input settings. The file is regenerated on
-every change — put manual input tweaks in `hypr/input.lua` instead.
-
-## Mac-style gestures
-
-`trackpad-ui.lua` ships with four-finger gestures enabled (Hyprland ≥ 0.55
-Lua gestures):
-
-- horizontal swipe: 1:1 workspace switch, like macOS Spaces. The panel's
-  "Swipe speed" slider sets the gesture `scale`.
-- swipe up: fullscreen the active window.
-- swipe down: toggle the `scratchpad` special workspace.
-
-The "Workspace Gestures" toggle removes all three. More gestures (pinch
-cursor zoom, three-finger swipes) can be added per user in
-`~/.config/hypr/input.lua`; see
+The generated `trackpad-ui.lua` defines the four-finger gestures (Hyprland
+≥ 0.55 Lua gestures): horizontal 1:1 workspace swipe like macOS Spaces
+(`scale` = swipe speed), swipe up = fullscreen, swipe down = the
+`scratchpad` special workspace. More gestures (pinch cursor zoom,
+three-finger swipes) go in `~/.config/hypr/input.lua`; see
 <https://wiki.hypr.land/Configuring/Advanced-and-Cool/Gestures/>.
