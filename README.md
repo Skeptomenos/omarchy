@@ -132,10 +132,14 @@ As the non‑root user (the installer refuses to run as root and uses `sudo`
 where it needs to):
 
 ```bash
-git clone https://codeberg.org/malik-na/omarchy-mac.git ~/.local/share/omarchy
+git clone --branch quattro-arm --single-branch https://github.com/Skeptomenos/omarchy-mac.git ~/.local/share/omarchy
 cd ~/.local/share/omarchy
 bash install.sh
 ```
+
+This command pins the supported Apple Silicon release branch. A plain clone
+uses the repository default branch, which is not the release used by this
+fork.
 
 That is the whole install. It takes roughly 40 minutes on a good connection,
 almost all of it building the AUR packages in the default set, and it:
