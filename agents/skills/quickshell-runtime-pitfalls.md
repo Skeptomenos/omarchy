@@ -21,7 +21,30 @@ be used because another handler is registered for target osd
 The SIGSEGV detonates **later** — sometimes minutes later — when the freed hash
 memory gets reused; IPC calls in between can keep succeeding. Upstream:
 [quickshell#898](https://github.com/quickshell-mirror/quickshell/issues/898)
-(forensics from this machine are in a comment there); related: #956, #950.
+(forensics from this machine are in a comment there); related: #956, #950, #963.
+
+**Root cause (proven 2026-08-19, minimal repro in quickshell 0.3.0):**
+`IpcHandler::~IpcHandler()` calls `findObjectGeneration(this)`, which returns
+null during QML destruction, so the destructor **silently skips deregistration**
+(`src/io/ipchandler.cpp`, `updateRegistration`). The registry keeps a dangling
+pointer; the next handler for the same target is rejected as a duplicate.
+Services escape because their `enabled` bindings flip false while the context
+is still alive. The exposed case is a **keepLoaded panel** whose IpcHandler
+dies through plugin-reload teardown — OSD is the only one today.
+
+**Working guard** (validated; apply to any keepLoaded panel's IpcHandler, and
+remove once quickshell deregisters correctly on destruction):
+
+```qml
+IpcHandler {
+  target: "..."
+  Component.onDestruction: enabled = false
+}
+```
+
+A non-keepLoaded panel that happens to be **open** during a plugin reload has
+the same exposure; add the guard when adding an IpcHandler to any panel entry
+point.
 
 Do not:
 
