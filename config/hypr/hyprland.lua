@@ -18,9 +18,6 @@ require("default.hypr.omarchy")
 -- ~/.config/hypr files.
 require("hypr.monitors")
 require("hypr.input")
--- Managed by omarchy-trackpad-settings (menu: Setup > Trackpad); loaded after
--- hypr/input.lua so the trackpad panel's values win.
-require("hypr.trackpad-ui")
 require("hypr.bindings")
 require("hypr.looknfeel")
 require("hypr.autostart")
