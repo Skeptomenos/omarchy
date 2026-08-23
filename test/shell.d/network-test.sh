@@ -177,16 +177,27 @@ assertDeepEqual(rows.map(row => row.ssid), ['Connected', 'Known', 'Open'], 'netw
 assertEqual(network.wifiSectionTitle(rows, 0), 'KNOWN NETWORKS', 'network labels known wifi section')
 assertEqual(network.wifiSectionTitle(rows, 2), 'OTHER NETWORKS', 'network labels other wifi section')
 
-const wifiRow = network.wifiRow({ connected: true, known: true, name: 'Home', signalStrength: 0.8, security: 1 })
+const wifiRow = network.wifiRow({
+  connected: true,
+  known: true,
+  name: 'Home',
+  signalStrength: 0.8,
+  security: 1,
+  nmSettings: [{ uuid: 'uuid-home' }, { uuid: '' }, null, { uuid: 'uuid-backup' }]
+})
 assertDeepEqual(
   wifiRow,
-  { connected: true, known: true, ssid: 'Home', signal: 80, security: 1 },
-  'network projects wifi rows with primitives so delegates never hold the live WifiNetwork object'
+  { connected: true, known: true, ssid: 'Home', signal: 80, security: 1, profileUuids: ['uuid-home', 'uuid-backup'] },
+  'network snapshots only primitive profile UUIDs with each wifi row'
 )
 assertDeepEqual(
   Object.keys(wifiRow).sort(),
-  ['connected', 'known', 'security', 'signal', 'ssid'],
+  ['connected', 'known', 'profileUuids', 'security', 'signal', 'ssid'],
   'network wifi rows project exactly the primitive fields, so each delegate stores no live QObject'
+)
+assert(
+  wifiRow.profileUuids.every(uuid => typeof uuid === 'string'),
+  'network wifi row profile snapshots never retain NMSettings QObject wrappers'
 )
 
 const security = {
@@ -295,11 +306,126 @@ assertEqual(network.headerDetail({ type: 'wifi', freq: '5745' }), '', 'network k
 assertEqual(network.headerDetail({ type: 'ethernet', speed: '100' }), '100mbit', 'network keeps ethernet speed in the hero')
 
 assertDeepEqual(
-  network.parseAutoConnectProfiles('uuid-home\tHome\tyes\nuuid-cafe\tCafe:Guest\tno\n'),
-  { Home: { uuid: 'uuid-home', enabled: true }, 'Cafe:Guest': { uuid: 'uuid-cafe', enabled: false } },
-  'network parses NetworkManager Wi-Fi profiles by SSID and UUID'
+  network.parseAutoConnectProfiles(
+    'uuid-home:802-11-wireless:yes:100:no\n' +
+    'uuid-backup:802-11-wireless:no:200:yes\n' +
+    'uuid-wired:802-3-ethernet:yes:300:yes\n'
+  ),
+  {
+    'uuid-home': { uuid: 'uuid-home', enabled: true, timestamp: 100, active: false },
+    'uuid-backup': { uuid: 'uuid-backup', enabled: false, timestamp: 200, active: true }
+  },
+  'network parses one UUID-keyed map without transporting SSIDs'
+)
+
+const selectionProfiles = network.parseAutoConnectProfiles(
+  'uuid-active:802-11-wireless:no:10:yes\n' +
+  'uuid-newest:802-11-wireless:yes:30:no\n' +
+  'uuid-old:802-11-wireless:yes:20:no\n'
+)
+assertEqual(
+  network.selectAutoConnectProfile(['uuid-old', 'uuid-newest', 'uuid-active'], selectionProfiles).uuid,
+  'uuid-active',
+  'network selects the single active profile before a newer inactive profile'
+)
+const multipleActiveProfiles = network.parseAutoConnectProfiles(
+  'uuid-active-a:802-11-wireless:yes:10:yes\n' +
+  'uuid-active-b:802-11-wireless:no:20:yes\n' +
+  'uuid-inactive:802-11-wireless:yes:99:no\n'
+)
+assertEqual(
+  network.selectAutoConnectProfile(['uuid-active-a', 'uuid-active-b', 'uuid-inactive'], multipleActiveProfiles),
+  undefined,
+  'network leaves multiple matching active profiles unresolved instead of falling through to an inactive profile'
+)
+assertEqual(
+  network.selectAutoConnectProfile(['uuid-old', 'uuid-newest'], selectionProfiles).uuid,
+  'uuid-newest',
+  'network selects the newest profile when none is active'
+)
+const tiedProfiles = network.parseAutoConnectProfiles(
+  'uuid-a:802-11-wireless:yes:50:no\n' +
+  'uuid-b:802-11-wireless:no:50:no\n'
+)
+assertEqual(
+  network.selectAutoConnectProfile(['uuid-a', 'uuid-b'], tiedProfiles),
+  undefined,
+  'network leaves an equal-timestamp profile tie unresolved'
+)
+assertEqual(
+  network.selectAutoConnectProfile(['missing'], selectionProfiles),
+  undefined,
+  'network leaves a row unresolved when none of its snapshotted UUIDs exist'
+)
+
+assertDeepEqual(
+  network.autoConnectProfilesCommand,
+  ['nmcli', '-t', '--escape', 'no', '-f', 'UUID,TYPE,AUTOCONNECT,TIMESTAMP,ACTIVE', 'connection', 'show'],
+  'network reads all auto-connect state with one direct nmcli command'
+)
+assert(
+  !/SSID|802-11-wireless\.ssid/.test(network.autoConnectProfilesCommand.join(' ')),
+  'network auto-connect refresh does not transport SSIDs or secrets'
+)
+assert(
+  /Model\.selectAutoConnectProfile\(net\.profileUuids, autoConnectProfiles\)/.test(panelSource),
+  'network rows resolve auto-connect profiles from their snapshotted UUIDs'
 )
 assert(/ToggleSwitch[\s\S]*?visible: row\.isKnown && row\.autoConnectProfile !== undefined/.test(panelSource), 'known visible networks show an auto-connect switch when a profile exists')
-assert(/id: autoConnectProfilesProc[\s\S]*?Model\.autoConnectProfilesScript/.test(panelSource), 'network loads auto-connect profiles in one panel-level query')
-assert(/function setAutoConnect\(uuid, enabled\)[\s\S]*?"uuid", uuid, "connection\.autoconnect"/.test(panelSource), 'network writes auto-connect by stable NetworkManager UUID')
+assert(/id: autoConnectProfilesProc[\s\S]*?command: Model\.autoConnectProfilesCommand/.test(panelSource), 'network loads auto-connect profiles with one panel-level command')
+const setAutoConnectFn = panelSource.match(/function setAutoConnect\(uuid, enabled\)[\s\S]*?\n {2}\}/)
+assert(setAutoConnectFn, 'network has an auto-connect write helper')
+assert(/"uuid", uuid, "connection\.autoconnect"/.test(setAutoConnectFn[0]), 'network writes auto-connect by stable NetworkManager UUID')
+assert(!/disconnect|connection["', ]+down/.test(setAutoConnectFn[0]), 'network auto-connect writes never disconnect an active network')
+
+const refreshAutoConnectFn = panelSource.match(/function refreshAutoConnectProfiles\(\)[\s\S]*?\n {2}\}/)
+assert(refreshAutoConnectFn, 'network has an auto-connect refresh helper')
+var autoConnectProfilesProc = { running: true }
+var autoConnectRefreshPending = false
+eval(refreshAutoConnectFn[0])
+refreshAutoConnectProfiles()
+assert(
+  autoConnectProfilesProc.running && autoConnectRefreshPending,
+  'network records one pending refresh instead of starting a second concurrent query'
+)
+autoConnectProfilesProc.running = false
+refreshAutoConnectProfiles()
+assert(
+  autoConnectProfilesProc.running && !autoConnectRefreshPending,
+  'network consumes the pending refresh when it starts the next query'
+)
+assert(
+  /property bool autoConnectRefreshPending: false/.test(panelSource) &&
+    /function refreshAutoConnectProfiles\(\)[\s\S]*?autoConnectProfilesProc\.running[\s\S]*?autoConnectRefreshPending = true/.test(panelSource) &&
+    /id: autoConnectProfilesProc[\s\S]*?onExited:[\s\S]*?autoConnectRefreshPending[\s\S]*?refreshAutoConnectProfiles/.test(panelSource),
+  'network queues one follow-up profile refresh while the panel query is running'
+)
+assert(
+  /id: autoConnectChangeProc[\s\S]*?onExited:[\s\S]*?refreshAutoConnectProfiles\(\)/.test(panelSource),
+  'network refreshes profile state after successful and failed writes'
+)
+
+assert(/property int wifiActionIndex: 0/.test(panelSource), 'network tracks row, auto-connect, and Forget as keyboard actions')
+assert(
+  /onAutoConnectProfilesChanged:\s*wifiActionIndex = 0/.test(panelSource),
+  'network resets to the row action when profile topology changes so Enter cannot reinterpret auto-connect as Forget or vice versa'
+)
+assert(
+  /function selectWifiActionByDelta\(delta\)[\s\S]*?wifiActionIndex/.test(panelSource),
+  'network h/l navigation can move between wifi row actions'
+)
+assert(
+  /function activateSelected\(\)[\s\S]*?setAutoConnect\(autoConnectProfile\.uuid[\s\S]*?forget\(net\)/.test(panelSource),
+  'network Enter and Space activate auto-connect or Forget without replacing the row action'
+)
+assert(
+  /readonly property bool autoConnectFocused:[^\n]*wifiActionIndex/.test(panelSource) &&
+    /ToggleSwitch[\s\S]*?hasCursor: root\.cursorActive && row\.autoConnectFocused/.test(panelSource),
+  'network gives the keyboard-focused auto-connect switch a visible cursor'
+)
+assert(
+  /onHovered:[\s\S]{0,160}setWifiActionCursor/.test(panelSource) &&
+    /id: rightMouse[\s\S]*?onContainsMouseChanged:[^\n]*wifiForgetActionIndex/.test(panelSource),
+  'network mouse hover synchronizes the same auto-connect and Forget cursor model'
+)
 JS
