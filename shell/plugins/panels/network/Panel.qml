@@ -72,6 +72,7 @@ Panel {
   readonly property var connectedWifiNetwork: findConnectedWifiNetwork()
   property var wifiNetworks: []
   property var autoConnectProfiles: ({})
+  property bool autoConnectRefreshPending: false
   property string pendingAutoConnectId: ""
   property bool pendingAutoConnectEnabled: false
   property bool scanning: false
@@ -118,7 +119,9 @@ Panel {
 
   // Index into `wifiNetworks` for keyboard navigation. -1 = no selection.
   property int selectedIndex: -1
-  property bool wifiActionFocused: false
+  // 0 is the row action. Later positions are the auto-connect switch and
+  // Forget when those controls exist for the selected row.
+  property int wifiActionIndex: 0
   property bool cursorActive: false
 
   // Keyboard focus zone for the panel. j/k crosses row boundaries:
@@ -169,10 +172,11 @@ Panel {
   readonly property bool canRunSpeedTest: !!info.iface
   property int bandIndex: 0
   // The band section has up to two cursor rows: the Automatic switch on the
-  // header line, then the pills. Same shape as wifiActionFocused.
+  // header line, then the pills. Wi-Fi rows use wifiActionIndex similarly.
   property bool bandAutoFocused: true
 
   onHeaderActionCountChanged: clampHeaderIndex()
+  onAutoConnectProfilesChanged: wifiActionIndex = 0
 
   // Availability shifts as scans land, so the option list can shrink out from
   // under the cursor. Clamp the index and evacuate the section before it
@@ -324,7 +328,7 @@ Panel {
     if (opened) {
       refresh(true)
       selectedIndex = wifiNetworks.length > 0 ? 0 : -1
-      wifiActionFocused = false
+      wifiActionIndex = 0
       focusSection = wifiNetworks.length > 0 ? "wifi" : "dns"
       var idx = dnsProviders.indexOf(dnsProvider)
       dnsIndex = idx >= 0 ? idx : 0
@@ -367,7 +371,7 @@ Panel {
   onWifiNetworksChanged: {
     if (wifiNetworks.length === 0) {
       selectedIndex = -1
-      wifiActionFocused = false
+      wifiActionIndex = 0
       if (focusSection === "wifi") focusSection = "dns"
     } else if (passwordSsid !== "") {
       var passwordIndex = wifiIndexForSsid(passwordSsid)
@@ -381,9 +385,8 @@ Panel {
       selectedIndex = 0
     }
 
-    if (selectedIndex < 0 || selectedIndex >= wifiNetworks.length || !canForgetNetwork(wifiNetworks[selectedIndex])) {
-      wifiActionFocused = false
-    }
+    if (selectedIndex < 0 || selectedIndex >= wifiNetworks.length) wifiActionIndex = 0
+    else wifiActionIndex = Math.min(wifiActionIndex, wifiActionCount(wifiNetworks[selectedIndex]) - 1)
   }
 
   onWifiDeviceChanged: {
@@ -397,7 +400,7 @@ Panel {
     if (wifiNetworks.length === 0) { selectedIndex = -1; return }
     if (selectedIndex < 0) selectedIndex = delta > 0 ? 0 : wifiNetworks.length - 1
     else selectedIndex = Math.max(0, Math.min(wifiNetworks.length - 1, selectedIndex + delta))
-    wifiActionFocused = false
+    wifiActionIndex = 0
   }
 
   function canForgetNetwork(net) {
@@ -409,14 +412,35 @@ Panel {
     return net.security !== WifiSecurityType.Wpa2Eap && net.security !== WifiSecurityType.WpaEap
   }
 
+  function autoConnectProfileFor(net) {
+    return net ? Model.selectAutoConnectProfile(net.profileUuids, autoConnectProfiles) : undefined
+  }
+
+  function wifiAutoConnectActionIndex(net) {
+    return autoConnectProfileFor(net) !== undefined ? 1 : -1
+  }
+
+  function wifiForgetActionIndex(net) {
+    if (!canForgetNetwork(net)) return -1
+    return autoConnectProfileFor(net) !== undefined ? 2 : 1
+  }
+
+  function wifiActionCount(net) {
+    return 1 + (autoConnectProfileFor(net) !== undefined ? 1 : 0) + (canForgetNetwork(net) ? 1 : 0)
+  }
+
+  function setWifiActionCursor(index, actionIndex) {
+    if (index < 0 || index >= wifiNetworks.length) return
+    cursorActive = true
+    focusSection = "wifi"
+    selectedIndex = index
+    wifiActionIndex = Math.max(0, Math.min(wifiActionCount(wifiNetworks[index]) - 1, actionIndex))
+  }
+
   function selectWifiActionByDelta(delta) {
     if (selectedIndex < 0 || selectedIndex >= wifiNetworks.length) return
-    if (!canForgetNetwork(wifiNetworks[selectedIndex])) {
-      wifiActionFocused = false
-      return
-    }
-    if (delta > 0) wifiActionFocused = true
-    else if (delta < 0) wifiActionFocused = false
+    var max = wifiActionCount(wifiNetworks[selectedIndex]) - 1
+    wifiActionIndex = Math.max(0, Math.min(max, wifiActionIndex + delta))
   }
 
   // Enter/Space on the highlighted row. Mirrors row-click semantics:
@@ -426,7 +450,12 @@ Panel {
     if (busy || selectedIndex < 0 || selectedIndex >= wifiNetworks.length) return
     var net = wifiNetworks[selectedIndex]
     if (!net) return
-    if (wifiActionFocused && canForgetNetwork(net)) { forget(net); return }
+    var autoConnectProfile = autoConnectProfileFor(net)
+    if (autoConnectProfile && wifiActionIndex === wifiAutoConnectActionIndex(net)) {
+      setAutoConnect(autoConnectProfile.uuid, !autoConnectProfile.enabled)
+      return
+    }
+    if (wifiActionIndex === wifiForgetActionIndex(net) && canForgetNetwork(net)) { forget(net); return }
     // Only act on a row that still resolves. disconnect() falls back to
     // connectedWifiNetwork when handed null, so a row left stale by scan churn
     // would otherwise tear down whatever is connected now instead.
@@ -472,7 +501,12 @@ Panel {
   }
 
   function refreshAutoConnectProfiles() {
-    if (!autoConnectProfilesProc.running) autoConnectProfilesProc.running = true
+    if (autoConnectProfilesProc.running) {
+      autoConnectRefreshPending = true
+      return
+    }
+    autoConnectRefreshPending = false
+    autoConnectProfilesProc.running = true
   }
 
   function setAutoConnect(uuid, enabled) {
@@ -827,10 +861,15 @@ Panel {
   // spawn their own nmcli processes while a scan adds or removes access points.
   Process {
     id: autoConnectProfilesProc
-    command: ["bash", "-c", Model.autoConnectProfilesScript]
+    command: Model.autoConnectProfilesCommand
     stdout: StdioCollector {
       waitForEnd: true
       onStreamFinished: root.autoConnectProfiles = Model.parseAutoConnectProfiles(text)
+    }
+    onExited: {
+      if (!root.autoConnectRefreshPending) return
+      root.autoConnectRefreshPending = false
+      Qt.callLater(function() { root.refreshAutoConnectProfiles() })
     }
   }
 
@@ -1083,7 +1122,7 @@ Panel {
             // wrapping around to the bottom of the list.
             if (dy < 0 && root.selectedIndex <= 0) {
               root.focusSection = "dns"
-              root.wifiActionFocused = false
+              root.wifiActionIndex = 0
             }
             else root.selectByDelta(dy)
           }
@@ -1638,11 +1677,12 @@ Panel {
       : false
     readonly property bool canForget: root.canForgetNetwork(net)
     readonly property bool isSelected: root.focusSection === "wifi" && root.selectedIndex === index
-    readonly property var autoConnectProfile: row.net ? root.autoConnectProfiles[row.net.ssid] : undefined
-    readonly property bool forgetFocused: isSelected && root.wifiActionFocused && canForget
+    readonly property var autoConnectProfile: root.autoConnectProfileFor(net)
+    readonly property bool autoConnectFocused: isSelected && root.wifiActionIndex === root.wifiAutoConnectActionIndex(net)
+    readonly property bool forgetFocused: isSelected && root.wifiActionIndex === root.wifiForgetActionIndex(net)
     readonly property bool forgetVisible: canForget && (!requiresCredentials || forgetFocused || rightMouse.containsMouse)
 
-    hasCursor: root.cursorActive && isSelected && !root.wifiActionFocused
+    hasCursor: root.cursorActive && isSelected && root.wifiActionIndex === 0
     current: isConnected
     foreground: root.bar.foreground
     fill: root.hoverFill
@@ -1714,16 +1754,13 @@ Panel {
       // Move the cursor here when the mouse enters; mouse leaving doesn't
       // clear it (so the cursor stays where the mouse last was and
       // subsequent j/k pick up from this row).
-      onContainsMouseChanged: if (containsMouse) { root.cursorActive = true; root.focusSection = "wifi"; root.selectedIndex = row.index; root.wifiActionFocused = false }
+      onContainsMouseChanged: if (containsMouse) root.setWifiActionCursor(row.index, 0)
 
       onClicked: {
         if (!row.net) return
         // Resync cursor in case keyboard nav moved it away while the mouse
         // stayed parked on this row — the click target is unambiguously here.
-        root.cursorActive = true
-        root.focusSection = "wifi"
-        root.selectedIndex = row.index
-        root.wifiActionFocused = false
+        root.setWifiActionCursor(row.index, 0)
         if (row.isConnected) {
           root.disconnectRow(row.net.ssid)
           return
@@ -1768,12 +1805,19 @@ Panel {
           visible: row.isKnown && row.autoConnectProfile !== undefined
           checked: row.autoConnectProfile ? row.autoConnectProfile.enabled : false
           busy: root.pendingAutoConnectId === (row.autoConnectProfile ? row.autoConnectProfile.uuid : "")
-          cursorRing: false
+          hasCursor: root.cursorActive && row.autoConnectFocused
           foreground: root.bar.foreground
-          onToggled: if (row.autoConnectProfile) root.setAutoConnect(row.autoConnectProfile.uuid, !row.autoConnectProfile.enabled)
+          onHovered: function(isHovered) {
+            if (isHovered) root.setWifiActionCursor(row.index, root.wifiAutoConnectActionIndex(row.net))
+          }
+          onToggled: {
+            if (!row.autoConnectProfile) return
+            root.setWifiActionCursor(row.index, root.wifiAutoConnectActionIndex(row.net))
+            root.setAutoConnect(row.autoConnectProfile.uuid, !row.autoConnectProfile.enabled)
+          }
 
           PanelToolTip {
-            visible: parent.containsMouse
+            visible: parent.containsMouse || row.autoConnectFocused
             text: row.autoConnectProfile && row.autoConnectProfile.enabled ? "Auto-connect enabled" : "Auto-connect disabled"
             fontFamily: root.bar.fontFamily
           }
@@ -1812,8 +1856,12 @@ Panel {
             acceptedButtons: Qt.LeftButton
             enabled: row.canForget && !root.busy
             cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-            onContainsMouseChanged: if (containsMouse) { root.cursorActive = true; root.focusSection = "wifi"; root.selectedIndex = row.index; root.wifiActionFocused = true }
-            onClicked: if (row.net) root.forget(row.net)
+            onContainsMouseChanged: if (containsMouse) root.setWifiActionCursor(row.index, root.wifiForgetActionIndex(row.net))
+            onClicked: {
+              if (!row.net) return
+              root.setWifiActionCursor(row.index, root.wifiForgetActionIndex(row.net))
+              root.forget(row.net)
+            }
           }
 
           PanelToolTip {

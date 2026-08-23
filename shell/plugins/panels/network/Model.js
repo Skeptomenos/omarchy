@@ -267,13 +267,22 @@ function wifiRow(network) {
   // live QObject wrapper in every delegate's var property. NetworkManager churn
   // (scans, AP removals) can destroy the object while a delegate is still
   // incubating, which segfaults quickshell in wrap_slowPath on the dangling
-  // wrapper. Callers that need the object resolve it via networkForSsid().
+  // wrapper. Snapshot NMSettings UUID strings for the same reason. Callers that
+  // need the live network object resolve it via networkForSsid().
+  var profileUuids = []
+  var settings = network.nmSettings || []
+  for (var i = 0; i < settings.length; i++) {
+    var uuid = settings[i] ? String(settings[i].uuid || "") : ""
+    if (uuid !== "") profileUuids.push(uuid)
+  }
+
   return {
     connected: !!network.connected,
     known: !!network.known,
     ssid: network.name || "",
     signal: Math.round((network.signalStrength || 0) * 100),
-    security: network.security
+    security: network.security,
+    profileUuids: profileUuids
   }
 }
 
@@ -314,27 +323,81 @@ function canForgetNetwork(network) {
 
 function parseAutoConnectProfiles(raw) {
   var profiles = {}
-  var lines = String(raw || "").trim().split("\n")
+  var lines = String(raw || "").split("\n")
 
   for (var i = 0; i < lines.length; i++) {
-    var parts = lines[i].split("\t")
-    if (parts.length !== 3 || !parts[0] || !parts[1]) continue
-    profiles[parts[1]] = { uuid: parts[0], enabled: parts[2] === "yes" }
+    var parts = lines[i].replace(/\r$/, "").split(":")
+    if (parts.length !== 5 || !parts[0] || parts[1] !== "802-11-wireless") continue
+
+    var timestamp = parseInt(parts[3], 10)
+    if (!isFinite(timestamp) || timestamp < 0) timestamp = 0
+
+    profiles[parts[0]] = {
+      uuid: parts[0],
+      enabled: parts[2] === "yes",
+      timestamp: timestamp,
+      active: parts[4] === "yes"
+    }
   }
 
   return profiles
 }
 
-// NetworkManager profile names are user-editable and are neither stable nor
-// unique. Resolve each Wi-Fi profile's SSID once and return UUID, SSID, and
-// auto-connect state as tab-separated rows for the panel.
-var autoConnectProfilesScript =
-  "nmcli -t --escape yes -f UUID,TYPE,AUTOCONNECT connection show | " +
-  "while IFS=: read -r uuid type enabled; do " +
-  "[[ $type == 802-11-wireless ]] || continue; " +
-  "ssid=$(nmcli -g 802-11-wireless.ssid connection show uuid \"$uuid\") || continue; " +
-  "printf '%s\\t%s\\t%s\\n' \"$uuid\" \"$ssid\" \"$enabled\"; " +
-  "done"
+// Match Quickshell's NetworkManager reference policy: one active profile wins;
+// otherwise use the profile behind the last successful connection. Multiple
+// active matches and equal timestamps are ambiguous, so leave them unresolved
+// instead of changing an unpredictable profile.
+function selectAutoConnectProfile(profileUuids, profiles) {
+  var uuids = Array.isArray(profileUuids) ? profileUuids : []
+  var profileMap = profiles || {}
+  var candidates = []
+  var seen = {}
+
+  for (var i = 0; i < uuids.length; i++) {
+    var uuid = String(uuids[i] || "")
+    if (uuid === "" || seen[uuid] || profileMap[uuid] === undefined) continue
+    seen[uuid] = true
+    candidates.push(profileMap[uuid])
+  }
+
+  var activeProfile
+  var activeCount = 0
+  for (var j = 0; j < candidates.length; j++) {
+    if (!candidates[j].active) continue
+    activeProfile = candidates[j]
+    activeCount++
+  }
+  if (activeCount > 0) return activeCount === 1 ? activeProfile : undefined
+
+  var selectedProfile
+  var selectedTimestamp = -1
+  var timestampTied = false
+  for (var k = 0; k < candidates.length; k++) {
+    var timestamp = Number(candidates[k].timestamp || 0)
+    if (!selectedProfile || timestamp > selectedTimestamp) {
+      selectedProfile = candidates[k]
+      selectedTimestamp = timestamp
+      timestampTied = false
+    } else if (timestamp === selectedTimestamp) {
+      timestampTied = true
+    }
+  }
+
+  return timestampTied ? undefined : selectedProfile
+}
+
+// One panel-level query supplies stable UUIDs and non-secret connection state.
+// SSIDs never leave Quickshell and row delegates never spawn nmcli processes.
+var autoConnectProfilesCommand = [
+  "nmcli",
+  "-t",
+  "--escape",
+  "no",
+  "-f",
+  "UUID,TYPE,AUTOCONNECT,TIMESTAMP,ACTIVE",
+  "connection",
+  "show"
+]
 
 // The password arrives on stdin and reaches nmcli through the scriptable
 // `connection edit` editor -- argv is world-readable in /proc, so the secret
@@ -398,7 +461,8 @@ if (typeof module !== "undefined") {
     requiresCredentials: requiresCredentials,
     canForgetNetwork: canForgetNetwork,
     parseAutoConnectProfiles: parseAutoConnectProfiles,
-    autoConnectProfilesScript: autoConnectProfilesScript,
+    selectAutoConnectProfile: selectAutoConnectProfile,
+    autoConnectProfilesCommand: autoConnectProfilesCommand,
     enterpriseConnectScript: enterpriseConnectScript,
     networkFailureReason: networkFailureReason,
     shouldRepromptPassphrase: shouldRepromptPassphrase
