@@ -42,7 +42,17 @@ pass "packages the ARM repo provides are installed, not skipped"
 
 arm_builds="$ROOT/install/omarchy-aarch64-build.packages"
 [[ -f $arm_builds ]] || fail "the Apple Silicon installer declares its native ARM package builds"
-for package in herdr quickshell-git ttfx; do
+grep -qxF 'quickshell' "$base_packages" ||
+  fail "fresh installs use the stable Quickshell package"
+grep -qxF 'quickshell-git' "$base_packages" &&
+  fail "fresh installs do not use the moving Quickshell git package"
+for package in quickshell quickshell-git; do
+  grep -qxF "$package" "$arm_builds" &&
+    fail "repository packages are not built in the Apple Silicon package path" "$package is still in the build list"
+done
+pass "fresh Apple Silicon installs use stable Quickshell without building it"
+
+for package in herdr ttfx; do
   grep -qxF "$package" "$arm_builds" ||
     fail "the ARM build list includes the validated native package" "$package is missing"
 done

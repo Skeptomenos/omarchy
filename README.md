@@ -145,11 +145,8 @@ That is the whole install. It takes roughly 40 minutes on a good connection,
 almost all of it building the AUR packages in the default set, and it:
 
 - installs `yay` if you do not already have it
-- builds the four Omarchy packages from this checkout, plus the native ARM
-  packages listed in `install/omarchy-aarch64-build.packages`, including the
-  required `quickshell-git` shell runtime
-- adds the Apple Silicon package repo, installs the default package set,
-  seeds your home directory, and runs system and user setup
+- builds the four Omarchy packages from this checkout, plus the native ARM packages listed in `install/omarchy-aarch64-build.packages`
+- adds the Apple Silicon package repo, installs the default package set with the stable `quickshell` shell runtime, seeds your home directory, and runs system and user setup
 
 Notes:
 
