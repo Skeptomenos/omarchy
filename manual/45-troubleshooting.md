@@ -2,7 +2,7 @@
 
 ### I broke my system with an update!
 
-First try to [rollback your system](47-system-snapshots.md) the version before your recent update. If that doesn't work, use `omarchy-debug` to share with your problem on #omarchy-help in the Discord. And if all that fails, you can reinstall the defaults configs and packages using `omarchy-reinstall`.
+Run `omarchy snapshot check` first. If automatic rollback is ready, follow the [system snapshot restore steps](47-system-snapshots.md). If it is unavailable, use the recovery options in that guide instead. Run `omarchy-debug` to collect details for #omarchy-help in Discord.
 
 ### Why are some apps so large on my display?
 

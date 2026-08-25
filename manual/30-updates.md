@@ -26,12 +26,10 @@ Your packages aren't the only thing that goes stale. Many laptops and peripheral
 
 ### Warning about direct pacman/yay updates
 
-If you're already familiar with Arch, you might be tempted to just run `pacman -Syu` or `yay -Syu` yourself, but if you do that, you'll miss the snapshot, migrations, and configuration updates that Omarchy runs together with new packages. That's why Omarchy will actually stop a direct system upgrade and point you to `omarchy update` instead. (If you really know what you're doing, the guard will tell you how to bypass it for a single transaction.)
+If you're already familiar with Arch, you might be tempted to just run `pacman -Syu` or `yay -Syu` yourself, but if you do that, you'll miss Omarchy's rollback readiness check, any supported pre-update snapshot, migrations, and configuration updates. That's why Omarchy will actually stop a direct system upgrade and point you to `omarchy update` instead. (If you really know what you're doing, the guard will tell you how to bypass it for a single transaction.)
 
 ### Rolling back bad updates
 
-If you ever have a problem after doing an update, you can rollback your system to the snapshot taken before the update. Just restart and pick the snapshot in the boot loading menu from before you started the update.
+Before confirmation, `omarchy update` checks whether the machine has a supported automatic rollback path. It attempts the pre-update snapshot after package-cache cleanup and before packages change. If readiness fails, or if snapshot creation fails after a successful check, an interactive update warns you and requires a dedicated confirmation before package changes. `omarchy update -y` logs the warning and continues without asking.
 
-![bootloader](images/bootloader.webp)
-
-If somehow your configuration files have been corrupted, you can also perform an Omarchy reinstall using `omarchy reinstall` in the terminal. This will reinstall all the default Omarchy packages, put you on stable and downgrade any packages that are too new, and reset all the configuration files. Note that all your user config changes to the Omarchy defaults will be overwritten doing this!
+See [system snapshots](47-system-snapshots.md) for the canonical support matrix, restore steps, backup requirements, and recovery options.

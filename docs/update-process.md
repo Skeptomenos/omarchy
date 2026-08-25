@@ -117,13 +117,18 @@ omarchy-update
   │    └─ acquire the update lock and run omarchy-update inside it
   ├─ omarchy-update-requires-free-space
   │    └─ abort below the configured free-space threshold on /
+  ├─ omarchy-snapshot check
+  │    └─ verify Btrfs, the Snapper root config, and a supported restore backend
+  │       without sudo; warn when automatic rollback is unavailable
   ├─ confirm unless -y
+  │    └─ when rollback is unavailable, require a second risk confirmation
   ├─ omarchy-update-pkg-prune
   │    └─ trim the pacman cache to two versions per package, deliberately
   │       before the snapshot since the cache lives on the snapshotted subvolume
-  ├─ create snapper snapshot (skipped silently without snapper; snapper
-  │  installed but unconfigured fails the snapshot loudly, pointing at
-  │  install/config/snapper.sh, and the update continues without one)
+  ├─ create Snapper snapshot
+  │    ├─ report filesystem-specific failures
+  │    └─ if a ready preflight is invalidated by creation failure, require the
+  │       no-rollback confirmation before package changes (warn/continue with -y)
   ├─ omarchy-update-stay-awake start
   ├─ run package updates, migrations, hooks, and log analysis
   ├─ omarchy-update-status
@@ -139,7 +144,9 @@ Important behavior:
   configured upstream before changing system packages or running migrations.
 - `-y` exports `OMARCHY_UPDATE_UNATTENDED=1` — a promise not to ask anything.
   Steps that would prompt (orphan removal, conflict handoff) report and skip
-  instead of blocking.
+  instead of blocking. A failed rollback readiness check or a later snapshot
+  creation failure logs a prominent warning and continues. Interactive updates
+  require one dedicated confirmation for the same risk before package changes.
 - The free-space requirement uses a 10 GiB threshold and stops the update before
   confirmation when it is not met. If free space cannot be determined, the
   check is silently skipped. Set `OMARCHY_UPDATE_FORCE=1` to bypass the check.
@@ -265,11 +272,11 @@ scripts.
 
 | Binary | Current purpose | Keep? / Question |
 | --- | --- | --- |
-| `omarchy-update` | Public user command. Adds transcript logging, confirmation, snapshot, and restart checks around the locked, sleep-inhibited update pipeline. | **Keep.** This is the blessed entry point and orchestrates the update pipeline. |
+| `omarchy-update` | Public user command. Adds transcript logging, rollback readiness and risk confirmation, snapshot creation, and restart checks around the locked, sleep-inhibited update pipeline. | **Keep.** This is the blessed entry point and orchestrates the update pipeline. |
 | `omarchy-update-lock` | Hidden command wrapper that holds the per-user update lock while its child runs. | **Keep internal/hidden.** Isolates update concurrency and lock descriptor handling. |
 | `omarchy-update-stay-awake` | Hidden helper that starts or stops update-owned sleep and idle inhibition, restoring only the state it changed. | **Keep internal/hidden.** Keeps inhibitor ownership and cleanup together. |
 | `omarchy-update-status` | Hidden helper that refreshes or clears the shell update indicator after rechecking available updates. | **Keep internal/hidden.** Keeps shell status synchronization out of the main pipeline. |
-| `omarchy-update-confirm` | Gum confirmation copy for `omarchy update`. | **Question.** Could be inlined into `omarchy-update`; separate file only helps keep copy isolated. |
+| `omarchy-update-confirm` | Gum confirmation copy for the normal update prompt and the dedicated no-rollback risk prompt. | **Keep internal.** Keeping both prompts together makes the two-confirmation contract explicit and testable. |
 | `omarchy-update-dev` | Fast-forwards the active dev-linked checkout from its configured upstream; no-ops for package-backed installs. | **Keep.** Runs before package updates so a checkout conflict stops the update before system mutation. |
 | `omarchy-update-keyring` | Ensures Omarchy keyring and Arch keyring are current before the main transaction. | **Keep, but review.** It uses targeted `pacman -Sy` for keyring bootstrapping; acceptable for this special case but should remain tightly scoped. |
 | `omarchy-update-system-pkgs` | Runs `sudo env OMARCHY_UPDATE_PACMAN=1 pacman -Syu --noconfirm` with `--overwrite '/usr/share/omarchy/*'`, capturing stderr to a report file; on failure it execs `omarchy-update-system-pkgs-when-conflicted`. | **Keep for now.** Small leaf command, clear/testable. |

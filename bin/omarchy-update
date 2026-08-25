@@ -25,17 +25,49 @@ omarchy-update-requires-free-space
 # and move on instead of waiting on a prompt nobody is here to give.
 [[ ${1:-} != "-y" ]] || export OMARCHY_UPDATE_UNATTENDED=1
 
-if [[ ${1:-} == "-y" ]] || omarchy-update-confirm; then
+rollback_ready=1
+if ! omarchy-snapshot check; then
+  rollback_ready=0
+  echo -e "\e[1;33mWARNING: This update has no automatic rollback.\e[0m" >&2
+fi
+
+update_confirmed=0
+if [[ ${1:-} == "-y" ]]; then
+  update_confirmed=1
+  if (( ! rollback_ready )); then
+    echo "Unattended update will continue without automatic rollback." >&2
+  fi
+elif omarchy-update-confirm; then
+  if (( rollback_ready )) || omarchy-update-confirm --no-rollback; then
+    update_confirmed=1
+  fi
+fi
+
+if (( update_confirmed )); then
   # Before the snapshot: the cache is on the snapshotted subvolume, so pruning
   # after it frees nothing until that snapshot ages out.
   omarchy-update-pkg-prune
 
-  # 127 means Snapper is deliberately absent. Any other failure already said
-  # what went wrong, and a missing snapshot is not worth blocking an update
-  # over, but it must not pass for one either.
-  omarchy-snapshot create || (($? == 127)) ||
-    echo -e "\e[33mContinuing the update without a snapshot.\e[0m" >&2
+  snapshot_created=0
+  if omarchy-snapshot create; then
+    snapshot_created=1
+  fi
 
+  # The filesystem or service state can change after the read-only preflight.
+  # Keep package mutation behind the same explicit risk decision in that case.
+  if (( ! snapshot_created && rollback_ready )); then
+    rollback_ready=0
+    echo -e "\e[1;33mWARNING: Automatic rollback became unavailable after the preflight.\e[0m" >&2
+
+    if [[ ${1:-} == "-y" ]]; then
+      echo "Unattended update will continue without automatic rollback." >&2
+    elif ! omarchy-update-confirm --no-rollback; then
+      update_confirmed=0
+    fi
+  fi
+fi
+
+if (( update_confirmed )); then
   omarchy-update-stay-awake start
 
   omarchy-update-dev

@@ -1,49 +1,193 @@
 #!/bin/bash
 
-# omarchy:summary=Create or restore system snapshots with snapper
-# omarchy:args=<create|restore>
+# omarchy:summary=Check, create, or restore system snapshots with Snapper
+# omarchy:args=<check|create|restore>
 # omarchy:requires-sudo=true
 
 set -e
 
-COMMAND="$1"
+COMMAND="${1:-}"
+SNAPSHOT_GUIDE_URL="https://github.com/Skeptomenos/omarchy-mac/blob/quattro-arm/manual/47-system-snapshots.md"
+SNAPSHOT_BOOT_ROOT="${OMARCHY_SNAPSHOT_BOOT_ROOT:-/boot}"
+SNAPSHOT_ETC_ROOT="${OMARCHY_SNAPSHOT_ETC_ROOT:-/etc}"
+APPLE_COMPATIBLE_PATH="${OMARCHY_APPLE_COMPATIBLE:-/proc/device-tree/compatible}"
 
 if [[ -z $COMMAND ]]; then
-  echo "Usage: omarchy-snapshot <create|restore>" >&2
+  echo "Usage: omarchy-snapshot <check|create|restore>" >&2
   exit 1
 fi
 
-if omarchy-cmd-missing snapper; then
-  exit 127 # omarchy-update can use this to just ignore if snapper is not available
-fi
+root_fstype() {
+  findmnt -no FSTYPE / 2>/dev/null || echo unknown
+}
+
+snapper_root_target() {
+  snapper --no-dbus --csvout list-configs 2>/dev/null | awk -F, '$1 == "root" {print $2; exit}'
+}
+
+apple_silicon() {
+  [[ $(uname -m) == "aarch64" ]] && grep -qi apple "$APPLE_COMPATIBLE_PATH" 2>/dev/null
+}
+
+mac_restore_ready() {
+  if [[ ! -f $SNAPSHOT_BOOT_ROOT/grub/grub.cfg ]] ||
+    [[ ! -f $SNAPSHOT_ETC_ROOT/default/grub ]] ||
+    [[ -f $SNAPSHOT_BOOT_ROOT/limine.conf ]] ||
+    [[ -e $SNAPSHOT_BOOT_ROOT/loader/loader.conf ]] ||
+    [[ -d $SNAPSHOT_BOOT_ROOT/loader/entries ]]; then
+    return 1
+  fi
+
+  ! omarchy-cmd-missing omarchy-mac-snapshot-restore
+}
+
+limine_restore_ready() {
+  if [[ -e $SNAPSHOT_ETC_ROOT/default/grub ]] ||
+    [[ -e $SNAPSHOT_BOOT_ROOT/grub/grub.cfg ]] ||
+    [[ -e $SNAPSHOT_BOOT_ROOT/loader/loader.conf ]] ||
+    [[ -d $SNAPSHOT_BOOT_ROOT/loader/entries ]]; then
+    return 1
+  fi
+
+  if [[ ! -f $SNAPSHOT_BOOT_ROOT/limine.conf ]] ||
+    omarchy-cmd-missing limine-entry-tool ||
+    omarchy-cmd-missing limine-snapper-restore; then
+    return 1
+  fi
+
+  systemctl is-enabled --quiet limine-snapper-sync.service >/dev/null 2>&1 &&
+    systemctl is-active --quiet limine-snapper-sync.service >/dev/null 2>&1
+}
+
+restore_backend() {
+  if apple_silicon; then
+    if mac_restore_ready; then
+      echo omarchy-mac-snapshot-restore
+    else
+      return 1
+    fi
+  elif limine_restore_ready; then
+    echo limine-snapper-restore
+  else
+    return 1
+  fi
+}
+
+snapshot_root_ready() {
+  local action="$1"
+  local fstype
+  local root_target
+  fstype=$(root_fstype)
+
+  if [[ $fstype != "btrfs" ]]; then
+    if [[ $action == "check" ]]; then
+      echo "Automatic rollback is unavailable: / uses $fstype, which Omarchy system snapshots do not support." >&2
+    elif [[ $action == "create" ]]; then
+      echo "No snapshot can be created because / uses $fstype." >&2
+    else
+      echo "Snapshot restore is unavailable because / uses $fstype." >&2
+    fi
+    echo "See $SNAPSHOT_GUIDE_URL for backup and recovery options." >&2
+    return 1
+  fi
+
+  if omarchy-cmd-missing snapper; then
+    if [[ $action == "check" ]]; then
+      echo "Automatic rollback is unavailable: Snapper is not installed." >&2
+    elif [[ $action == "restore" ]]; then
+      echo "Snapshot restore is unavailable: Snapper is not installed." >&2
+    fi
+    return 127
+  fi
+
+  root_target=$(snapper_root_target)
+  if [[ -z $root_target ]]; then
+    if [[ $action == "check" ]]; then
+      echo "Automatic rollback is unavailable: Btrfs has no Snapper root configuration." >&2
+    elif [[ $action == "create" ]]; then
+      echo -e "\e[33mNo Snapper root config found, so no snapshot was created.\e[0m" >&2
+    else
+      echo "Snapshot restore is unavailable: Btrfs has no Snapper root configuration." >&2
+    fi
+    echo "Configure Snapper with: sudo bash -euo pipefail \"$OMARCHY_PATH/install/config/snapper.sh\"" >&2
+    return 1
+  elif [[ $root_target != "/" ]]; then
+    if [[ $action == "check" ]]; then
+      echo "Automatic rollback is unavailable: the Snapper root config does not target /." >&2
+    elif [[ $action == "create" ]]; then
+      echo "The Snapper root config does not target /, so no snapshot was created." >&2
+    else
+      echo "Snapshot restore is unavailable: the Snapper root config does not target /." >&2
+    fi
+    return 1
+  else
+    return 0
+  fi
+}
 
 case "$COMMAND" in
+check)
+  snapshot_root_ready check
+
+  if backend=$(restore_backend); then
+    echo "Automatic rollback is ready: Btrfs snapshots use $backend."
+  else
+    echo "Automatic rollback is unavailable: Snapper is configured, but no supported automatic restore backend is active." >&2
+    exit 1
+  fi
+  ;;
 create)
-  # The description is just a label, so never let it abort the snapshot.
+  snapshot_root_ready create
+
+  # The description is only a label, so never let it abort the snapshot.
   DESC="$(omarchy-version 2>/dev/null || echo unknown)"
+  configs_csv=$(sudo snapper --csvout list-configs)
+  root_target=$(awk -F, '$1 == "root" {print $2; exit}' <<<"$configs_csv")
 
-  # Get existing snapper config names from CSV output
-  mapfile -t CONFIGS < <(sudo snapper --csvout list-configs | awk -F, 'NR>1 {print $1}')
-
-  # Snapper installed but unconfigured snapshots nothing. Staying quiet here
-  # reads as a successful snapshot, so the next update looks recoverable when
-  # nothing has ever been captured.
-  if (( ${#CONFIGS[@]} == 0 )); then
-    echo -e "\e[33mNo Snapper configs found, so no snapshot was created.\e[0m" >&2
+  # Recheck the privileged view before writing in case configuration changed
+  # after the read-only check.
+  if [[ -z $root_target ]]; then
+    echo -e "\e[33mNo Snapper root config found, so no snapshot was created.\e[0m" >&2
     echo "Configure Snapper with: sudo bash -euo pipefail \"$OMARCHY_PATH/install/config/snapper.sh\"" >&2
+    exit 1
+  elif [[ $root_target != "/" ]]; then
+    echo "The Snapper root config does not target /, so no snapshot was created." >&2
     exit 1
   fi
 
-  echo -e "\e[32mCreate system snapshot\e[0m"
+  mapfile -t configs < <(awk -F, 'NR>1 {print $1}' <<<"$configs_csv")
 
-  for config in "${CONFIGS[@]}"; do
+  echo -e "\e[32mCreate system snapshot\e[0m"
+  for config in "${configs[@]}"; do
     sudo snapper -c "$config" create -c number -d "$DESC"
     sudo snapper -c "$config" cleanup number
   done
 
-  echo "Snapshots can be selected during boot."
+  if backend=$(restore_backend); then
+    if [[ $backend == "limine-snapper-restore" ]]; then
+      echo "Snapshots can be selected during boot."
+    else
+      echo "Snapshot created. Restore it with: omarchy snapshot restore"
+    fi
+  else
+    echo "Snapshot created, but automatic restore is unavailable."
+    exit 1
+  fi
   ;;
 restore)
-  sudo limine-snapper-restore
+  snapshot_root_ready restore
+
+  # Backend eligibility can change after an earlier check. Resolve it again
+  # directly before privileged restore.
+  if backend=$(restore_backend); then
+    sudo "$backend"
+  else
+    echo "No supported snapshot restore backend is active for this system." >&2
+    exit 1
+  fi
+  ;;
+*)
+  echo "Usage: omarchy-snapshot <check|create|restore>" >&2
+  exit 1
   ;;
 esac

@@ -34,7 +34,7 @@ Windows folks: your Win + V clipboard history lives on `Super + Ctrl + V`, and i
 | AirDrop | LocalSend, via `Super + Ctrl + S` — see [GUIs](22-guis.md) |
 | Cmd + Shift + 4 / Win + Shift + S | `Print Screen` — see [screenshots & recording](12-screenshots-recording.md) |
 | Notification Center | Notification history on `Super + Shift + Alt + ,` |
-| Time Machine (for the system) | Automatic [system snapshots](47-system-snapshots.md) on every update |
+| Time Machine (for the system) | Automatic [system snapshots](47-system-snapshots.md) on supported Btrfs and Limine systems; external backups on other setups |
 | App Store / downloading an installer | _Install_ in the menu, or `omarchy pkg add` — see [other packages](29-other-packages.md) |
 | System Settings / Control Panel | _Setup_ in the menu, which edits plain config files — see [dotfiles](31-dotfiles.md) |
 
@@ -42,7 +42,7 @@ Windows folks: your Win + V clipboard history lives on `Super + Ctrl + V`, and i
 
 A lot of settings live in text files you edit, not panels you click through. That sounds primitive until you realize it means every tweak can be seen, copied to your next machine, and put in version control. The _Setup_ menu drops you straight into the right file and restarts whatever needs restarting when you're done.
 
-Updates come through one command — _Update > Omarchy_ — that updates Omarchy itself and every package on the system, taking a snapshot first. No per-app updaters nagging you at random. See [updates](30-updates.md).
+Updates come through one command — _Update > Omarchy_ — that updates Omarchy itself and every package on the system. It checks rollback support first and creates a pre-update snapshot on configured Btrfs roots. Automatic rollback also needs a supported restore backend. No per-app updaters nagging you at random. See [updates](30-updates.md).
 
 Software comes from a package manager, not from downloaded installers.
 

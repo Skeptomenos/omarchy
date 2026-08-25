@@ -1,6 +1,23 @@
 #!/bin/bash
 
 # omarchy:summary=Prompt for confirmation before starting an update
+# omarchy:args=[--no-rollback]
+# omarchy:hidden=true
+
+if [[ ${1:-} == "--no-rollback" ]]; then
+  gum style --bold --foreground 3 \
+    "Automatic rollback is unavailable for this update." \
+    "Have a current external backup before you continue."
+
+  echo
+
+  if ! gum confirm "Continue without automatic rollback?"; then
+    echo "Update cancelled"
+    exit 1
+  fi
+
+  exit 0
+fi
 
 gum style --border normal --padding "1 2" \
   "Ready to update?" \
