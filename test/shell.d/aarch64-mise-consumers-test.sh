@@ -112,18 +112,22 @@ grep -qF 'mise --version' "$log" ||
   fail "the full ARM reinstaller ensures a working mise" "$(<"$log")"
 pass "the full ARM reinstaller uses the verified mise path"
 
-upgrade_function=$(sed -n '/^install_quattro_packages() {$/,/^}$/p' "$ROOT/bin/omarchy-upgrade-to-quattro-mac")
+upgrade_functions=$(
+  for function_name in load_unavailable_packages package_is_unavailable_here install_quattro_packages; do
+    sed -n "/^${function_name}() {$/,/^}$/p" "$ROOT/bin/omarchy-upgrade-to-quattro-mac"
+  done
+)
 : >"$log"
 PATH="$fake_bin:/usr/bin:/bin" \
   MISE_CONSUMER_TEST_ARCH="aarch64" \
   MISE_CONSUMER_TEST_LOG="$log" \
   OMARCHY_CONSUMER_TEST_ROOT="$ROOT" \
-  OMARCHY_CONSUMER_TEST_FUNCTION="$upgrade_function" \
+  OMARCHY_CONSUMER_TEST_FUNCTIONS="$upgrade_functions" \
   /bin/bash -euo pipefail -c '
     checkout="$OMARCHY_CONSUMER_TEST_ROOT"
     log() { :; }
     warn() { :; }
-    eval "$OMARCHY_CONSUMER_TEST_FUNCTION"
+    eval "$OMARCHY_CONSUMER_TEST_FUNCTIONS"
     install_quattro_packages
   '
 assert_no_mise_package_action "the Apple Silicon upgrader excludes mise packages from yay"

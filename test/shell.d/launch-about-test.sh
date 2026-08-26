@@ -22,6 +22,10 @@ source "$tmp_dir/about.bash"
 [[ $(type -t sheen_build) == "function" ]] || fail "the launcher finds the sheen it sources"
 pass "the launcher finds the sheen it sources"
 
+# The host running the test may request colourless command output globally.
+# This test controls NO_COLOR itself below, so start its positive cases clean.
+unset NO_COLOR
+
 # Kept before the stubs replace it, so the real one can be exercised below.
 real_measure_layout=$(declare -f measure_layout)
 

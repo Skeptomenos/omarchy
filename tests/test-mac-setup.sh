@@ -417,7 +417,7 @@ session_chosen() {
 }
 
 check "no sessions at all is refused rather than guessed" \
-  bash -c 'OMARCHY_SESSIONS_DIR="'"$sessions"'"; '"$(declare -f desktop_session)"'; ! desktop_session'
+  bash -c 'OMARCHY_SESSIONS_DIR="'"$sessions"'"; '"$(declare -f session_dirs session_file_path desktop_session)"'; ! desktop_session'
 
 touch "$sessions/hyprland.desktop"
 check "plain hyprland is used when it is all there is" \
