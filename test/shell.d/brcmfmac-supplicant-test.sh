@@ -8,7 +8,7 @@ leaf="$ROOT/install/hardware/apple/fix-brcmfmac-supplicant.sh"
 fix_t2="$ROOT/install/hardware/apple/fix-t2.sh"
 all="$ROOT/install/hardware/all.sh"
 migration="$ROOT/migrations/1786391100.sh"
-cleanup="$ROOT/migrations/1787163407.sh"
+cleanup="$ROOT/migrations/1787749805.sh"
 
 grep -q 'apple/fix-brcmfmac-supplicant.sh' "$all" ||
   fail "the brcmfmac quirk runs during hardware setup"

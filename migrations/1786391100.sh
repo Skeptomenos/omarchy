@@ -10,7 +10,7 @@ conf="${OMARCHY_BRCMFMAC_CONF:-/etc/modprobe.d/brcmfmac.conf}"
 
 # Intel Macs only. Apple Silicon Macs report the same vendor and carry two of
 # the same PCI IDs, and there this option leaves the machine with no Wi-Fi at
-# all (#7439). migrations/1787163407.sh takes it back off the machines this one
+# all (#7439). migrations/1787749805.sh takes it back off the machines this one
 # already reached.
 [[ $(uname -m) == "x86_64" ]] || exit 0
 
