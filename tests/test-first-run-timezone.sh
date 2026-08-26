@@ -27,18 +27,55 @@ not() {
   ! "$@"
 }
 
-# The leaf is sourced by the first-run driver, so it is sourced here too, with
-# the notification recorded as a file rather than sent.
-prompts_for_timezone() {
-  local timezone="$1"
-  rm -rf "$WORK/bin" "$WORK/notified"
+# The leaf is sourced by the first-run driver, so it is sourced here too. Record
+# the notification argv exactly, and preserve the sender's exit status.
+run_timezone_leaf() {
+  local timezone="$1" notification_status="${2:-0}"
+  rm -rf "$WORK/bin" "$WORK/notification-args"
   mkdir -p "$WORK/bin"
   printf '#!/bin/bash\necho %s\n' "$timezone" >"$WORK/bin/timedatectl"
-  printf '#!/bin/bash\ntouch "%s/notified"\n' "$WORK" >"$WORK/bin/omarchy-notification-send"
+  cat >"$WORK/bin/omarchy-notification-send" <<'SH'
+#!/bin/bash
+printf '%s\0' "$@" >"$OMARCHY_TEST_NOTIFICATION_ARGS"
+exit "$OMARCHY_TEST_NOTIFICATION_STATUS"
+SH
   chmod +x "$WORK/bin"/*
 
-  PATH="$WORK/bin:$PATH" bash -c "source '$LEAF'" >/dev/null 2>&1
-  [[ -e $WORK/notified ]]
+  OMARCHY_TEST_NOTIFICATION_ARGS="$WORK/notification-args" \
+    OMARCHY_TEST_NOTIFICATION_STATUS="$notification_status" \
+    PATH="$WORK/bin:$PATH" bash -c "source '$LEAF'" >/dev/null 2>&1
+}
+
+prompts_for_timezone() {
+  run_timezone_leaf "$1" || return
+  [[ -e $WORK/notification-args ]]
+}
+
+uses_safe_notification_argv() {
+  local -a actual expected=(
+    -u critical -g 󰥔
+    "Set your timezone"
+    "This machine is on UTC. Click to choose yours."
+    --exec
+    omarchy-launch-floating-terminal-with-presentation
+    omarchy-cmd-tzupdate-enhanced
+  )
+
+  run_timezone_leaf UTC || return
+  mapfile -d '' -t actual <"$WORK/notification-args"
+  ((${#actual[@]} == ${#expected[@]})) || return 1
+
+  local i
+  for ((i = 0; i < ${#expected[@]}; i++)); do
+    [[ ${actual[i]} == "${expected[i]}" ]] || return 1
+  done
+}
+
+reports_notification_failure() {
+  local status
+  run_timezone_leaf UTC 23
+  status=$?
+  (( status == 23 ))
 }
 
 check "a machine still on UTC is prompted" prompts_for_timezone UTC
@@ -46,6 +83,8 @@ check "a machine with a real zone is left alone" \
   not prompts_for_timezone America/New_York
 check "an unset timezone is prompted" prompts_for_timezone ""
 check "another real zone is left alone" not prompts_for_timezone Europe/London
+check "the notification carries a safe click argv" uses_safe_notification_argv
+check "a notification failure fails the timezone step" reports_notification_failure
 
 echo
 echo "=== $pass checks passed, $failures failed ==="
