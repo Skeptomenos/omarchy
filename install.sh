@@ -10,6 +10,7 @@ set -euo pipefail
 
 readonly checkout="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 readonly package_output="$checkout/build-output"
+readonly asahi_alarm_key="12CE6799A94A3F1B5DDFFE88F576553597FB8FEB"
 
 source "$checkout/install/helpers/mise.sh"
 
@@ -39,6 +40,11 @@ fail() {
     printf '\033[31mError:\033[0m %s\n' "$*" >&2
   fi
   exit 1
+}
+
+# Asahi Alarm ships LANG=C, and nothing else in the install path replaces it.
+ensure_utf8_locale() {
+  source "$checkout/install/preflight/locale.sh"
 }
 
 ensure_gum() {
@@ -110,30 +116,51 @@ install_omarchy_packages() {
   source /usr/share/omarchy/default/bash/env-bootstrap
 }
 
+# The Asahi Alarm image normally ships this keyring already. A generic
+# aarch64 base does not, and pacman refuses to create the asahi-alarm database
+# until its master key is trusted. Install the keyring before the first refresh
+# so later AUR and ARM-repo package operations do not fail with a misleading
+# "database does not exist" error.
+ensure_asahi_alarm_keyring() {
+  grep -q '^\[asahi-alarm\]' /etc/pacman.conf || return 0
+  pacman -Q asahi-alarm-keyring >/dev/null 2>&1 && return 0
+
+  if ! sudo pacman-key --list-keys "$asahi_alarm_key" >/dev/null 2>&1; then
+    log "Importing the Asahi Alarm package signing key"
+    sudo pacman-key --recv-keys "$asahi_alarm_key" --keyserver hkps://keys.openpgp.org
+  fi
+  sudo pacman-key --lsign-key "$asahi_alarm_key" >/dev/null
+
+  log "Installing the Asahi Alarm package keyring"
+  sudo pacman -Sy --needed --noconfirm asahi-alarm-keyring
+}
+
 # Compared in bash rather than with grep against a process substitution, which
 # ugrep answers differently from GNU grep.
 # The shipped pacman.conf only lands during post-install, after the package set
 # is already installed, so the repo has to be added now: otherwise herdr builds
 # zig0.15 from source for two hours and aarch64 rejects it anyway.
 ensure_arm_package_repo() {
-  grep -q '^\[omarchy-aarch64\]' /etc/pacman.conf && return 0
+  if ! grep -q '^\[omarchy-aarch64\]' /etc/pacman.conf; then
+    local block repo_url="${OMARCHY_ARM_PACKAGE_SERVER:-}"
+    block=$(sed -n '/^\[omarchy-aarch64\]/,/^Server[[:space:]]*=/p' \
+      "$checkout/default/pacman/pacman-stable.conf")
+    [[ -n $block ]] || fail "default/pacman/pacman-stable.conf has no [omarchy-aarch64] section."
 
-  local block repo_url="${OMARCHY_ARM_PACKAGE_SERVER:-}"
-  block=$(sed -n '/^\[omarchy-aarch64\]/,/^Server[[:space:]]*=/p' \
-    "$checkout/default/pacman/pacman-stable.conf")
-  [[ -n $block ]] || fail "default/pacman/pacman-stable.conf has no [omarchy-aarch64] section."
+    if [[ -n $repo_url ]]; then
+      [[ $repo_url =~ ^(https?|file)://[^[:space:]]+$ ]] ||
+        fail "OMARCHY_ARM_PACKAGE_SERVER must be an http(s) or file URL."
+      block=$(printf '%s\n' "$block" | awk -v url="$repo_url" \
+        '{ if ($0 ~ /^Server[[:space:]]*=/) print "Server = " url; else print }')
+    fi
 
-  if [[ -n $repo_url ]]; then
-    [[ $repo_url =~ ^(https?|file)://[^[:space:]]+$ ]] ||
-      fail "OMARCHY_ARM_PACKAGE_SERVER must be an http(s) or file URL."
-    block=$(printf '%s\n' "$block" | awk -v url="$repo_url" \
-      '{ if ($0 ~ /^Server[[:space:]]*=/) print "Server = " url; else print }')
+    log "Adding the Omarchy ARM package repo"
+    printf '\n%s\n' "$block" | sudo tee -a /etc/pacman.conf >/dev/null
   fi
 
-  log "Adding the Omarchy ARM package repo"
-  printf '\n%s\n' "$block" | sudo tee -a /etc/pacman.conf >/dev/null
-  sudo pacman -Sy --noconfirm >/dev/null 2>&1 ||
-    warn "Could not refresh package databases after adding the ARM repo."
+  ensure_asahi_alarm_keyring
+  log "Refreshing package databases for ARM packages"
+  sudo pacman -Sy --noconfirm
 }
 
 load_unavailable_packages() {
@@ -151,7 +178,10 @@ confirm() {
   local question="$1"
 
   if command -v gum >/dev/null 2>&1; then
-    gum confirm "$question" </dev/tty
+    # --default=false to match the [y/N] fallback below: gum selects Yes
+    # otherwise, so Enter accepts -- and what this asks about is whether to
+    # spend three hours building packages that were measured to fail.
+    gum confirm --default=false "$question" </dev/tty
   else
     local answer
     read -r -p "$question [y/N] " answer </dev/tty
@@ -261,8 +291,31 @@ run_system_setup() {
   omarchy-provision-user --first-install
 }
 
+# On a btrfs root (see omarchy-system-btrfs-migrate) record the finished
+# install as the @factory baseline, mirroring the snapshot the Quattro ISO
+# takes, so omarchy-system-factory-reset can return the machine to this state.
+# The reset itself scrubs user accounts from the clone, so a baseline taken
+# after user creation is fine. Silently does nothing on ext4 roots.
+snapshot_factory_baseline() {
+  [[ $(findmnt -no FSTYPE /) == btrfs ]] || return 0
+  findmnt -no OPTIONS / | grep -q 'subvol=/@\(,\|$\)' || return 0
+
+  local top=/run/omarchy-install-top device
+  device=$(findmnt -no SOURCE / | sed 's/\[.*\]//')
+
+  sudo mkdir -p "$top"
+  sudo mount -o subvolid=5 "$device" "$top"
+  if [[ ! -d $top/@factory ]]; then
+    log "Snapshotting the installed system as the @factory reset baseline"
+    sudo btrfs subvolume snapshot -r "$top/@" "$top/@factory" >/dev/null
+  fi
+  sudo umount "$top"
+  sudo rmdir "$top"
+}
+
 main() {
   check_preconditions
+  ensure_utf8_locale
   ensure_gum
   ensure_aur_helper
   ensure_package_sources
@@ -273,6 +326,7 @@ main() {
   omarchy_ensure_arm_mise
   seed_user_defaults
   run_system_setup
+  snapshot_factory_baseline
 
   log "Install complete. Reboot to start Omarchy."
 }

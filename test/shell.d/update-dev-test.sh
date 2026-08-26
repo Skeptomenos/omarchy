@@ -64,6 +64,11 @@ grep -Fx -- "-C $checkout pull --ff-only" "$git_log" >/dev/null ||
   fail "dev checkout update pulls its upstream with fast-forward only" "$(cat "$git_log")"
 pass "dev checkout update pulls its configured upstream"
 
+if grep -Eq 'remote[[:space:]]+(set-url|add)|remote\.origin\.url' "$ROOT/bin/omarchy-update-dev"; then
+  fail "dev checkout update rewrites the configured origin"
+fi
+pass "dev checkout update preserves the configured Codeberg origin"
+
 : >"$git_log"
 TEST_GIT_UPSTREAM=none run_dev_update "$checkout"
 if grep -q ' pull ' "$git_log"; then

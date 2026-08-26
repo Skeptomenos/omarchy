@@ -7,9 +7,9 @@
 # and guides the user to run the actual bootstrap script locally.
 #
 # Usage (as root after first boot):
-#   curl -fsSL https://codeberg.org/malik-na/omarchy-mac/raw/branch/main/bootstrap.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/Skeptomenos/omarchy-mac/quattro-arm/bootstrap.sh | bash
 #   OR
-#   wget -qO- https://codeberg.org/malik-na/omarchy-mac/raw/branch/main/bootstrap.sh | bash
+#   wget -qO- https://raw.githubusercontent.com/Skeptomenos/omarchy-mac/quattro-arm/bootstrap.sh | bash
 # =============================================================================
 
 set -e
@@ -74,7 +74,7 @@ check_root() {
 
 # Clone repository and setup
 clone_repository() {
-    local repo_url="https://codeberg.org/malik-na/omarchy-mac.git"
+    local repo_url="https://github.com/Skeptomenos/omarchy-mac.git"
     local target_dir="/root/.local/share/omarchy"
     
     print_step "Downloading Omarchy Mac repository..."
@@ -94,7 +94,7 @@ clone_repository() {
     fi
     
     # Clone the repository
-    git clone "$repo_url" "$target_dir"
+    git clone --branch quattro-arm --single-branch "$repo_url" "$target_dir"
     print_success "Repository cloned to $target_dir"
     
     echo ""

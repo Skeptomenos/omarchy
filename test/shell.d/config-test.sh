@@ -37,6 +37,11 @@ jq -e '
 ' "$ROOT/config/omarchy/shell.json" >/dev/null
 pass "default clock date format has no leading zero"
 
+grep -qF 'o.bind("SUPER + SHIFT + M", "Music", { webapp = "https://open.spotify.com/" })' \
+  "$ROOT/default/hypr/bindings/applications.lua" ||
+  fail "Apple Silicon music binding opens the Spotify web app"
+pass "Apple Silicon music binding opens the Spotify web app"
+
 
 ROOT="$ROOT" python3 <<'PY'
 import json

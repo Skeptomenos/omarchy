@@ -7,6 +7,10 @@ source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/base-test.sh"
 base_packages="$ROOT/install/omarchy-base.packages"
 unavailable="$ROOT/install/omarchy-aarch64-unavailable.packages"
 
+grep -qxF zram-generator "$base_packages" ||
+  fail "fresh installs include zram-generator in the default package set"
+pass "fresh installs include zram-generator in the default package set"
+
 mapfile -t unavailable_packages < <(grep -vE '^[[:space:]]*(#|$)' "$unavailable")
 (( ${#unavailable_packages[@]} )) || fail "the aarch64 unavailable list names at least one package"
 
@@ -51,6 +55,11 @@ for package in quickshell quickshell-git; do
     fail "repository packages are not built in the Apple Silicon package path" "$package is still in the build list"
 done
 pass "fresh Apple Silicon installs use stable Quickshell without building it"
+
+grep -qF 'grep -qxF quickshell-git "$SRC/install/omarchy-base.packages" || return 0' \
+  "$ROOT/bin/omarchy-mac-setup" ||
+  fail "guided install probes the Quickshell git transport only for quickshell-git"
+pass "guided install does not probe or redirect git for stable Quickshell"
 
 for package in herdr ttfx; do
   grep -qxF "$package" "$arm_builds" ||
@@ -113,3 +122,27 @@ set_call=$(grep -n '^  install_default_package_set$' "$ROOT/install.sh" | cut -d
 (( repo_call < set_call )) ||
   fail "the ARM repo is added before the default package set is installed"
 pass "the ARM repo is added before the default package set is installed"
+
+# The Quattro upgrade has the same trap with a twist: a 3.x machine's
+# /etc/pacman.conf predates the ARM repo entirely, and installing packages
+# first sent quickshell-git to an AUR build that fails on Wayland-only GL
+# stacks (#208). The upgrade must wire the repo in from its own fresh checkout
+# before the package pass.
+repo_call=$(grep -n '^  ensure_arm_package_repo$' "$ROOT/bin/omarchy-upgrade-to-quattro-mac" | cut -d: -f1)
+checkout_call=$(grep -n '^  switch_checkout_to_quattro$' "$ROOT/bin/omarchy-upgrade-to-quattro-mac" | cut -d: -f1)
+set_call=$(grep -n '^  install_quattro_packages$' "$ROOT/bin/omarchy-upgrade-to-quattro-mac" | cut -d: -f1)
+[[ -n $repo_call && -n $checkout_call && -n $set_call ]] ||
+  fail "the upgrade switches checkout, adds the ARM repo, and installs the set"
+(( checkout_call < repo_call )) ||
+  fail "the ARM repo block is read from the Quattro checkout, so switch first"
+(( repo_call < set_call )) ||
+  fail "the upgrade adds the ARM repo before installing the Quattro set"
+pass "the Quattro upgrade adds the ARM repo before installing packages"
+
+# Migration 1784672586 predates the move back to stable Quickshell. Gate the
+# old replacement on the current package list so it becomes a no-op on this
+# branch and cannot silently put the moving git package back.
+grep -qF 'grep -qxF quickshell-git "$OMARCHY_PATH/install/omarchy-base.packages"' \
+  "$ROOT/migrations/1784672586.sh" ||
+  fail "the quickshell-git migration follows the current package selection"
+pass "the quickshell-git migration preserves stable Quickshell"

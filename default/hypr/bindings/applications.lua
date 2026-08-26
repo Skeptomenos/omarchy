@@ -11,7 +11,9 @@ if o.preinstalled_bindings_enabled() then
   -- Bindings for preinstalled Omarchy applications, TUIs, and web apps.
   o.bind("SUPER + ALT + RETURN", "Tmux", { omarchy = "terminal-tmux" })
   o.bind("SUPER + CTRL + RETURN", "Herdr", { omarchy = "terminal-herdr" })
-  o.bind("SUPER + SHIFT + M", "Music", { omarchy = "spotify" })
+  -- The native Spotify package has repeatedly lagged on aarch64. Keep the Mac
+  -- default on Spotify's web app, which works without an x86-only package.
+  o.bind("SUPER + SHIFT + M", "Music", { webapp = "https://open.spotify.com/" })
   o.bind("SUPER + SHIFT + ALT + M", "Music TUI", { tui = "cliamp", focus = true })
   o.bind("SUPER + SHIFT + D", "Docker", { tui = "omarchy-launch-docker-tui" })
   o.bind("SUPER + SHIFT + G", "Signal", { omarchy = "signal" })

@@ -3,9 +3,9 @@
 set -euo pipefail
 
 # A theme installed with `omarchy theme install` is a stranger's git repo, so
-# omarchy-theme-set drops the files that would run its code -- Lua, terminal and
-# lock-screen configs, vscode.json -- and keeps the colour. A theme the user
-# wrote themselves is not filtered at all.
+# omarchy-theme-set drops the files that would run its code -- Lua, terminal
+# configs, vscode.json -- and keeps the colour. A theme the user wrote themselves
+# is not filtered at all.
 
 source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/base-test.sh"
 
@@ -75,7 +75,7 @@ printf 'shell %s\n' "$marker" >"$hostile/kitty.conf"
 printf '[terminal.shell]\nprogram = "%s"\n' "$marker" >"$hostile/alacritty.toml"
 printf 'shell = "%s"\n' "$marker" >"$hostile/foot.ini"
 printf 'command = "%s"\n' "$marker" >"$hostile/ghostty.conf"
-printf 'source = %s\n' "$marker" >"$hostile/hyprlock.conf"
+printf 'general { on_unlock = "%s" }\n' "$marker" >"$hostile/hyprlock.conf"
 printf 'hl.env("GUM_INPUT_PROMPT", "%s")\n' "$marker" >"$hostile/gum_env.lua"
 printf '[bar]\nbackground = "#%s"\n' "000000" >"$hostile/shell.toml"
 printf '{}\n' >"$hostile/vscode.json"
@@ -97,6 +97,9 @@ assert_staged backgrounds/1-real.png "an image in backgrounds/ is staged"
 
 assert_not_staged unlock.png "a symlink is not followed out of the theme"
 assert_not_staged vscode.json "vscode.json names an extension to install and is not staged"
+# The template generates this file, so it exists; what must never reach it is
+# the theme's own copy, which the lock config would source as directives.
+assert_no_marker hyprlock.conf "an installed theme's hyprlock.conf never reaches the lock screen"
 
 assert_staged icons.theme "the theme's icon set name is staged"
 grep -q 'Yaru-red' "$(staged icons.theme)" || fail "the staged icons.theme is the theme's"
@@ -106,7 +109,7 @@ assert_not_staged .git "the clone's own git directory is never staged"
 
 # These run code, so the theme's versions must lose to Omarchy's generated ones
 # rather than merely be absent.
-for generated in hyprland.lua neovim.lua gum_env.lua kitty.conf alacritty.toml foot.ini ghostty.conf hyprlock.conf; do
+for generated in hyprland.lua neovim.lua gum_env.lua kitty.conf alacritty.toml foot.ini ghostty.conf; do
   assert_staged "$generated" "$generated is generated from Omarchy's template"
   assert_no_marker "$generated" "an installed theme cannot supply $generated"
 done
@@ -207,7 +210,10 @@ pass "a theme name cannot climb out of the theme directories"
 # A denylist is only correct while someone adding a template classifies what it
 # generates. Every generated theme file is either denied to an installed theme or
 # recorded here as carrying colour, so a new template fails until it is placed.
-denied=(alacritty.toml foot.ini ghostty.conf hyprlock.conf kitty.conf gum_env.lua hyprland.lua neovim.lua vscode.json)
+# hyprlock.conf carries only colour, but it is `source`d by the lock screen's
+# own config, so anything in it becomes lock-screen configuration. An installed
+# theme must not be able to contribute that file.
+denied=(alacritty.toml foot.ini ghostty.conf kitty.conf gum_env.lua hyprland.lua hyprlock.conf neovim.lua vscode.json)
 colour_only=(btop.theme chromium.theme claude.json helix.toml hyprland-preview-share-picker.css keyboard.rgb obsidian.css pi.json shell.toml vscode-theme.json)
 
 for tpl in "$ROOT"/default/themed/*.tpl; do
