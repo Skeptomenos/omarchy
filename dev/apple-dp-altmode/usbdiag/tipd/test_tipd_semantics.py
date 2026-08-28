@@ -1,9 +1,10 @@
-"""Test-first TIPD semantic RED; run only in the reviewed private sandbox.
+"""Source-extracted TIPD checks; run only in the reviewed private sandbox.
 
-This initial fixed subject is the unchanged working HPD control. Both compiled
-copies must satisfy independent operation ledgers. Only then do the two selected
-RED assertions require absent T1 entry records. Setup failures are not RED.
-The control, adapters and this runner must be frozen before instrumentation.
+The unchanged working HPD control and the fixed T1 subject must satisfy the
+original independent operation ledgers. The original two positive entry tests
+first failed against the frozen control, before instrumentation was written.
+Partial-function and bounded atomic-thread fixtures are not kernel probes,
+complete captured traces, ABI proofs, or hardware scheduling simulations.
 """
 
 from dataclasses import dataclass, field
@@ -25,6 +26,10 @@ CONTROL_PINS: dict[str, str] = {
   "trace.c": "1aa4062980d6c62ddec438abdff474408ee6ff9c891ca134153a8187fbb92e87",
   "trace.h": "21a469e23cf48152c31f61c0eea8723d43b650facb730bbb352193c73e27e4e6",
   "Makefile": "cd9faacfe10e725e71957aa226b5b0712b3d3de4bb70bec20c1d9b4d17a4ab72",
+}
+SUBJECT_PINS: dict[str, str] = {
+  **CONTROL_PINS,
+  "core.c": "215051ed006431c73f2e402e5a1d503daaa41dc9d4b9e2bb66a82ac868892a92",
 }
 HEADER_PINS: dict[str, str] = {
   "linux/usb/typec.h": "8365f2bc6ee3c43bd4b6a08c766fadf5a3c2e9f13059a56922af7e8031f1c23b",
@@ -67,9 +72,10 @@ LINK_PINS: dict[str, str] = {
   "libatomic.so.1": "e4e026a2b4d66f9d57c08645dea91ae9d36ebcbea55b34cf2357f312a8682495",
 }
 TEMPLATE_PINS: dict[str, str] = {
-  "semantic_adapter.c": "bc08fae9787814771513d700b5590fc21bedc481985f850a1004340a53e286d8",
-  "semantic_fixture.c": "51c9036b8821f42485a9dcb97796e7cc21be56e3ee497d39f189b0fb0b53c22a",
-  "of_fixture.c": "dfc3d4e677b6183976d3f31ba502d2bf270c5460ec0607963912baa155ac58e6",
+  "semantic_adapter.c": "5e62d669b64a24f7a3bbd476792a9c3bcd4cfdbba96e2c74a85162c6f70a514c",
+  "semantic_fixture.c": "2e55a4fa1d154f70262e288bd1784459a2392d837063e5e878875b7812d7b530",
+  "of_fixture.c": "c501f6cb2ee737c1e45463f9315270e7d44efc2b58762b83cf822d23586db7bb",
+  "diagnostic_fixture.c": "f8a177274b98f33f91a296ddb29aac91704d8408b4716fbecb0f1a9f770f803b",
 }
 FUNCTIONS = (
   "static void cd321x_typec_update_mode(",
@@ -80,6 +86,9 @@ FUNCTIONS = (
 )
 WORK = Path("/work")
 type Event = tuple[str, int, int, int, int, int]
+type Scalar = str | int | bool
+HELPERS_BEGIN = "/* DEV147_T1_HELPERS_BEGIN: exact source extraction boundary. */\n"
+HELPERS_END = "/* DEV147_T1_HELPERS_END */\n"
 
 
 class SetupError(RuntimeError):
@@ -117,6 +126,12 @@ def declaration(source: str, start: str) -> str:
   end = source.find("\n};\n", begin)
   require(end > begin, f"declaration boundary: {start}")
   return source[begin:end + 4]
+
+
+def helpers(source: str) -> str:
+  begin, end = unique(source, HELPERS_BEGIN), unique(source, HELPERS_END)
+  require(end > begin, "helper boundary order")
+  return source[begin:end + len(HELPERS_END)]
 
 
 def macro(source: str, name: str) -> str:
@@ -276,6 +291,113 @@ def numbers(value: object, length: int) -> tuple[int, ...]:
   return tuple(number(item) for item in value)
 
 
+def observed_ledger(value: object) -> tuple[Event, ...]:
+  if not isinstance(value, list) or len(value) > 1024:
+    raise SetupError("ledger bound")
+  ledger: list[Event] = []
+  for row in value:
+    if not isinstance(row, list) or len(row) != 6 or not isinstance(row[0], str):
+      raise SetupError("ledger row")
+    require(re.fullmatch(r"[a-z_]{1,32}", row[0]) is not None, "operation name")
+    ledger.append((row[0], number(row[1]), number(row[2]), number(row[3]),
+                   number(row[4]), number(row[5])))
+  return tuple(ledger)
+
+
+def observed_records(value: object) -> tuple[str, ...]:
+  if not isinstance(value, list) or len(value) > 128:
+    raise SetupError("record bound")
+  records: list[str] = []
+  for record in value:
+    if not isinstance(record, str) or not record.isascii() or not 0 < len(record) + 2 <= 384:
+      raise SetupError("record size/encoding, including INFO prefix")
+    require(record.endswith("\n"), "unterminated record")
+    records.append(record)
+  return tuple(records)
+
+
+SNAPSHOT_FIELDS = frozenset(("plug", "usb2", "usb3", "hpd", "flip", "device", "power"))
+ENVELOPE_FIELDS = frozenset(("rev", "board", "target", "component", "seq", "gen", "worker"))
+RECORD_FIELDS: dict[tuple[str, str], frozenset[str]] = {
+  ("init", "begin"): frozenset(), ("init", "end"): frozenset(("reason", "ret")),
+  ("cache", "stored"): SNAPSHOT_FIELDS,
+  ("queue", "queued"): SNAPSHOT_FIELDS | {"disconnect", "hpd_change"},
+  ("worker", "begin"): SNAPSHOT_FIELDS | {"disconnect", "hpd_change", "connector", "cached_device"},
+  ("worker", "end"): frozenset(("reason", "ret")),
+  ("mux", "begin"): frozenset(("kind", "mode")),
+  ("mux", "returned"): frozenset(("kind", "mode", "ret")),
+  ("mux", "skip"): frozenset(("kind", "mode", "reason")),
+  ("role", "begin"): frozenset(("which", "value")),
+  ("role", "returned"): frozenset(("which", "value", "ret")),
+  ("role", "skip"): frozenset(("which", "value", "reason")),
+  ("hpd", "begin"): frozenset(("which",)), ("hpd", "returned"): frozenset(("which",)),
+  ("hpd", "skip"): frozenset(("which", "reason")),
+  ("cap", "end"): frozenset(("limit", "reason")),
+}
+
+
+def source_records(raw_records: tuple[str, ...]) -> tuple[dict[str, Scalar], ...]:
+  """Check producer shape/budget, not captured-trace lifecycle or artifact identity."""
+  records: list[dict[str, Scalar]] = []
+  for raw in raw_records:
+    value: object = json.loads(raw)
+    require(isinstance(value, dict), "native record object")
+    if not isinstance(value, dict):
+      raise SetupError("native record object")
+    event_name, phase = value.get("event"), value.get("phase")
+    require(isinstance(event_name, str) and isinstance(phase, str), "record event/phase")
+    if not isinstance(event_name, str) or not isinstance(phase, str):
+      raise SetupError("record event/phase")
+    key = (event_name, phase)
+    require(key in RECORD_FIELDS, "record event/phase grammar")
+    item = object_fields(value, ENVELOPE_FIELDS | {"event", "phase"} | RECORD_FIELDS[key])
+    require(all(item[name] == expected for name, expected in (
+      ("rev", "dev147-tipddiag1-v1"), ("board", "j413"),
+      ("target", "front_lower"), ("component", "tipd"),
+    )), "fixed source record labels")
+    require(1 <= number(item["seq"]) <= 128 and 1 <= number(item["gen"]) <= 0x7FFFFFFF,
+            "record sequence/generation bounds")
+    worker = number(item["worker"])
+    require(0 <= worker <= 0x7FFFFFFF, "record worker bound")
+    require(event_name == "cap" or (worker == 0 if event_name in ("init", "cache", "queue")
+                                    else worker > 0), "record worker ownership")
+    for name in SNAPSHOT_FIELDS - {"power"} | {"disconnect", "hpd_change", "connector", "cached_device"}:
+      if name in item:
+        require(type(item[name]) is bool, "record boolean field")
+    if "power" in item:
+      require(0 <= number(item["power"]) <= 3, "record power field")
+    for name in ("ret", "mode", "value", "limit"):
+      if name in item:
+        number(item[name])
+    if key == ("worker", "end"):
+      require(-4095 <= number(item["ret"]) <= -1 if item["reason"] == "partner_error"
+              else item["ret"] == 0, "worker terminal return contract")
+    converted: dict[str, Scalar] = {}
+    for name, field_value in item.items():
+      if type(field_value) not in (str, int, bool):
+        raise SetupError("record scalar type")
+      if not isinstance(field_value, (str, int, bool)):
+        raise SetupError("record scalar type")
+      converted[name] = field_value
+    records.append(converted)
+  sequences = [number(item["seq"]) for item in records]
+  require(sorted(sequences) == list(range(1, len(records) + 1)), "source sequence gap/duplicate")
+  if len(records) >= 127:
+    require(len(records) == 128, "normal 127 requires automatic cap 128")
+    by_sequence = {number(item["seq"]): item for item in records}
+    cap, previous = by_sequence[128], by_sequence[127]
+    require(cap["event"] == "cap" and cap["phase"] == "end" and
+            cap["limit"] == 128 and cap["reason"] == "budget", "terminal cap shape")
+    require((cap["gen"], cap["worker"]) == (previous["gen"], previous["worker"]), "cap ownership")
+  require(all(item["event"] != "cap" or item["seq"] == 128 for item in records), "early cap")
+  return tuple(records)
+
+
+def details(records: tuple[dict[str, Scalar], ...]) -> tuple[dict[str, Scalar], ...]:
+  return tuple({key: value for key, value in item.items() if key not in ENVELOPE_FIELDS}
+               for item in records)
+
+
 @dataclass(frozen=True)
 class Observation:
   result: int
@@ -290,6 +412,9 @@ class Observation:
   identity: int
   pending: tuple[int, ...]
   dispatches: int
+  production_refs: tuple[int, ...]
+  diagnostic_counts: tuple[int, ...]
+  tail: tuple[int, ...]
 
   @classmethod
   def parse(cls, raw: bytes, scenario: str) -> "Observation":
@@ -298,6 +423,7 @@ class Observation:
       "scenario", "result", "board_match", "target_match", "precheck_refs",
       "production_refs", "ledger", "records", "snapshot", "snapshots",
       "state", "partner", "identity", "pending", "dispatches", "allocation_bounds",
+      "diagnostic_counts", "tail",
     )))
     require(item["scenario"] == scenario and item["allocation_bounds"] is True, "fixture identity/bounds")
     for key in ("precheck_refs", "production_refs"):
@@ -307,40 +433,62 @@ class Observation:
     require(type(board) is bool and type(target) is bool, "metadata booleans")
     if not isinstance(board, bool) or not isinstance(target, bool):
       raise SetupError("metadata booleans")
-    rows = item["ledger"]
-    if not isinstance(rows, list) or len(rows) > 1024:
-      raise SetupError("ledger bound")
-    ledger: list[Event] = []
-    for row in rows:
-      if not isinstance(row, list) or len(row) != 6 or not isinstance(row[0], str):
-        raise SetupError("ledger row")
-      require(re.fullmatch(r"[a-z_]{1,32}", row[0]) is not None, "operation name")
-      ledger.append((row[0], number(row[1]), number(row[2]), number(row[3]),
-                     number(row[4]), number(row[5])))
-    records_value = item["records"]
-    if not isinstance(records_value, list) or len(records_value) > 128:
-      raise SetupError("record bound")
-    records: list[str] = []
-    for record in records_value:
-      if not isinstance(record, str) or not record.isascii() or not 0 < len(record) <= 384:
-        raise SetupError("record size/encoding")
-      require(record.endswith("\n"), "unterminated record")
-      records.append(record)
     snapshots_value = item["snapshots"]
     if not isinstance(snapshots_value, list) or len(snapshots_value) > 4:
       raise SetupError("snapshot bound")
     return cls(
-      number(item["result"]), board, target, tuple(ledger), tuple(records),
+      number(item["result"]), board, target, observed_ledger(item["ledger"]), observed_records(item["records"]),
       numbers(item["snapshot"], 24), tuple(numbers(row, 24) for row in snapshots_value),
       numbers(item["state"], 3), number(item["partner"]), number(item["identity"]),
-      numbers(item["pending"], 2), number(item["dispatches"]),
+      numbers(item["pending"], 2), number(item["dispatches"]), numbers(item["production_refs"], 2),
+      numbers(item["diagnostic_counts"], 3), numbers(item["tail"], 2),
+    )
+
+
+@dataclass(frozen=True)
+class DiagnosticObservation:
+  counts: tuple[int, ...]
+  refs: tuple[int, ...]
+  conversions: int
+  wrapper_offset: int
+  tail_offset: int
+  prefix_bytes: int
+  wrapper_bytes: int
+  contexts: tuple[tuple[int, ...], ...]
+  outcomes: tuple[int, ...]
+  records: tuple[str, ...]
+  ledger: tuple[Event, ...]
+
+  @classmethod
+  def parse(cls, raw: bytes, name: str) -> "DiagnosticObservation":
+    payload: object = json.loads(raw)
+    item = object_fields(payload, frozenset((
+      "case", "counts", "refs", "conversions", "wrapper_offset", "tail_offset", "prefix_bytes",
+      "wrapper_bytes", "bounds", "contexts", "outcomes", "records", "ledger",
+    )))
+    require(item["case"] == name and item["bounds"] is True, "diagnostic identity/bounds")
+    contexts, outcomes = item["contexts"], item["outcomes"]
+    if not isinstance(contexts, list) or len(contexts) > 16:
+      raise SetupError("diagnostic context count")
+    if not isinstance(outcomes, list) or len(outcomes) > 4:
+      raise SetupError("diagnostic outcome count")
+    refs = numbers(item["refs"], 2)
+    require(refs[0] == refs[1], "diagnostic reference balance")
+    return cls(
+      numbers(item["counts"], 3), refs, number(item["conversions"]),
+      number(item["wrapper_offset"]), number(item["tail_offset"]),
+      number(item["prefix_bytes"]), number(item["wrapper_bytes"]),
+      tuple(numbers(context, 2) for context in contexts), tuple(number(outcome) for outcome in outcomes),
+      observed_records(item["records"]), observed_ledger(item["ledger"]),
     )
 
 
 @dataclass
 class Harness:
   core: str
+  subject_core: str
   observations: dict[tuple[str, tuple[str, ...]], Observation] = field(default_factory=dict)
+  diagnostics: dict[tuple[str, ...], DiagnosticObservation] = field(default_factory=dict)
 
   @classmethod
   def prepare(cls) -> "Harness":
@@ -366,8 +514,9 @@ class Harness:
     metadata = substitute(templates["of_fixture.c"], "/* @PINNED_OF@ */", of_fragments(of_sources))
     retained: dict[str, str] = {}
     for label in ("control", "subject"):
+      source_pins = CONTROL_PINS if label == "control" else SUBJECT_PINS
       sources = {name: pinned(Path("/inputs") / label / name, digest)
-                 for name, digest in CONTROL_PINS.items()}
+                 for name, digest in source_pins.items()}
       core = sources["core.c"]
       retained[label] = core
       header = sources["tps6598x.h"]
@@ -377,8 +526,12 @@ class Harness:
         ("/* @PINNED_DEFINITIONS@ */", definitions(headers, core)),
         ("/* @OF_FIXTURE@ */", metadata),
         ("/* @PINNED_TIPD_HEADER@ */", header),
+        ("/* @T1_HELPERS@ */", "#define TIPD_T1_PRESENT 0\n" if label == "control" else
+         "#define TIPD_T1_PRESENT 1\n" + helpers(core)),
         ("/* @PINNED_FUNCTIONS@ */", "\n".join(function(core, name) for name in FUNCTIONS)),
-        ("/* @PINNED_DATA_TABLE@ */", declaration(core, "const struct tipd_data tipd_cd321x_data = {")),
+        ("/* @PINNED_DATA_TABLE@ */", "\n".join(declaration(core, f"const struct tipd_data {name} = {{")
+                                              for name in ("tipd_cd321x_data", "tipd_sn201202x_data"))),
+        ("/* @DIAGNOSTIC_FIXTURE@ */", templates["diagnostic_fixture.c"]),
         ("/* @FIXTURE_MAIN@ */", templates["semantic_fixture.c"]),
       ):
         generated = substitute(generated, marker, replacement)
@@ -387,7 +540,7 @@ class Harness:
       with source_path.open("x", encoding="utf-8") as stream:
         stream.write(generated)
       run([
-        "/usr/bin/gcc", "-std=gnu11", "-O2", "-Wall", "-Wextra", "-Werror",
+        "/usr/bin/gcc", "-std=gnu11", "-O2", "-Wall", "-Wextra", "-Werror", "-pthread",
         "-I/inputs/libfdt", "-L/inputs/link-runtime", str(source_path),
         *[str(Path("/inputs/libfdt") / name) for name in FDT_PINS if name.endswith(".c")],
         "-o", str(WORK / label),
@@ -399,16 +552,17 @@ class Harness:
       require(b"(RPATH)" not in dynamic and b"(RUNPATH)" not in dynamic, "dynamic search override")
     with (WORK / "setup.json").open("x", encoding="ascii") as stream:
       json.dump({
-        "status": "PASS", "control_pins": CONTROL_PINS, "subject_pins": CONTROL_PINS,
+        "status": "PASS", "control_pins": CONTROL_PINS, "subject_pins": SUBJECT_PINS,
         "headers": HEADER_PINS, "of": OF_PINS, "libfdt": FDT_PINS, "templates": TEMPLATE_PINS,
         "scope": "source semantics only; no kernel layout/concurrency/hardware proof",
       }, stream, sort_keys=True)
-    print("SETUP PASS: authenticated exact control/subject bodies compiled; no T1 source change.")
-    return cls(retained["control"])
+    print("SETUP PASS: exact working control and T1 bodies compiled; source semantics only.")
+    return cls(retained["control"], retained["subject"])
 
   def observe(self, label: str, arguments: tuple[str, ...]) -> Observation:
     require(label in ("control", "subject") and 1 <= len(arguments) <= 17, "fixture arguments")
-    require(arguments[0] in ("init", "worker", "mode", "queue", "connect"), "fixture scenario")
+    require(arguments[0] in ("init", "worker", "mode", "queue", "connect",
+                             "init_cap", "worker_cap", "mode_cap"), "fixture scenario")
     require(all(re.fullmatch(r"-?[0-9]{1,10}", item) is not None for item in arguments[1:]),
             "non-numeric fixture parameter")
     key = (label, arguments)
@@ -417,6 +571,18 @@ class Harness:
       raw = run([str(WORK / label), *arguments], child_label)
       self.observations[key] = Observation.parse(raw, arguments[0])
     return self.observations[key]
+
+  def inspect(self, arguments: tuple[str, ...]) -> DiagnosticObservation:
+    require(1 <= len(arguments) <= 3, "diagnostic argument count")
+    name = arguments[0]
+    require(name in ("guard", "retry", "cap_terminal", "parallel", "limits"), "diagnostic case")
+    require(all(re.fullmatch(r"[0-9]{1,2}", item) is not None for item in arguments[1:]),
+            "diagnostic numeric argument")
+    if arguments not in self.diagnostics:
+      label = f"diagnostic-{len(self.diagnostics):03d}-{name}"
+      raw = run([str(WORK / "subject"), "diagnostic", *arguments], label)
+      self.diagnostics[arguments] = DiagnosticObservation.parse(raw, name)
+    return self.diagnostics[arguments]
 
 
 def event(name: str, *values: int) -> Event:
@@ -617,6 +783,69 @@ def entry_count(observation: Observation, event_name: str) -> int:
   return count
 
 
+def record(event_name: str, phase: str, **values: Scalar) -> dict[str, Scalar]:
+  return {"event": event_name, "phase": phase, **values}
+
+
+def stored_fields(status: int, data: int, power: int) -> dict[str, Scalar]:
+  return {
+    "plug": bool(status & 1), "usb2": bool(data & 0x10), "usb3": bool(data & 0x20),
+    "hpd": bool(data & 0x8000), "flip": bool(status & 0x10),
+    "device": bool(data & 0x80), "power": power,
+  }
+
+
+def expected_mux_records(data: int, alt: int, mode: int, payload: int,
+                         returned: int) -> list[dict[str, Scalar]]:
+  operations, state = expected_mux(data, alt, mode, payload)
+  if operations and operations[0][0] == "error":
+    return [record("mux", "skip", kind="dp", mode=-1, reason="invalid_dp_pin")]
+  kind = "safe" if not data & 1 else "dp" if data & 0x100 else \
+    "tbt" if data & 0x10000 else "usb4" if data & 0x800000 else "usb"
+  if not operations:
+    return [record("mux", "skip", kind=kind, mode=state[1], reason="unchanged")]
+  return [record("mux", "begin", kind=kind, mode=state[1]),
+          record("mux", "returned", kind=kind, mode=state[1], ret=returned)]
+
+
+def expected_worker_records(case: Worker) -> tuple[dict[str, Scalar], ...]:
+  role = (2 if case.cached_data & 0x80 else 1) if case.data & 0x30 else 0
+  rows = [record("worker", "begin", **stored_fields(case.status, case.data, case.power_mode),
+                 disconnect=bool(case.changed & 1), hpd_change=bool(case.data_changed & 0x8000),
+                 connector=bool(case.connector), cached_device=bool(case.cached_data & 0x80))]
+  if case.old_role and (case.old_role != role or case.changed & 1):
+    rows.extend((record("role", "begin", which="none", value=0),
+                 record("role", "returned", which="none", value=0, ret=case.role_result)))
+  else:
+    rows.append(record("role", "skip", which="none", value=0, reason="no_transition"))
+  if case.connector and (not case.data & 0x8000 or case.data_changed & 0x8000):
+    rows.extend((record("hpd", "begin", which="disconnected"),
+                 record("hpd", "returned", which="disconnected")))
+  else:
+    rows.append(record("hpd", "skip", which="disconnected",
+                       reason="level_high_unchanged" if case.connector else "no_connector"))
+  operations, _, _, _ = expected_worker(case)
+  reason = "disconnected" if not case.status & 1 else \
+    "partner_error" if any(row[0] == "warning" for row in operations) else "complete"
+  if reason != "complete":
+    rows.extend((record("mux", "skip", kind="none", mode=-1, reason=reason),
+                 record("role", "skip", which="final", value=role, reason=reason),
+                 record("hpd", "skip", which="connected", reason=reason)))
+  else:
+    alt, mode, payload = (0, 0, 0) if case.changed & 1 else (case.alt, case.mode, 1)
+    rows.extend(expected_mux_records(case.data, alt, mode, payload, case.mux_result))
+    rows.extend((record("role", "begin", which="final", value=role),
+                 record("role", "returned", which="final", value=role, ret=case.role_result)))
+    if case.connector and case.data & 0x8000:
+      rows.extend((record("hpd", "begin", which="connected"),
+                   record("hpd", "returned", which="connected")))
+    else:
+      rows.append(record("hpd", "skip", which="connected",
+                         reason="level_low" if case.connector else "no_connector"))
+  rows.append(record("worker", "end", reason=reason, ret=-5 if reason == "partner_error" else 0))
+  return tuple(rows)
+
+
 class TipdSemanticsTests(unittest.TestCase):
   harness: Harness
 
@@ -628,9 +857,19 @@ class TipdSemanticsTests(unittest.TestCase):
     control = self.harness.observe("control", arguments)
     subject = self.harness.observe("subject", arguments)
     self.assertEqual(control.records, (), "authenticated control must not emit T1 records")
+    self.assertEqual(control.diagnostic_counts, (0, 0, 0))
+    self.assertEqual(control.production_refs, (0, 0))
     for name in ("result", "ledger", "snapshot", "snapshots", "state", "partner",
                  "identity", "pending", "dispatches", "board_match", "target_match"):
       self.assertEqual(getattr(control, name), getattr(subject, name), f"paired {name}")
+    rows = source_records(subject.records)
+    self.assertEqual(subject.diagnostic_counts[2], len(rows), "one global record reservation budget")
+    if arguments[0] == "mode":
+      data, alt, mode, payload, returned = (int(value) for value in arguments[1:6])
+      if subject.board_match and subject.target_match:
+        self.assertEqual(details(rows), tuple(expected_mux_records(data, alt, mode, payload, returned)))
+      else:
+        self.assertEqual(rows, ())
     return subject
 
   def check_init(self, failure: int, flags: int, metadata: int = 0) -> Observation:
@@ -638,6 +877,41 @@ class TipdSemanticsTests(unittest.TestCase):
     expected, returned = expected_init(failure, flags)
     self.assertEqual(result.ledger, tuple(expected), "independent init operation ledger")
     self.assertEqual(result.result, returned, "original init return")
+    rows = source_records(result.records)
+    eligible = result.board_match and result.target_match and not flags & (NO_POWER | CONNECT_ERROR)
+    if not eligible:
+      self.assertEqual(rows, ())
+      self.assertEqual(result.diagnostic_counts, (0, 0, 0))
+      self.assertEqual(result.tail, (0, 0))
+      if flags & (NO_POWER | CONNECT_ERROR):
+        self.assertEqual(result.production_refs, (0, 0), "variant guard must precede OF lookup")
+      return result
+    self.assertEqual(details(rows[:1]), (record("init", "begin"),))
+    reasons = {0: "complete", 1: "gpio", 2: "vid", 3: "vid", 4: "power_state", 5: "mode",
+               6: "patch", 7: "mask", 8: "status", 9: "role", 10: "psy", 11: "port",
+               12: "power_read", 13: "data_read", 14: "irq"}
+    self.assertEqual(details(rows[-1:]), (record("init", "end", reason=reasons[failure], ret=returned),))
+    self.assertEqual(sum(row["event"] == "init" for row in rows), 2)
+    self.assertTrue(all(row["gen"] == 1 for row in rows))
+    self.assertEqual(result.diagnostic_counts[:2], (1, result.dispatches))
+    self.assertEqual(result.tail, (1, 0))
+    queued = tuple(row for row in rows if row["event"] in ("cache", "queue"))
+    if any(row[0] == "cancel_update" for row in result.ledger):
+      expected_fields = stored_fields(1, 0x8111, 3)
+      self.assertEqual(details(queued), (
+        record("cache", "stored", **expected_fields),
+        record("queue", "queued", **expected_fields, disconnect=True, hpd_change=True),
+      ))
+    else:
+      self.assertEqual(queued, ())
+    workers = tuple(row for row in rows if number(row["worker"]) > 0)
+    if result.dispatches:
+      self.assertEqual(details(workers), expected_worker_records(Worker(
+        changed=1, data_changed=0x8111, connector=int(bool(flags & CONNECTOR)),
+      )))
+      self.assertTrue(all(row["worker"] == 1 for row in workers))
+    else:
+      self.assertEqual(workers, ())
     return result
 
   def check_worker(self, case: Worker) -> Observation:
@@ -649,6 +923,15 @@ class TipdSemanticsTests(unittest.TestCase):
     self.assertEqual(result.snapshot[:5], (
       case.status, case.power_mode << 2, case.data, 0, 0,
     ), "worker must clear only the queued masks after using their snapshot")
+    rows = source_records(result.records)
+    if result.board_match and result.target_match:
+      self.assertEqual(details(rows), expected_worker_records(case))
+      self.assertEqual(result.diagnostic_counts[:2], (1, 1))
+      self.assertEqual(result.tail, (1, 0))
+      self.assertTrue(all((row["gen"], row["worker"]) == (1, 1) for row in rows))
+    else:
+      self.assertEqual(rows, ())
+      self.assertEqual(result.diagnostic_counts, (0, 0, 0))
     return result
 
   def test_required_init_entry_record(self) -> None:
@@ -795,6 +1078,201 @@ class TipdSemanticsTests(unittest.TestCase):
           function(self.harness.core + extracted, signature)
         with self.assertRaisesRegex(SetupError, "missing or duplicate"):
           function(self.harness.core.replace(signature, "changed_signature(", 1), signature)
+
+  def test_exact_source_scope_and_helper_extraction(self) -> None:
+    candidate = self.harness.subject_core
+    block = helpers(candidate)
+    with self.assertRaisesRegex(SetupError, "missing or duplicate"):
+      helpers(candidate + block)
+    with self.assertRaisesRegex(SetupError, "missing or duplicate"):
+      helpers(candidate.replace(HELPERS_BEGIN, "/* changed boundary */\n", 1))
+    with self.assertRaisesRegex(SetupError, "helper boundary order"):
+      helpers(HELPERS_END + HELPERS_BEGIN)
+    for name in ("tipd_sn201202x_data", "tipd_tps6598x_data", "tipd_tps25750_data"):
+      anchor = f"const struct tipd_data {name} = {{"
+      self.assertEqual(declaration(candidate, anchor), declaration(self.harness.core, anchor))
+    self.assertEqual(function(candidate, "static int cd321x_connect("),
+                     function(self.harness.core, "static int cd321x_connect("))
+    restored = candidate.replace(block + "\n", "", 1)
+    self.assertEqual(restored.count("#include <linux/atomic.h>\n"), 1)
+    restored = restored.replace("#include <linux/atomic.h>\n", "", 1)
+    for signature in FUNCTIONS:
+      restored = restored.replace(function(restored, signature), function(self.harness.core, signature), 1)
+    anchor = "const struct tipd_data tipd_cd321x_data = {"
+    table = declaration(restored, anchor)
+    self.assertEqual(table.count("sizeof(struct tipd_t1_cd321x)"), 1)
+    self.assertEqual(table.replace("sizeof(struct tipd_t1_cd321x)", "sizeof(struct cd321x)"),
+                     declaration(self.harness.core, anchor))
+    restored = restored.replace(table, declaration(self.harness.core, anchor), 1)
+    self.assertEqual(restored, self.harness.core, "all other original source bytes must remain exact")
+    self.assertEqual({key: value for key, value in SUBJECT_PINS.items() if key != "core.c"},
+                     {key: value for key, value in CONTROL_PINS.items() if key != "core.c"})
+
+  def test_real_target_variant_wrapper_and_reference_matrix(self) -> None:
+    for kind in range(23):
+      for variant in range(5):
+        with self.subTest(kind=kind, variant=variant):
+          result = self.harness.inspect(("guard", str(kind), str(variant)))
+          rows = source_records(result.records)
+          self.assertEqual(result.ledger, ())
+          self.assertEqual(result.wrapper_offset, 0)
+          self.assertEqual(result.tail_offset, result.prefix_bytes)
+          self.assertGreater(result.wrapper_bytes, result.prefix_bytes)
+          eligible = variant == 0 and kind in (0, 1)
+          if eligible:
+            self.assertEqual(result.counts, (1, 1, 2))
+            self.assertEqual(result.contexts, ((1, 0), (1, 0), (1, 1), (1, 0)))
+            self.assertEqual(details(rows), (
+              record("cache", "stored", **stored_fields(0, 0, 0)),
+              record("worker", "end", reason="complete", ret=0),
+            ))
+            self.assertGreater(result.conversions, 0)
+            self.assertGreater(result.refs[0], 1)
+          else:
+            self.assertEqual(result.counts, (0, 0, 0), "rejects must not consume any counter")
+            self.assertEqual(result.contexts, ((0, 0),) * 4)
+            self.assertEqual(rows, ())
+          if variant:
+            self.assertEqual(result.conversions, 0, "exact variant check must precede wrapper conversion")
+            self.assertEqual(result.refs, (0, 0), "non-CD variants must not inspect the OF tree")
+          elif kind in (4, 10):
+            self.assertEqual(result.refs, (1, 1), "null node permits board-root reference only")
+          elif kind in (11, 22):
+            self.assertEqual(result.refs, (0, 0), "absent root must fail board check")
+
+  def test_target_rejection_preserves_full_paths_and_lookup_is_init_only(self) -> None:
+    reference = self.check_init(0, NORMAL)
+    with_worker = self.check_init(0, NORMAL | DURING_IRQ)
+    self.assertEqual(with_worker.production_refs, reference.production_refs,
+                     "queue, worker and mux must add no OF lookup")
+    for kind in range(2, 23):
+      with self.subTest(kind=kind):
+        result = self.check_init(0, NORMAL, kind)
+        self.assertEqual(result.ledger, reference.ledger)
+        self.assertEqual(result.records, ())
+        worker = self.check_worker(Worker(metadata=kind))
+        self.assertEqual(worker.records, ())
+        mode = self.paired(("mode", "33041", "0", "0", "1", "-5", str(kind)))
+        expected, state = expected_mux(33041, 0, 0, 1)
+        self.assertEqual(mode.ledger, tuple(expected))
+        self.assertEqual(mode.state, state)
+        self.assertEqual(mode.records, ())
+
+  def test_cache_queue_and_connect_record_snapshots(self) -> None:
+    result = self.paired(("queue",))
+    expected: list[dict[str, Scalar]] = []
+    for status, data, power in ((1, 0x8010, 3), (1, 0x8010, 3), (0, 0, 3), (1, 0x8010, 1)):
+      fields = stored_fields(status, data, power)
+      expected.extend((record("cache", "stored", **fields),
+                       record("queue", "queued", **fields, disconnect=True, hpd_change=True)))
+    rows = source_records(result.records)
+    self.assertEqual(details(rows), tuple(expected))
+    self.assertTrue(all((row["gen"], row["worker"]) == (1, 0) for row in rows))
+    self.assertEqual(result.diagnostic_counts, (1, 0, 8))
+    for pending in (0, 1):
+      for false_schedule in (0, 1):
+        with self.subTest(pending=pending, false_schedule=false_schedule):
+          connected = self.paired(("connect", str(pending), str(false_schedule)))
+          self.assertEqual(details(source_records(connected.records)), (
+            record("cache", "stored", **stored_fields(1, 0x10, 3)),
+            record("queue", "queued", **stored_fields(1, 0x10, 3), disconnect=True, hpd_change=False),
+          ))
+          self.assertEqual(connected.diagnostic_counts, (1, 0, 2))
+
+  def test_init_retries_two_instances_and_permitted_worker_overlap(self) -> None:
+    result = self.harness.inspect(("retry",))
+    rows = source_records(result.records)
+    self.assertEqual(result.outcomes, (-5, 0, 0))
+    self.assertEqual(result.contexts, ((1, 0), (2, 0), (3, 0), (2, 0)))
+    self.assertEqual(result.counts[:2], (3, 2))
+    self.assertEqual(result.counts[2], len(rows))
+    failed, _ = expected_init(1, NORMAL | DURING_IRQ)
+    success, _ = expected_init(0, NORMAL | DURING_IRQ)
+    self.assertEqual(result.ledger, tuple(failed + success + success))
+    for generation, worker in ((1, 0), (2, 1), (3, 2)):
+      selected = tuple(row for row in rows if row["gen"] == generation)
+      self.assertEqual(details(selected[:1]), (record("init", "begin"),))
+      self.assertEqual(details(selected[-1:]), (
+        record("init", "end", reason="gpio" if generation == 1 else "complete",
+               ret=-5 if generation == 1 else 0),
+      ))
+      active = tuple(row for row in selected if number(row["worker"]) > 0)
+      if worker:
+        self.assertEqual(details(active), expected_worker_records(Worker(changed=1, data_changed=0x8111)))
+        self.assertTrue(all(row["worker"] == worker for row in active))
+        self.assertLess(number(active[-1]["seq"]), number(selected[-1]["seq"]),
+                        "worker may finish before init.end")
+      else:
+        self.assertEqual(active, ())
+    one_init = self.harness.inspect(("guard", "0", "0"))
+    self.assertEqual(result.refs, tuple(3 * value for value in one_init.refs))
+
+  def test_automatic_cap_when_normal_127_is_terminal(self) -> None:
+    result = self.harness.inspect(("cap_terminal",))
+    rows = source_records(result.records)
+    self.assertEqual(result.counts, (1, 1, 128))
+    self.assertEqual(result.ledger, ())
+    self.assertEqual(details(rows[-2:]), (
+      record("worker", "end", reason="complete", ret=0),
+      record("cap", "end", limit=128, reason="budget"),
+    ))
+    self.assertEqual([(row["seq"], row["gen"], row["worker"]) for row in rows[-2:]],
+                     [(127, 1, 1), (128, 1, 1)])
+    with self.assertRaisesRegex(SetupError, "127 requires automatic cap"):
+      source_records(result.records[:-1])
+    with self.assertRaisesRegex(SetupError, "sequence gap/duplicate"):
+      source_records(result.records[:-1] + result.records[-2:-1])
+
+  def test_parallel_cap_and_print_arrival_reordering(self) -> None:
+    for reordered in (0, 1):
+      with self.subTest(reordered=reordered):
+        result = self.harness.inspect(("parallel", str(reordered)))
+        rows = source_records(result.records)
+        self.assertEqual(result.counts, (1, 0, 128))
+        self.assertEqual(result.ledger, ())
+        normal = tuple(row for row in rows if row["event"] != "cap")
+        self.assertEqual(details(normal), (record("cache", "stored", **stored_fields(0, 0, 0)),) * 127)
+        self.assertTrue(all((row["gen"], row["worker"]) == (1, 0) for row in rows))
+        if reordered:
+          arrival = [row["seq"] for row in rows]
+          self.assertLess(arrival.index(2), arrival.index(1), "reservation order is not printk arrival order")
+
+  def test_exhausted_logging_preserves_original_operations(self) -> None:
+    cases = [
+      ("init", "0", str(NORMAL | DURING_IRQ), "0"),
+      ("init", "14", str(NORMAL | DURING_IRQ), "0"),
+      Worker(old_role=2, role_result=-5, mux_result=-5, data_changed=0x8000).arguments(),
+      Worker(status=0, partner=0).arguments(), Worker(partner_error=1).arguments(),
+      ("mode", "33041", "0", "0", "1", "-5", "0"),
+      ("mode", "35105", "0", "0", "1", "0", "0"),
+    ]
+    for arguments in cases:
+      with self.subTest(arguments=arguments):
+        reference = self.paired(arguments)
+        capped = self.paired((arguments[0] + "_cap", *arguments[1:]))
+        for name in ("result", "ledger", "snapshot", "snapshots", "state", "partner",
+                     "identity", "pending", "dispatches"):
+          self.assertEqual(getattr(capped, name), getattr(reference, name), f"capped original {name}")
+        rows = source_records(capped.records)
+        self.assertEqual(capped.diagnostic_counts[2], 128)
+        self.assertEqual(sum(row["event"] == "cap" for row in rows), 1)
+        self.assertTrue(all(row["event"] in ("cache", "cap") for row in rows),
+                        "the complete original function still runs after output is exhausted")
+
+  def test_counter_limits_do_not_emit_stale_or_zero_worker_records(self) -> None:
+    result = self.harness.inspect(("limits",))
+    rows = source_records(result.records)
+    maximum = 0x7FFFFFFF
+    self.assertEqual(result.counts[:2], (maximum, maximum))
+    self.assertEqual(result.contexts, ((maximum, 0), (maximum, 0), (0, 0)))
+    self.assertEqual(result.counts[2], len(rows))
+    self.assertTrue(all((row["gen"], row["worker"]) == (maximum, maximum) for row in rows))
+    case = Worker(status=0, data=0, cached_data=0, power_mode=0, connector=0)
+    self.assertEqual(details(rows), expected_worker_records(case))
+    operations, _, _, _ = expected_worker(case, payload=0)
+    mux, _ = expected_mux(1, 0, 0, 0)
+    self.assertEqual(result.ledger, tuple(operations + mux),
+                     "artificial counter exhaustion must still preserve every original operation")
 
 
 if __name__ == "__main__":

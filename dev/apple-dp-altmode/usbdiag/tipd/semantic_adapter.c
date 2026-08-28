@@ -2,14 +2,17 @@
 /*
  * Userspace boundary adapters for exact TIPD function bodies.
  * Opaque kernel types have deliberately non-ABI shims. API scripts specify
- * returns, not hardware behavior. No file, device, thread, or network access.
+ * returns, not hardware behavior. Only bounded log-reservation fixture threads
+ * are permitted; there is no file, device, or network access.
  */
 #define _GNU_SOURCE
 #include <assert.h>
 #include <errno.h>
 #include <inttypes.h>
 #include <limits.h>
+#include <pthread.h>
 #include <stdarg.h>
+#include <stdatomic.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -34,8 +37,10 @@ typedef int (*irq_handler_t)(int, void *);
 #define type_max(type) ((type)~(type)0)
 #define const_true(value) (value)
 #define BUILD_BUG_ON_ZERO(value) ((int)sizeof(struct { int : -!!(value); }))
+static void *checked_container(const void *pointer, size_t offset, size_t bytes,
+                               const char *type);
 #define container_of(pointer, type, member) \
-  ((type *)((char *)(pointer) - offsetof(type, member)))
+  ((type *)checked_container(pointer, offsetof(type, member), sizeof(type), #type))
 #define le16_to_cpu(value) ((u16)(value))
 #define le32_to_cpu(value) ((u32)(value))
 
@@ -62,11 +67,76 @@ _Static_assert(__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__, "little-endian pinned 
 /* @OF_FIXTURE@ */
 /* @PINNED_TIPD_HEADER@ */
 
+typedef struct { _Atomic int value; } atomic_t;
+#define ATOMIC_INIT(initial) { .value = (initial) }
+
+static int __attribute__((unused)) atomic_read(const atomic_t *counter)
+{
+  metadata_released();
+  return atomic_load_explicit(&counter->value, memory_order_relaxed);
+}
+
+static void __attribute__((unused)) atomic_set(atomic_t *counter, int value)
+{
+  metadata_released();
+  atomic_store_explicit(&counter->value, value, memory_order_relaxed);
+}
+
+static int __attribute__((unused)) atomic_cmpxchg(atomic_t *counter, int old, int next)
+{
+  metadata_released();
+  atomic_compare_exchange_strong_explicit(&counter->value, &old, next,
+                                          memory_order_seq_cst, memory_order_seq_cst);
+  return old;
+}
+
+static struct { uintptr_t begin; size_t bytes; } object_ranges[8];
+static size_t object_count, wrapper_conversions;
+
+static void remember_object(void *pointer, size_t bytes)
+{
+  assert(pointer && bytes > 0 && bytes <= 16384 && object_count < 8);
+  object_ranges[object_count].begin = (uintptr_t)pointer;
+  object_ranges[object_count++].bytes = bytes;
+}
+
+static void forget_object(void *pointer)
+{
+  for (size_t i = 0; i < object_count; i++) {
+    if (object_ranges[i].begin == (uintptr_t)pointer) {
+      object_ranges[i] = object_ranges[--object_count];
+      return;
+    }
+  }
+  assert(!"unregistered allocation");
+}
+
+static void *checked_container(const void *pointer, size_t offset, size_t bytes,
+                               const char *type)
+{
+  uintptr_t address = (uintptr_t)pointer;
+  assert(address >= offset);
+  uintptr_t start = address - offset;
+  for (size_t i = 0; i < object_count; i++) {
+    uintptr_t base = object_ranges[i].begin;
+    size_t available = object_ranges[i].bytes;
+    if (start >= base && start - base <= available && bytes <= available - (start - base)) {
+      if (!strcmp(type, "struct tipd_t1_cd321x")) wrapper_conversions++;
+      return (void *)start;
+    }
+  }
+  assert(!"container exceeds the selected real allocation");
+  return NULL;
+}
+
 struct event { const char *operation; int64_t a, b, c, d, e; };
 static struct event ledger[1024];
 static size_t event_count;
 static char records[128][385];
 static size_t record_count;
+static pthread_mutex_t record_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t record_condition = PTHREAD_COND_INITIALIZER;
+static bool reorder_records, second_record_seen;
 static struct tps6598x *active_tps;
 static struct cd321x *active_cd;
 static struct device test_device;
@@ -141,13 +211,27 @@ static void collect_info(const char *format, ...) __attribute__((format(printf, 
 static void collect_info(const char *format, ...)
 {
   metadata_released();
-  assert(record_count < 128);
+  char message[385];
   va_list arguments;
   va_start(arguments, format);
-  int size = vsnprintf(records[record_count], sizeof(records[0]), format, arguments);
+  int size = vsnprintf(message, sizeof(message), format, arguments);
   va_end(arguments);
-  assert(size > 0 && size <= 384 && records[record_count][size - 1] == '\n');
+  assert(size > 0 && size + 2 <= 384 && message[size - 1] == '\n');
+  assert(pthread_mutex_lock(&record_mutex) == 0);
+  const char *sequence = strstr(message, "\"seq\":");
+  assert(sequence);
+  unsigned long value = strtoul(sequence + strlen("\"seq\":"), NULL, 10);
+  assert(value >= 1 && value <= 128);
+  while (reorder_records && value == 1 && !second_record_seen)
+    assert(pthread_cond_wait(&record_condition, &record_mutex) == 0);
+  assert(record_count < 128);
+  memcpy(records[record_count], message, (size_t)size + 1);
   record_count++;
+  if (reorder_records && value == 2) {
+    second_record_seen = true;
+    assert(pthread_cond_broadcast(&record_condition) == 0);
+  }
+  assert(pthread_mutex_unlock(&record_mutex) == 0);
 }
 #define pr_info(...) collect_info(__VA_ARGS__)
 
@@ -568,6 +652,8 @@ static void trace_cd321x_data_status(u32 status) { (void)status; }
 static void trace_tps6598x_power_status(u16 status) { (void)status; }
 static void trace_tps6598x_status(u32 status) { (void)status; }
 
+/* @T1_HELPERS@ */
 /* @PINNED_FUNCTIONS@ */
 /* @PINNED_DATA_TABLE@ */
+/* @DIAGNOSTIC_FIXTURE@ */
 /* @FIXTURE_MAIN@ */

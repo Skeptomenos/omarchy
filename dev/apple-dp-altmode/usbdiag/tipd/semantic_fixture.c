@@ -75,9 +75,12 @@ static int connect_error(struct tps6598x *tps, u32 status)
 int main(int argc, char **argv)
 {
   assert(argc >= 2);
-  bool init_case = !strcmp(argv[1], "init");
-  bool worker_case = !strcmp(argv[1], "worker");
-  bool mode_case = !strcmp(argv[1], "mode");
+#if TIPD_T1_PRESENT
+  if (!strcmp(argv[1], "diagnostic")) return diagnostic_case(argc, argv);
+#endif
+  bool init_case = !strcmp(argv[1], "init") || !strcmp(argv[1], "init_cap");
+  bool worker_case = !strcmp(argv[1], "worker") || !strcmp(argv[1], "worker_cap");
+  bool mode_case = !strcmp(argv[1], "mode") || !strcmp(argv[1], "mode_cap");
   bool queue_case = !strcmp(argv[1], "queue");
   bool connect_case = !strcmp(argv[1], "connect");
   assert(init_case || worker_case || mode_case || queue_case || connect_case);
@@ -102,6 +105,7 @@ int main(int argc, char **argv)
   memset(allocation, 0xa5, 16);
   memset(allocation + 16 + allocation_size, 0xa5, 16);
   active_cd = (struct cd321x *)(void *)(allocation + 16);
+  remember_object(active_cd, allocation_size);
   active_tps = &active_cd->tps;
   active_tps->dev = &test_device;
   active_tps->data = &tipd_cd321x_data;
@@ -118,6 +122,16 @@ int main(int argc, char **argv)
   struct tipd_data generic_data = tipd_cd321x_data;
   int result = 0;
   (void)&collect_info; /* No fabricated record when the control lacks diagnostics. */
+
+#if TIPD_T1_PRESENT
+  /* Partial-function cases use the real metadata initializer, not a fake gate. */
+  if (!init_case || strstr(argv[1], "_cap")) {
+    struct tipd_t1_context context = tipd_t1_initialize(active_tps);
+    if (strstr(argv[1], "_cap"))
+      for (unsigned int i = 0; i < 130; i++) tipd_t1_cache(context, active_tps);
+    if (mode_case) (void)tipd_t1_start_worker(active_tps);
+  }
+#endif
 
   if (init_case) {
     script.failure = argument(argv[2]);
@@ -230,12 +244,21 @@ int main(int argc, char **argv)
     print_snapshot(&snapshots[i]);
   }
   printf("],\"state\":[%u,%lu,%u],\"partner\":%d,\"identity\":%" PRIu32
-         ",\"pending\":[%u,%u],\"dispatches\":%u,\"allocation_bounds\":true}\n",
+         ",\"pending\":[%u,%u],\"dispatches\":%u,\"allocation_bounds\":true",
          active_cd->state.alt == &dp_alt ? 1U : active_cd->state.alt == &tbt_alt ? 2U : 0U,
          active_cd->state.mode, active_cd->state.data ? 1U : 0U,
          pointer_kind(active_tps->partner), active_cd->cur_partner_identity.id_header,
          active_cd->update_work.pending ? 1U : 0U, active_tps->wq_poll.pending ? 1U : 0U,
          script.worker_dispatches);
+#if TIPD_T1_PRESENT
+  struct tipd_t1_context tail = tipd_t1_current(active_tps);
+  printf(",\"diagnostic_counts\":[%d,%d,%d],\"tail\":[%u,%u]}\n",
+         atomic_read(&tipd_t1_generations), atomic_read(&tipd_t1_workers),
+         atomic_read(&tipd_t1_sequence), tail.gen, tail.worker);
+#else
+  printf(",\"diagnostic_counts\":[0,0,0],\"tail\":[0,0]}\n");
+#endif
+  forget_object(active_cd);
   free(allocation);
   return 0;
 }
