@@ -2,7 +2,7 @@
 
 ## C3 E-only helper — offline preparation
 
-Reconciled: 2026-08-28. The [C3 evidence](../../../../docs/evidence/dev-147-usbearly-staging-helper-2026-08-28.md) records syntax, all 42 focused methods, independent saved-run QA, helper review, and exact private-copy review PASS. E remains unstaged and unbooted. The [main plan](../../../../docs/plans/dev-147-m2-displayport.md#current-handoff--c3-staging-only-living) owns David's next staging-only handoff; C4 selection/reboot is separate.
+Reconciled: 2026-08-28. The [C3 preparation evidence](../../../../docs/evidence/dev-147-usbearly-staging-helper-2026-08-28.md) retains syntax, 42 focused methods, independent QA, and exact private-copy review PASS. The separate [user-run staging record](../../../../docs/evidence/dev-147-usbearly-staging-2026-08-28.md) now records C3 staging PASS. E is staged but UNBOOTED. The command is consumed; do not repeat it. The [main plan](../../../../docs/plans/dev-147-m2-displayport.md#current-handoff--c4-readiness-hold-living) owns the C4 readiness hold and later review boundary.
 
 | Source | Scope |
 |---|---|
@@ -11,11 +11,11 @@ Reconciled: 2026-08-28. The [C3 evidence](../../../../docs/evidence/dev-147-usbe
 | [test_stage_usbearly_green.py](test_stage_usbearly_green.py) | Same 42 bodies and fixed expectations; only the subject-helper SHA and explanatory docstring differ. All 38 historical bodies remain unchanged. |
 | [c3-test-contracts.md](c3-test-contracts.md) | Retained test-first handoff. Its initial pending wording is historical; the dated C3 evidence owns the later executed results. |
 
-All four files match their frozen reviewed private bytes. The new helper keeps the old algorithms and all 32 protected rows, adds the retained failed-v1 image, and binds eight sealed C2 proofs. The 33 + 8 unique rows are tested producer assertions, not fresh protected-file reads. The four new methods cover those records, exact E identities/staging names, and uninstrumented completion wording. E contains packaged DWC3, not diagnostic or rebuilt control modules.
+All four files match their frozen reviewed private bytes. The new helper keeps the old algorithms and all 32 protected rows, adds the retained failed-v1 image, and binds eight sealed C2 proofs. The offline 33 + 8 unique-row checks tested producer assertions, not protected-file reads; David's later receipt is separate evidence. The four new methods cover those records, exact E identities/staging names, and uninstrumented completion wording. E contains packaged DWC3, not diagnostic or rebuilt control modules.
 
 The runs used four individual read-only input files, not the whole sealed C2 directory. Real temporary files and expected refusal/trap/interruption outcomes remain private. They do not prove production preflight, root execution, current power/mount state, storage power-loss behavior, boot safety, or hardware acceptance. The public helper stays nonoperational. Independent private-copy review proves exactly three approved literal assignment changes and all remaining bytes equal; any change invalidates that comparison.
 
-No production preflight or staging has run for E. David must use the separately supplied exact private command, with the environment cleared before Bash. No monitor connection is required; keep current cables unchanged, MagSafe connected, battery strictly above 50%, the lid open, and the internal screen usable. Review the full protected/image post-checks, final sync/marker, console PASS, and exit 0 before any C4 proposal. A provisional `RESULT.txt` alone is insufficient. Stop on refusal or missing completion; preserve outputs and backups without retry or cleanup. No reboot is authorized.
+David completed the reviewed clean-environment private command. Qualified receipt QA matches all 41 visible initial-preflight rows and accepts the complete final report plus normal prompt; no separate numeric exit status was supplied. Later checks and markers are root-private and were not independently read. Independent readable hashes and destination metadata agree; they are not a destination-byte re-read. Preserve outputs and backups without retry, cleanup, or another sudo read merely to duplicate validation. Current monitor, MagSafe, and downstream-device setup is unknown. C4 stays HOLD for fresh readiness and a separately reviewed one-time selection/recovery proposal. No reboot is authorized.
 
 <a id="d2-staging-helper--offline-preparation"></a>
 
