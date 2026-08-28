@@ -48,3 +48,11 @@ One initial read-only seal check used the wrong working directory, so relative s
 Next, finish the reviewed source checkpoint, then implement the trace and image helpers, run isolated GREEN/negative cases, review kernel control-flow preservation and log bounds, authenticate build inputs, and build private controls before diagnostics. Keep fresh outputs separate from sealed evidence. No boot staging, live load, cable test, or reboot follows from a source checkpoint. Full Gate 4b remains HOLD; Gates 5 and 6 remain open.
 
 Rollback for this work is to leave the source and private outputs unused. No live system change needs reversal. Preserve the old branch, sealed evidence, working DP image/core, operational helpers, both boot backups, and macOS recovery bundle. Actual macOS restore execution remains untested.
+
+## Publication outcome — later on 2026-08-28
+
+The first checkpoint was committed as `c781312d1221da675e686b318a30ddd10d9ef3c4` and pushed to `origin/codex/dev-147-m2-dp-altmode-public`. `git ls-remote` returned the same hash. The outgoing history had exactly one new commit above the verified public base. The excluded raw Linear blob was not reachable through that outgoing history. No private branch, tag, release branch, or pull request was published.
+
+The first push failed because Git's stored credential helper named an absent older GitHub CLI binary. A command-scoped helper used the current CLI, signed in as the repository owner, and the push passed. No global Git setting or credential was edited or disclosed. Further pushes must use the verified scoped helper until that separate configuration issue is fixed.
+
+The non-patch whitespace check passed. All three literal patch payloads remain byte-identical to their private source copies. The public branch was clean after the push. The earlier pre-publication status above records its original cutoff; this section records the later outcome. Continue the approved offline D1 scope and push each completed source/evidence checkpoint. No boot action follows from publication.

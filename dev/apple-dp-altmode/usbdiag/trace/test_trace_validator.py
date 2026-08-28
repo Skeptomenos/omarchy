@@ -491,5 +491,271 @@ class TraceValidatorTests(unittest.TestCase):
         self.assert_inconclusive(capture, "pair_mismatch")
 
 
+class TraceBoundaryTests(unittest.TestCase):
+  def assert_inconclusive(self, capture: object, reason: str) -> ValidationResult:
+    result = validate_capture(capture, MANIFEST)
+    self.assertEqual(result.status, "inconclusive")
+    self.assertEqual(result.findings, ())
+    self.assertIn(reason, result.issues)
+    self.assertFalse(result.negative_late_setter_claim)
+    return result
+
+  def test_capture_shapes_fail_closed(self) -> None:
+    for value in (None, False, 0, "capture", [], {}):
+      with self.subTest(value=value):
+        self.assert_inconclusive(value, "invalid_capture")
+    capture = complete_trace().capture()
+    capture["unexpected"] = "not retained"
+    self.assert_inconclusive(capture, "invalid_capture")
+
+  def test_record_array_is_bounded_and_required(self) -> None:
+    for value, issue in ((None, "invalid_capture"), ({}, "invalid_capture"), ([], "missing_start")):
+      with self.subTest(value=value):
+        capture = complete_trace().capture()
+        capture["records"] = value
+        self.assert_inconclusive(capture, issue)
+    capture = complete_trace().capture()
+    capture["records"] = records(capture) * 20
+    self.assert_inconclusive(capture, "record_limit")
+
+  def test_manifest_types_lengths_and_unknown_fields(self) -> None:
+    for manifest in (
+      None,
+      {"revision": REVISION, "components": {}},
+      {"revision": REVISION, "components": MANIFEST["components"], "extra": 0},
+      {"revision": REVISION, "components": {
+        "dwc3": {"sha256": "d" * 63, "build_id": "1" * 40},
+        "atc": {"sha256": "a" * 64, "build_id": "2" * 40},
+      }},
+      {"revision": REVISION, "components": {
+        "dwc3": {"sha256": "D" * 64, "build_id": "1" * 40},
+        "atc": {"sha256": "a" * 64, "build_id": True},
+      }},
+    ):
+      with self.subTest(manifest=manifest):
+        result = validate_capture(complete_trace().capture(), manifest)
+        self.assertEqual(result.status, "inconclusive")
+        self.assertIn("invalid_manifest", result.issues)
+
+  def test_integer_boundaries_exclude_bools_and_fractional_constants(self) -> None:
+    for field, value in (
+      ("schema", True), ("schema", 1.0), ("generation", 0),
+      ("generation", 1 << 32), ("generation", True), ("seq", 128),
+    ):
+      with self.subTest(field=field, value=value):
+        capture = complete_trace().capture()
+        replace_message(records(capture)[0], **{field: value})
+        self.assert_inconclusive(capture, "invalid_record")
+    for value in (False, -1, 1 << 32):
+      with self.subTest(attempt=value):
+        capture = complete_trace().capture()
+        replace_message(select(capture, "dwc3", "probe", "begin"), attempt=value)
+        self.assert_inconclusive(capture, "invalid_record")
+
+  def test_event_scalar_types_and_unknown_attempt_field(self) -> None:
+    for component, event, phase, fields in (
+      ("atc", "probe", "begin", {"attempt": 0}),
+      ("atc", "mux", "begin", {"swap_lanes": 0}),
+      ("dwc3", "init", "begin", {"state": True}),
+      ("dwc3", "host_init", "end", {"ret": "0"}),
+      ("dwc3", "host_init", "end", {"ret": 1 << 31}),
+    ):
+      with self.subTest(fields=fields):
+        capture = complete_trace().capture()
+        replace_message(select(capture, component, event, phase), **fields)
+        self.assert_inconclusive(capture, "invalid_record")
+
+  def test_nonobject_nonascii_and_multiline_payloads(self) -> None:
+    for raw in ("[]", "null", "\"text\"", "é", "{}\n\n"):
+      with self.subTest(raw=raw):
+        capture = complete_trace().capture()
+        records(capture)[0]["MESSAGE"] = raw
+        self.assert_inconclusive(capture, "invalid_record")
+    capture = complete_trace().capture()
+    replace_message(select(capture, "dwc3", "host_init", "end"), ret=float("inf"))
+    self.assert_inconclusive(capture, "invalid_json")
+
+  def test_source_size_budget_includes_a_stripped_newline(self) -> None:
+    capture = complete_trace().capture()
+    entry = records(capture)[0]
+    raw = entry["MESSAGE"]
+    if not isinstance(raw, str):
+      raise TypeError("fixture message must be a string")
+    stripped = raw.removesuffix("\n")
+    entry["MESSAGE"] = stripped + " " * (384 - len(stripped))
+    self.assert_inconclusive(capture, "record_too_long")
+
+  def test_envelope_is_strict_and_bounded(self) -> None:
+    for fields in (
+      {"_TRANSPORT": "kernel"}, {"__CURSOR": "x" * 513},
+      {"__CURSOR": "cursor\nline"}, {"__MONOTONIC_TIMESTAMP": "9" * 21},
+      {"__MONOTONIC_TIMESTAMP": "01"}, {"__REALTIME_TIMESTAMP": "-1"},
+      {"__REALTIME_TIMESTAMP": True},
+    ):
+      with self.subTest(fields=fields):
+        capture = complete_trace().capture()
+        records(capture)[0].update(fields)
+        self.assert_inconclusive(capture, "invalid_envelope")
+
+  def test_collection_values_have_unsigned_integer_bounds(self) -> None:
+    for field, value in (
+      ("collection_start_monotonic_us", False),
+      ("collection_end_monotonic_us", True),
+      ("collection_end_monotonic_us", 1 << 64),
+      ("collection_complete", 1),
+    ):
+      with self.subTest(field=field, value=value):
+        capture = complete_trace().capture()
+        capture[field] = value
+        self.assert_inconclusive(capture, "collection_boundary")
+
+  def test_decreasing_monotonic_order_is_not_sorted(self) -> None:
+    capture = complete_trace().capture()
+    records(capture)[2]["__MONOTONIC_TIMESTAMP"] = "1"
+    self.assert_inconclusive(capture, "invalid_envelope")
+
+  def test_missing_complete_critical_pair_is_not_success(self) -> None:
+    capture = complete_trace().capture()
+    capture["records"] = [entry for entry in records(capture) if not (
+      message(entry)["component"] == "dwc3" and message(entry)["event"] == "reset_deassert"
+    )]
+    renumber(capture, "dwc3")
+    self.assert_inconclusive(capture, "incomplete_attempt")
+
+  def test_critical_pairs_cannot_be_reordered(self) -> None:
+    capture = complete_trace().capture()
+    for phase in ("begin", "end"):
+      early = select(capture, "dwc3", "early_usb2", phase)
+      reset = select(capture, "dwc3", "reset_deassert", phase)
+      early["MESSAGE"], reset["MESSAGE"] = reset["MESSAGE"], early["MESSAGE"]
+    renumber(capture, "dwc3")
+    self.assert_inconclusive(capture, "incomplete_attempt")
+
+  def test_later_atc_generation_is_not_attributed_to_the_old_init(self) -> None:
+    trace = complete_trace(order="absent")
+    trace.add("atc", "probe", "begin", generation=2)
+    trace.add("atc", "finalize", "begin", generation=2)
+    trace.add("atc", "usb2_power_off", "begin", generation=2)
+    trace.add("atc", "usb2_power_off", "end", generation=2)
+    trace.add("atc", "finalize", "end", generation=2, ret=0)
+    trace.add("atc", "probe", "end", generation=2, ret=0)
+    trace.add("atc", "usb2_set_mode", "begin", generation=2, mode=1, submode=0)
+    trace.add("atc", "usb2_set_mode", "end", generation=2, mode=1, submode=0, ret=0)
+    self.assert_inconclusive(trace.capture(), "no_positive_sequence")
+
+  def test_events_after_failed_probe_are_not_usable(self) -> None:
+    trace = complete_trace(order="absent")
+    trace.add("atc", "probe", "begin", generation=2)
+    trace.add("atc", "probe", "end", generation=2, ret=-517)
+    trace.add("atc", "usb2_set_mode", "begin", generation=2, mode=1, submode=0)
+    trace.add("atc", "usb2_set_mode", "end", generation=2, mode=1, submode=0, ret=0)
+    self.assert_inconclusive(trace.capture(), "failed_generation")
+
+  def test_later_dwc3_attempt_closes_the_old_interval(self) -> None:
+    trace = complete_trace(order="absent")
+    trace.add("dwc3", "role", "begin", role=1, state=0)
+    trace.add("dwc3", "init", "begin", attempt=2, state=0, target_state=99)
+    trace.add("dwc3", "init", "end", attempt=2, state=0, target_state=99, ret=-22)
+    trace.add("dwc3", "role", "end", role=1, state=0, ret=-22)
+    trace.add("atc", "usb2_set_mode", "begin", mode=1, submode=0)
+    trace.add("atc", "usb2_set_mode", "end", mode=1, submode=0, ret=0)
+    self.assert_inconclusive(trace.capture(), "no_positive_sequence")
+
+  def test_input_envelopes_and_manifest_are_not_mutated(self) -> None:
+    capture = complete_trace().capture()
+    before = deepcopy(capture)
+    manifest = deepcopy(MANIFEST)
+    result = validate_capture(capture, manifest)
+    self.assertEqual(result.status, "positive_software_sequence")
+    self.assertEqual(capture, before)
+    self.assertEqual(manifest, MANIFEST)
+
+  def test_later_role_change_closes_the_old_interval(self) -> None:
+    trace = complete_trace(order="absent")
+    trace.add("dwc3", "role", "begin", role=0, state=2)
+    trace.add("dwc3", "role", "end", role=0, state=1, ret=0)
+    trace.add("atc", "usb2_set_mode", "begin", mode=1, submode=0)
+    trace.add("atc", "usb2_set_mode", "end", mode=1, submode=0, ret=0)
+    self.assert_inconclusive(trace.capture(), "no_positive_sequence")
+
+  def test_successful_atc_probe_requires_finalize_pair(self) -> None:
+    capture = complete_trace().capture()
+    capture["records"] = [entry for entry in records(capture) if not (
+      message(entry)["component"] == "atc" and message(entry)["event"] == "finalize"
+    )]
+    renumber(capture, "atc")
+    self.assert_inconclusive(capture, "incomplete_probe")
+
+  def test_failed_finalize_cannot_have_successful_probe(self) -> None:
+    capture = complete_trace().capture()
+    replace_message(select(capture, "atc", "finalize", "end"), ret=-517)
+    result = self.assert_inconclusive(capture, "incomplete_probe")
+    self.assertTrue(any(
+      failure.component == "atc" and failure.event == "finalize" and failure.ret == -517
+      for failure in result.failed_operations
+    ))
+
+  def test_finalize_must_finish_before_probe_end(self) -> None:
+    capture = complete_trace().capture()
+    probe_end = select(capture, "atc", "probe", "end")
+    finalize_end = select(capture, "atc", "finalize", "end")
+    probe_end["MESSAGE"], finalize_end["MESSAGE"] = finalize_end["MESSAGE"], probe_end["MESSAGE"]
+    renumber(capture, "atc")
+    self.assert_inconclusive(capture, "incomplete_probe")
+
+  def test_finalize_requires_its_power_off_pair(self) -> None:
+    capture = complete_trace().capture()
+    power_begin = select(capture, "atc", "usb2_power_off", "begin")
+    power_end = select(capture, "atc", "usb2_power_off", "end")
+    capture["records"] = [
+      entry for entry in records(capture) if entry is not power_begin and entry is not power_end
+    ]
+    renumber(capture, "atc")
+    self.assert_inconclusive(capture, "incomplete_probe")
+
+  def test_power_off_must_finish_within_finalize(self) -> None:
+    capture = complete_trace().capture()
+    power_end = select(capture, "atc", "usb2_power_off", "end")
+    finalize_end = select(capture, "atc", "finalize", "end")
+    power_end["MESSAGE"], finalize_end["MESSAGE"] = finalize_end["MESSAGE"], power_end["MESSAGE"]
+    renumber(capture, "atc")
+    self.assert_inconclusive(capture, "incomplete_probe")
+
+  def test_early_failed_atc_probe_may_omit_finalize_before_retry(self) -> None:
+    result = validate_capture(complete_trace(atc_generation=2).capture(), MANIFEST)
+    self.assertEqual(result.status, "positive_software_sequence")
+    self.assertEqual(result.findings[0].atc_generation, 2)
+    self.assertTrue(any(
+      failure.component == "atc" and failure.generation == 1
+      and failure.event == "probe" and failure.ret == -517
+      for failure in result.failed_operations
+    ))
+
+  def test_failed_finalize_and_matching_probe_are_retained_before_retry(self) -> None:
+    prefix = Trace()
+    prefix.add("atc", "probe", "begin")
+    prefix.add("atc", "finalize", "begin")
+    prefix.add("atc", "usb2_power_off", "begin")
+    prefix.add("atc", "usb2_power_off", "end")
+    prefix.add("atc", "finalize", "end", ret=-517)
+    prefix.add("atc", "probe", "end", ret=-517)
+    capture = complete_trace(atc_generation=2).capture()
+    capture["records"] = prefix.records + records(capture)[2:]
+    renumber(capture, "atc")
+    for index, entry in enumerate(records(capture), 1):
+      entry["__CURSOR"] = f"retry:{index}"
+      entry["__MONOTONIC_TIMESTAMP"] = str(index)
+      entry["__REALTIME_TIMESTAMP"] = str(1_800_000_000_000_000 + index)
+    capture["collection_end_monotonic_us"] = len(records(capture)) + 100
+    result = validate_capture(capture, MANIFEST)
+    self.assertEqual(result.status, "positive_software_sequence")
+    self.assertEqual(result.findings[0].atc_generation, 2)
+    self.assertTrue(any(
+      failure.component == "atc" and failure.generation == 1
+      and failure.event == "finalize" and failure.ret == -517
+      for failure in result.failed_operations
+    ))
+
+
 if __name__ == "__main__":
     unittest.main()
