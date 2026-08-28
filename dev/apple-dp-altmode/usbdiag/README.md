@@ -10,12 +10,13 @@ The [diagnostic plan](../../../docs/plans/dev-147-usb-startup-diagnostic.md) own
 
 | Directory | Contents | State at this checkpoint |
 |---|---|---|
-| [kernel](kernel/) | Instrumented `dwc3-apple.c`, `atc.c`, and the matching draft patch | Private controls and diagnostics compile with BTF. Basic metadata checks pass. Import review and cap/concurrency checks remain pending; no load or hardware validation. |
+| [kernel](kernel/) | Instrumented drivers, matching patch, import and logging verifiers | Private controls/diagnostics compile with BTF. Exact import checks and bounded userspace logging QA pass. No load or hardware validation. |
 | [trace](trace/) | Event schema, typed validator, synthetic and independent review fixtures | Implemented; 59 isolated tests PASS after correction of three review failures. Software-order evidence only. |
-| [image](image/) | Bounded newc API and archive fixtures | UNIMPLEMENTED stub. Initial isolated RED: 16 tests, 30 NotImplementedError errors. No archive/index control or image build. |
+| [image](image/) | Bounded newc helper, filesystem guards, fixtures, saved-gzip inspection | Implemented; 48 isolated tests PASS. Real no-change archive/index controls and diagnostic image remain pending. |
+| [build](build/README.md) | Exact authentication, extraction, build, and control-QA workload sources | Historical failures and successful private runs are labeled separately. Not a live installer or quick-start. |
 | [sandbox](sandbox/) | R4 launcher, isolation probe, stdlib smoke tests, launcher test, proof input | PUBLIC REFERENCE ONLY. Invalid fixed paths; private runtime manifest deliberately omitted. |
 
-Both initial RED runs used frozen private stubs in a fresh, reviewed sandbox. Inputs remained unchanged and neither run timed out. The [trace/build checkpoint](../../../docs/evidence/dev-147-trace-and-module-builds-2026-08-28.md) records subsequent trace GREEN, the independent failures and correction, authenticated build inputs, and private module results. Image implementation and real archive/index controls remain pending.
+Both initial RED runs used frozen private stubs in a fresh, reviewed sandbox. Inputs remained unchanged and neither run timed out. The [trace/build checkpoint](../../../docs/evidence/dev-147-trace-and-module-builds-2026-08-28.md) records trace GREEN, review failures and correction, authentication, and private builds. The later [helper-QA record](../../../docs/evidence/dev-147-offline-helper-qa-2026-08-28.md) records import/logging checks, the retained link failure, 48 archive tests, and saved-gzip validation. Real archive/index controls remain pending.
 
 No install or quick-start command is provided. Tests and builds need a separately reviewed private continuation with pinned read-only inputs and fresh writable output/temp directories. Do not weaken a guard, create an unrestricted fallback, or rerun a frozen checkpoint's launcher. The monitor is not needed for offline work. D2 staging and D3 attended boot remain unauthorized.
 
@@ -28,7 +29,7 @@ The two kernel drafts derive from Asahi Linux commit [`e2e1930a9595bffafad92cec2
 
 SPDX notices and upstream author attribution are retained. The draft patch targets those original kernel paths. Kernel indentation is preserved; it is not reformatted as Omarchy shell code.
 
-The proposed records use revision `dev147-usbdiag1-v1`, board `j413`, and target `front_lower`. They filter `/soc/usb@502280000` and `/soc/phy@503000000`. Fixed INFO JSON records operation order without an intended change to the original hardware calls, error handling, lock order, retries, or timing policy. The per-component limit is 128 records including a final cap marker, with a 384-byte record bound. Compilation passed; cap/concurrency and full independent review remain open.
+The proposed records use revision `dev147-usbdiag1-v1`, board `j413`, and target `front_lower`. They filter `/soc/usb@502280000` and `/soc/phy@503000000`. Fixed INFO JSON records operation order without an intended change to the original hardware calls, error handling, lock order, retries, or timing policy. The per-component limit is 128 records including a final cap marker, with a 384-byte record bound. Compilation and userspace fragment/cap checks pass. The latter use C11/stdio shims, not kernel atomic/printk execution.
 
 Software order cannot prove PHY latching or hardware causation. A complete-looking sequence prefix cannot prove that no late setter occurred. Adding the missing DWC3 glue to an early image can itself change probe timing. The schema and synthetic fixtures are contracts, not hardware simulations or evidence of a fix. Synthetic boot IDs and repeated hash strings in fixtures are intentionally retained.
 

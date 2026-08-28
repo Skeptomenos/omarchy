@@ -1,6 +1,6 @@
 # DEV-147 — one-boot USB startup diagnostic design
 
-Updated: 2026-08-28, after trace review and private module builds. Status: D1 in progress. The trace validator passes 59 isolated tests, including three independent regressions that failed before correction. Unmodified controls and diagnostic modules compile with BTF; basic metadata checks pass. Diagnostic import review, cap/concurrency checks, image implementation, and real archive/index controls remain open. No diagnostic image exists. D0 remains complete. Staging and boot remain unauthorized.
+Updated: 2026-08-28, after offline helper QA. Status: D1 in progress. The trace validator passes 59 tests; the archive helper passes 48. Private control/diagnostic builds, exact import checks, and bounded userspace logging QA pass. Real no-change archive/compression and reduced-index controls are next. No diagnostic image exists. D0 remains complete. Staging and boot remain unauthorized.
 
 Current source branch: `codex/dev-147-m2-dp-altmode-public`. Its first checkpoint `c781312d1` was pushed and verified by remote readback. The [public archive](../../dev/apple-dp-altmode/usbdiag/README.md) preserves the authored drafts and fixtures, but excludes host manifests and raw logs. Public helpers have invalid machine-identity/path placeholders and must not run live. The original operational helpers and private branch remain unchanged. The [dated source checkpoint](../evidence/dev-147-public-source-checkpoint-2026-08-28.md) distinguishes historical R4 evidence from the new private RED runs.
 
@@ -17,11 +17,13 @@ This experiment can establish software call order. It cannot read whether the PH
 | Gate | State | Exit |
 |---|---|---|
 | D0 — design and independent review | Complete; design only | Measurement, image boundary, parser checks, and rollback reviewed; no implementation. |
-| D1 — offline implementation and build | Approved scope; trace GREEN; module builds pass | Isolation, 59 trace tests, two controls, and two diagnostic module builds pass. Import/logging review and image implementation/control checks remain open. No module load or hardware-test pass. |
+| D1 — offline implementation and build | Approved scope; focused code/build QA passes | 59 trace tests, 48 archive tests, control/diagnostic builds, exact import checks, and userspace logging QA pass. Real archive/index controls and diagnostic image remain open. No module load or hardware-test pass. |
 | D2 — stage a distinct image | Not authorized | New reviewed, fixed-target helper; David runs it; all protected hashes pass. No reboot implied. |
 | D3 — one attended diagnostic startup | Not authorized | Fresh preflight and user-selected one-time boot; capture and physical report; no automatic retry. |
 
 D1 now includes source implementation, focused fixtures, the two module builds, and private image preparation under David's explicit approval. It cannot include installation, staging, a driver reload, or a reboot. Each later gate stops for its own review and user action.
+
+The latest [helper-QA record](../evidence/dev-147-offline-helper-qa-2026-08-28.md) owns image-helper GREEN, import/logging verification, the retained userspace linker failure, and saved-gzip validation. The real base stream fits the 256 MiB helper bound. A fixture pass is not a real archive/index control or a boot-safety result.
 
 The [R4 evidence](../evidence/dev-147-sandbox-r4-2026-08-28.md) records the approved correction and one successful full probe, including namespace, network, write-boundary, and seven focused test checks. The [D1 hold record](../evidence/dev-147-usbdiag-d1-hold-2026-08-28.md) retains the earlier three failures; its missing errno remains unknown. The tool manifest and protection policy did not change. The [trace/build checkpoint](../evidence/dev-147-trace-and-module-builds-2026-08-28.md) records later GREEN tests, the independent review failures and correction, pahole signature/executable authentication, private builds, and remaining checks. No package was installed; builds used the verified private header tree.
 
