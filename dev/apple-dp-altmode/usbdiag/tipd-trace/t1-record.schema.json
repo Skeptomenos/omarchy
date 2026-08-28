@@ -29,6 +29,7 @@
   "$defs": {
     "int32": {"type": "integer", "minimum": -2147483648, "maximum": 2147483647},
     "nonzeroInt32": {"allOf": [{"$ref": "#/$defs/int32"}, {"not": {"const": 0}}]},
+    "kernelErrno": {"type": "integer", "minimum": -4095, "maximum": -1},
     "activeWorker": {"properties": {"worker": {"type": "integer", "minimum": 1, "maximum": 2147483647}}},
     "common": {
       "required": ["rev", "board", "target", "component", "seq", "gen", "worker", "event", "phase"],
@@ -94,7 +95,7 @@
       "properties": {"event": {"const": "worker"}, "phase": {"const": "end"}},
       "oneOf": [
         {"properties": {"reason": {"enum": ["disconnected", "complete"]}, "ret": {"const": 0}}},
-        {"properties": {"reason": {"const": "partner_error"}, "ret": {"$ref": "#/$defs/nonzeroInt32"}}}
+        {"properties": {"reason": {"const": "partner_error"}, "ret": {"$ref": "#/$defs/kernelErrno"}}}
       ]
     },
     "muxValue": {

@@ -1,10 +1,10 @@
 # T1 sender trace contract
 
-This directory defines a strict, pure parser for the selected TIPD sender diagnostic. The [A1 plan](../../../../docs/plans/dev-147-usb-startup-diagnostic.md#a1-selection--t1-tipd-sender-diagnostic-living) owns scope and approval. This is a test-first draft, not an implemented parser or a boot instruction.
+This directory defines a strict, pure parser for the selected TIPD sender diagnostic. The [A1 plan](../../../../docs/plans/dev-147-usb-startup-diagnostic.md#a1-selection--t1-tipd-sender-diagnostic-living) owns scope and approval. The parser has passed the scoped synthetic-fixture tests. It is not a boot instruction or operational validator.
 
 ## Test-first boundary
 
-`t1_trace.py` deliberately returns `parser_not_implemented` from the fixture entry point. The first reviewed sandbox run must preserve two genuine assertion failures before parser implementation. Source-pin, import, fixture, and execution errors are setup failures, not semantic RED. The runner returns 2 for setup errors or test exceptions, 1 for assertion failures, and 0 only when the selected tests pass.
+The original `parser_not_implemented` subject and two genuine assertion failures were retained before implementation. The current fixture parser passes the same two tests plus the full structural matrix after independent pre-execution review, a fresh sandbox run, and independent output review. Source-pin, import, fixture, and execution errors are setup failures, not semantic RED. The runner requires exactly 2 selected tests or all 31 methods. It returns 2 for setup errors, test exceptions, skips, expected failures, unexpected successes, or a count mismatch; 1 for ordinary assertion failures; and 0 only when every selected test passes.
 
 `trace_fixtures.py` does not import the parser or driver. It contains independent literal event sequences and labelled synthetic artifact identities. `test_t1_trace.py` supplies expected results separately. The [record schema](t1-record.schema.json) documents exact JSON payload fields. Tests exercise the parser, not a second schema validator that supplies its expected answers.
 
@@ -42,7 +42,7 @@ The cached fields are `plug`, `usb2`, `usb3`, `hpd`, `flip`, and `device` as Boo
 | `cache / stored` | Cached fields |
 | `queue / queued` | Queued fields |
 | `worker / begin` | Queued fields plus `connector`, `cached_device` |
-| `worker / end` | `reason` is `disconnected`, `partner_error`, or `complete`; `ret` is int32, nonzero only for `partner_error`. |
+| `worker / end` | `reason` is `disconnected`, `partner_error`, or `complete`; `ret` is zero except `partner_error`, which requires an actual `PTR_ERR` value from -4095 through -1. |
 | `mux / begin` or `returned` | `kind`, `mode`; `returned` also has int32 `ret`. Valid pairs: safe/0, usb/1, dp/2–7, tbt/2, usb4/4. |
 | `mux / skip` | Valid kind/mode plus `reason="unchanged"`; or dp/-1 with `invalid_dp_pin`; or none/-1 with `disconnected` or `partner_error`. |
 | `role / begin` or `returned` | `which` is `none` or `final`; `value` is 0 for none, 0–2 for final; `returned` also has int32 `ret`. |
@@ -75,14 +75,18 @@ Reservations 1–126 are normal. Reservation 127 atomically reserves both 127 an
 
 Validation precedence is input/JSON, envelope/binding, record fields/identity, duplicate/gap/cap checks, then source-order checks. The first fixed issue code is returned. Focused malformed fixtures introduce one fault at that layer. Intended codes include `input_too_large`, `invalid_json`, `duplicate_json_key`, `invalid_capture`, `invalid_collection`, `incomplete_collection`, `fixture_binding_mismatch`, `artifact_mismatch`, `invalid_envelope`, `boot_mismatch`, `record_too_long`, `invalid_record`, `record_identity_mismatch`, `duplicate_sequence`, `sequence_gap`, `missing_cap`, `invalid_cap`, `missing_init_begin`, `duplicate_init`, `unknown_generation`, `missing_init_end`, `missing_queue`, `worker_without_queue`, `unknown_worker`, `duplicate_worker`, `operation_order`, `missing_operation_begin`, `missing_operation_return`, `operation_pair_mismatch`, `decision_mismatch`, and `missing_worker_end`. The cap code is `capture_capped`.
 
-## Reviewed execution proposal, not a host command
+## Reviewed sandbox execution, not a host command
 
-Mount only a frozen copy of this directory as `/inputs/tests` in the already verified new sandbox. The source-pinned runner imports only its authenticated three local Python files. The runner itself and this schema/contract remain pinned by the outer sandbox input fingerprint. It has no subprocess, network, device, filesystem-write, old-helper, or environment-override path.
+Mount only a frozen copy of this directory as `/inputs/tests` in the already verified new sandbox. The source-pinned runner authenticates its three local Python dependencies and the schema. The tests also import the runner's pure result-classification helper; the runner itself and this contract remain pinned by the outer sandbox input fingerprint. Importing the runner cannot execute its guarded main. It has no subprocess, network, device, filesystem-write, old-helper, or environment-override path.
 
-Selected semantic RED argv inside that sandbox:
+Retained semantic RED argv inside that sandbox:
 
 ```text
 /usr/bin/python3.14 -I -S -B /inputs/tests/run_tests.py red
 ```
 
-The `all` mode adds the full structural matrix and operational refusal checks. Each run requires the root's reviewed launcher, fresh private output, fixed tool pins, isolation/smoke checks, and existing outer deadline. No test has been run as part of drafting these files.
+The `all` mode adds the full structural matrix and operational refusal checks. Its four new methods cover the kernel errno range, cap ownership/reserved slot, serialized bounds, and real unittest result classification. The original 27 method bodies and fixture source remain unchanged. Each run requires the root's reviewed launcher, fresh private output, fixed tool pins, isolation/smoke checks, and existing outer deadline.
+
+On 2026-08-29, `/usr/bin/python3.14 -I -S -B /inputs/tests/run_tests.py all` passed all 31 methods in a reported 0.072 seconds. There were zero failures, errors, skips, expected failures, or unexpected successes. The run exited 0 without timeout and launched zero workload child processes. Isolation and seven import-smoke tests passed; all 586 read-only bindings stayed unchanged. Independent pre-execution and actual-output reviews passed.
+
+The tested parser SHA-256 is `8c1e90a30f68c9237948e47f583038aee0d4584fa2459779e518b1630372e0fe`. The original RED and tested six-file GREEN snapshots and raw results remain private and unchanged. This later README update is not part of the executed snapshot. Acceptance covers synthetic structural parsing only. `validate_capture` still unconditionally refuses operational acceptance; the run proves no boot identity, complete driver trace, receiver delivery, hardware safety, USB function, or video fix.

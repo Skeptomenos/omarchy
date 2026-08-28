@@ -6,6 +6,7 @@ not start subprocesses, write files, read environment variables, or collect
 hardware data. Test exceptions are never reported as semantic assertion RED.
 """
 
+from dataclasses import dataclass
 import hashlib
 import importlib
 import json
@@ -14,19 +15,40 @@ from pathlib import Path
 import stat
 import sys
 import unittest
+from typing import Literal
 
 
 ROOT = Path("/inputs/tests")
 PINS = {
-  "t1_trace.py": "1dff12fda070f8712e77c2631ba92afa3631af889eae7b95b8e0fbe857cd9086",
+  "t1_trace.py": "8c1e90a30f68c9237948e47f583038aee0d4584fa2459779e518b1630372e0fe",
   "trace_fixtures.py": "1831f4f01ff2286840d78c0f658ffeba1850468e05d4958d8982391ce667cd55",
-  "test_t1_trace.py": "24a7cab63522d7de86cda3b2a95bd2e88e0a57ae28875297dc7ee9cc971dbea8",
-  "t1-record.schema.json": "de2c3776c18e4047077aefeadbcc9945e7de20bcc4caecea14d1eb0b5a7bfbc3",
+  "test_t1_trace.py": "592a067adfa939634008a039bd51f698cb620d216e7e9396a49dfb8731f9ec1b",
+  "t1-record.schema.json": "27218551534feaaf0e1cd812c3f302ad25f00769d0e536a570d354f716102f01",
 }
 RED_TESTS = (
   "T1TraceTests.test_complete_reordered_and_interleaved_capture",
   "T1TraceTests.test_missing_mandatory_tail_and_terminal_cap",
 )
+EXPECTED_COUNTS = {"red": 2, "all": 31}
+
+
+@dataclass(frozen=True)
+class RunOutcome:
+  status: Literal["pass", "assertion_red", "test_error", "test_incomplete"]
+  exit_code: int
+
+
+def evaluate_result(result: unittest.TestResult, *, expected_tests: int) -> RunOutcome:
+  if result.errors:
+    return RunOutcome("test_error", 2)
+  if (
+    result.testsRun != expected_tests or result.skipped
+    or result.expectedFailures or result.unexpectedSuccesses
+  ):
+    return RunOutcome("test_incomplete", 2)
+  if result.failures:
+    return RunOutcome("assertion_red", 1)
+  return RunOutcome("pass", 0)
 
 
 class SetupError(RuntimeError):
@@ -62,9 +84,14 @@ def preflight() -> str:
   return sys.argv[1]
 
 
-def report(status: str, *, tests: int = 0, failures: int = 0, errors: int = 0) -> None:
+def report(
+  status: str, *, tests: int = 0, failures: int = 0, errors: int = 0,
+  skipped: int = 0, expected_failures: int = 0, unexpected_successes: int = 0,
+) -> None:
   print(json.dumps({
     "status": status, "tests": tests, "failures": failures, "errors": errors,
+    "skipped": skipped, "expected_failures": expected_failures,
+    "unexpected_successes": unexpected_successes,
     "hardware_evidence": False, "operational_acceptance": False,
   }, separators=(",", ":")))
 
@@ -79,12 +106,10 @@ def main() -> int:
     test_module.fixture_preflight()
     if mode == "red":
       suite = unittest.defaultTestLoader.loadTestsFromNames(RED_TESTS, test_module)
-      if suite.countTestCases() != 2:
-        raise SetupError("wrong_selected_test_count")
     else:
       suite = unittest.defaultTestLoader.loadTestsFromModule(test_module)
-      if suite.countTestCases() < 3:
-        raise SetupError("missing_full_matrix")
+    if suite.countTestCases() != EXPECTED_COUNTS[mode]:
+      raise SetupError("wrong_test_count")
   except Exception:
     report("setup_error", errors=1)
     return 2
@@ -94,14 +119,14 @@ def main() -> int:
   except Exception:
     report("execution_error", errors=1)
     return 2
-  if result.errors:
-    report("test_error", tests=result.testsRun, failures=len(result.failures), errors=len(result.errors))
-    return 2
-  if result.failures:
-    report("assertion_red", tests=result.testsRun, failures=len(result.failures))
-    return 1
-  report("pass", tests=result.testsRun)
-  return 0
+  outcome = evaluate_result(result, expected_tests=EXPECTED_COUNTS[mode])
+  report(
+    outcome.status, tests=result.testsRun, failures=len(result.failures),
+    errors=len(result.errors), skipped=len(result.skipped),
+    expected_failures=len(result.expectedFailures),
+    unexpected_successes=len(result.unexpectedSuccesses),
+  )
+  return outcome.exit_code
 
 
 if __name__ == "__main__":

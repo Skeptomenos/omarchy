@@ -4,6 +4,7 @@ import json
 import unittest
 
 from t1_trace import SyntheticBinding, TraceResult, inspect_fixture_capture, validate_capture
+from run_tests import evaluate_result
 from trace_fixtures import (
   body, cached_pair, cap_capture, capture, change_body, complete_capture,
   complete_specs, entries, normal_worker, omit, payload, spec, with_entries,
@@ -372,3 +373,91 @@ class T1TraceTests(unittest.TestCase):
     value["records"] = []
     self.expect_code(json.dumps(value), "missing_init_begin")
     self.expect_code(" " * 131_073, "input_too_large")
+
+  def test_partner_error_requires_kernel_errno_range(self) -> None:
+    base = (spec("init", "begin"),) + cached_pair() + normal_worker()[:3]
+    for ret in (-4095, -1, -4096, -2147483648, 1, 2147483647, True):
+      records = base + (
+        spec("mux", "skip", worker=1, kind="none", mode=-1, reason="partner_error"),
+        spec("role", "skip", worker=1, which="final", value=1, reason="partner_error"),
+        spec("hpd", "skip", worker=1, which="connected", reason="partner_error"),
+        spec("worker", "end", worker=1, reason="partner_error", ret=ret),
+        spec("init", "end", reason="complete", ret=0),
+      )
+      if ret in (-4095, -1):
+        result = self.result(capture(records))
+        self.assertEqual(result.status, "structurally_complete")
+        self.assertEqual(tuple(item.ret for item in result.failed_operations), (ret,))
+      else:
+        self.expect_code(capture(records), "invalid_record")
+
+  def test_cap_ownership_and_reserved_slot_are_exact(self) -> None:
+    self.expect_code(change_body(cap_capture(terminal_worker=True), -1, worker=0), "invalid_cap")
+    self.expect_code(change_body(cap_capture(open_worker=True), -1, worker=1), "invalid_cap")
+    text = cap_capture()
+    records = entries(text)
+    second_cap = body(records[-1])
+    second_cap["seq"] = 127
+    records[-2]["MESSAGE"] = json.dumps(second_cap, separators=(",", ":")) + "\n"
+    self.expect_code(with_entries(text, records), "invalid_cap")
+    without_cap = entries(text)
+    value = body(without_cap[-2])
+    value["seq"] = 128
+    without_cap[-1]["MESSAGE"] = json.dumps(value, separators=(",", ":")) + "\n"
+    self.expect_code(with_entries(text, without_cap), "invalid_cap")
+
+  def test_serialized_bounds_include_stripped_newline(self) -> None:
+    text = complete_capture()
+    records = entries(text)
+    raw = records[0]["MESSAGE"]
+    if not isinstance(raw, str):
+      raise ValueError("fixture message must be text")
+    prefix = raw.removesuffix("\n")
+    exact = prefix + " " * (383 - len(prefix))
+    for message in (exact, exact + "\n"):
+      records[0]["MESSAGE"] = message
+      self.assertEqual(self.result(with_entries(text, records)).status, "structurally_complete")
+    records[0]["MESSAGE"] = exact + " "
+    self.expect_code(with_entries(text, records), "record_too_long")
+    bounded = text + " " * (131072 - len(text.encode("utf-8")))
+    self.assertEqual(self.result(bounded).status, "structurally_complete")
+    self.expect_code(bounded + " ", "input_too_large")
+
+  def test_runner_refuses_skips_errors_and_count_mismatch(self) -> None:
+    def succeeds() -> None:
+      return None
+
+    def fails() -> None:
+      raise AssertionError("synthetic failure")
+
+    def skips() -> None:
+      raise unittest.SkipTest("synthetic skip")
+
+    def errors() -> None:
+      raise ValueError("synthetic exception")
+
+    for callback, expected_status, expected_exit in (
+      (succeeds, "pass", 0), (fails, "assertion_red", 1),
+      (skips, "test_incomplete", 2), (errors, "test_error", 2),
+    ):
+      result = unittest.TestResult()
+      unittest.FunctionTestCase(callback).run(result)
+      outcome = evaluate_result(result, expected_tests=1)
+      self.assertEqual((outcome.status, outcome.exit_code), (expected_status, expected_exit))
+      mismatch = evaluate_result(result, expected_tests=2)
+      self.assertEqual(mismatch.exit_code, 2)
+
+    class ExpectedFailure(unittest.TestCase):
+      @unittest.expectedFailure
+      def runTest(self) -> None:
+        self.fail("synthetic expected failure")
+
+    class UnexpectedSuccess(unittest.TestCase):
+      @unittest.expectedFailure
+      def runTest(self) -> None:
+        return None
+
+    for case in (ExpectedFailure(), UnexpectedSuccess()):
+      result = unittest.TestResult()
+      case.run(result)
+      self.assertEqual(evaluate_result(result, expected_tests=1).exit_code, 2)
