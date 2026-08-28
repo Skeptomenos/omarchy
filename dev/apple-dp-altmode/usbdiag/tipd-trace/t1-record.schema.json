@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "T1 TIPD sender JSON record",
+  "description": "Exact payload fields only. Serialized byte bounds, duplicate keys, identities, envelopes, source ordering, and capture completeness need the strict parser. This schema is not boot evidence.",
+  "type": "object",
+  "allOf": [
+    {"$ref": "#/$defs/common"},
+    {
+      "oneOf": [
+        {"$ref": "#/$defs/initBegin"},
+        {"$ref": "#/$defs/initEnd"},
+        {"$ref": "#/$defs/cache"},
+        {"$ref": "#/$defs/queue"},
+        {"$ref": "#/$defs/workerBegin"},
+        {"$ref": "#/$defs/workerEnd"},
+        {"$ref": "#/$defs/muxBegin"},
+        {"$ref": "#/$defs/muxReturned"},
+        {"$ref": "#/$defs/muxSkip"},
+        {"$ref": "#/$defs/roleBegin"},
+        {"$ref": "#/$defs/roleReturned"},
+        {"$ref": "#/$defs/roleSkip"},
+        {"$ref": "#/$defs/hpdCall"},
+        {"$ref": "#/$defs/hpdSkip"},
+        {"$ref": "#/$defs/cap"}
+      ]
+    }
+  ],
+  "unevaluatedProperties": false,
+  "$defs": {
+    "int32": {"type": "integer", "minimum": -2147483648, "maximum": 2147483647},
+    "nonzeroInt32": {"allOf": [{"$ref": "#/$defs/int32"}, {"not": {"const": 0}}]},
+    "activeWorker": {"properties": {"worker": {"type": "integer", "minimum": 1, "maximum": 2147483647}}},
+    "common": {
+      "required": ["rev", "board", "target", "component", "seq", "gen", "worker", "event", "phase"],
+      "properties": {
+        "rev": {"const": "dev147-tipddiag1-v1"},
+        "board": {"const": "j413"},
+        "target": {"const": "front_lower"},
+        "component": {"const": "tipd"},
+        "seq": {"type": "integer", "minimum": 1, "maximum": 128},
+        "gen": {"type": "integer", "minimum": 1, "maximum": 2147483647},
+        "worker": {"type": "integer", "minimum": 0, "maximum": 2147483647},
+        "event": {"type": "string"},
+        "phase": {"type": "string"}
+      }
+    },
+    "cached": {
+      "required": ["plug", "usb2", "usb3", "hpd", "flip", "device", "power"],
+      "properties": {
+        "plug": {"type": "boolean"}, "usb2": {"type": "boolean"},
+        "usb3": {"type": "boolean"}, "hpd": {"type": "boolean"},
+        "flip": {"type": "boolean"}, "device": {"type": "boolean"},
+        "power": {"type": "integer", "minimum": 0, "maximum": 3}
+      }
+    },
+    "queued": {
+      "allOf": [{"$ref": "#/$defs/cached"}],
+      "required": ["disconnect", "hpd_change"],
+      "properties": {"disconnect": {"type": "boolean"}, "hpd_change": {"type": "boolean"}}
+    },
+    "initBegin": {
+      "properties": {"event": {"const": "init"}, "phase": {"const": "begin"}, "worker": {"const": 0}}
+    },
+    "initEnd": {
+      "required": ["ret", "reason"],
+      "properties": {"event": {"const": "init"}, "phase": {"const": "end"}, "worker": {"const": 0}},
+      "oneOf": [
+        {"properties": {"reason": {"const": "complete"}, "ret": {"const": 0}}},
+        {"properties": {
+          "reason": {"enum": ["gpio", "vid", "power_state", "mode", "patch", "mask", "status", "role", "psy", "port", "power_read", "data_read", "irq", "connect"]},
+          "ret": {"$ref": "#/$defs/nonzeroInt32"}
+        }}
+      ]
+    },
+    "cache": {
+      "allOf": [{"$ref": "#/$defs/cached"}],
+      "properties": {"event": {"const": "cache"}, "phase": {"const": "stored"}, "worker": {"const": 0}}
+    },
+    "queue": {
+      "allOf": [{"$ref": "#/$defs/queued"}],
+      "properties": {"event": {"const": "queue"}, "phase": {"const": "queued"}, "worker": {"const": 0}}
+    },
+    "workerBegin": {
+      "allOf": [{"$ref": "#/$defs/queued"}, {"$ref": "#/$defs/activeWorker"}],
+      "required": ["connector", "cached_device"],
+      "properties": {
+        "event": {"const": "worker"}, "phase": {"const": "begin"},
+        "connector": {"type": "boolean"}, "cached_device": {"type": "boolean"}
+      }
+    },
+    "workerEnd": {
+      "allOf": [{"$ref": "#/$defs/activeWorker"}],
+      "required": ["ret", "reason"],
+      "properties": {"event": {"const": "worker"}, "phase": {"const": "end"}},
+      "oneOf": [
+        {"properties": {"reason": {"enum": ["disconnected", "complete"]}, "ret": {"const": 0}}},
+        {"properties": {"reason": {"const": "partner_error"}, "ret": {"$ref": "#/$defs/nonzeroInt32"}}}
+      ]
+    },
+    "muxValue": {
+      "required": ["kind", "mode"],
+      "oneOf": [
+        {"properties": {"kind": {"const": "safe"}, "mode": {"const": 0}}},
+        {"properties": {"kind": {"const": "usb"}, "mode": {"const": 1}}},
+        {"properties": {"kind": {"const": "dp"}, "mode": {"type": "integer", "minimum": 2, "maximum": 7}}},
+        {"properties": {"kind": {"const": "tbt"}, "mode": {"const": 2}}},
+        {"properties": {"kind": {"const": "usb4"}, "mode": {"const": 4}}}
+      ]
+    },
+    "muxBegin": {
+      "allOf": [{"$ref": "#/$defs/activeWorker"}, {"$ref": "#/$defs/muxValue"}],
+      "properties": {"event": {"const": "mux"}, "phase": {"const": "begin"}}
+    },
+    "muxReturned": {
+      "allOf": [{"$ref": "#/$defs/activeWorker"}, {"$ref": "#/$defs/muxValue"}],
+      "required": ["ret"],
+      "properties": {"event": {"const": "mux"}, "phase": {"const": "returned"}, "ret": {"$ref": "#/$defs/int32"}}
+    },
+    "muxSkip": {
+      "allOf": [{"$ref": "#/$defs/activeWorker"}],
+      "required": ["kind", "mode", "reason"],
+      "properties": {"event": {"const": "mux"}, "phase": {"const": "skip"}},
+      "oneOf": [
+        {"allOf": [{"$ref": "#/$defs/muxValue"}], "properties": {"reason": {"const": "unchanged"}}},
+        {"properties": {"kind": {"const": "dp"}, "mode": {"const": -1}, "reason": {"const": "invalid_dp_pin"}}},
+        {"properties": {"kind": {"const": "none"}, "mode": {"const": -1}, "reason": {"enum": ["disconnected", "partner_error"]}}}
+      ]
+    },
+    "roleValue": {
+      "required": ["which", "value"],
+      "oneOf": [
+        {"properties": {"which": {"const": "none"}, "value": {"const": 0}}},
+        {"properties": {"which": {"const": "final"}, "value": {"type": "integer", "minimum": 0, "maximum": 2}}}
+      ]
+    },
+    "roleBegin": {
+      "allOf": [{"$ref": "#/$defs/activeWorker"}, {"$ref": "#/$defs/roleValue"}],
+      "properties": {"event": {"const": "role"}, "phase": {"const": "begin"}}
+    },
+    "roleReturned": {
+      "allOf": [{"$ref": "#/$defs/activeWorker"}, {"$ref": "#/$defs/roleValue"}],
+      "required": ["ret"],
+      "properties": {"event": {"const": "role"}, "phase": {"const": "returned"}, "ret": {"$ref": "#/$defs/int32"}}
+    },
+    "roleSkip": {
+      "allOf": [{"$ref": "#/$defs/activeWorker"}],
+      "required": ["which", "value", "reason"],
+      "properties": {"event": {"const": "role"}, "phase": {"const": "skip"}},
+      "oneOf": [
+        {"properties": {"which": {"const": "none"}, "value": {"const": 0}, "reason": {"const": "no_transition"}}},
+        {"properties": {"which": {"const": "final"}, "value": {"type": "integer", "minimum": 0, "maximum": 2}, "reason": {"enum": ["disconnected", "partner_error"]}}}
+      ]
+    },
+    "hpdCall": {
+      "allOf": [{"$ref": "#/$defs/activeWorker"}],
+      "required": ["which"],
+      "properties": {
+        "event": {"const": "hpd"}, "phase": {"enum": ["begin", "returned"]},
+        "which": {"enum": ["disconnected", "connected"]}
+      }
+    },
+    "hpdSkip": {
+      "allOf": [{"$ref": "#/$defs/activeWorker"}],
+      "required": ["which", "reason"],
+      "properties": {"event": {"const": "hpd"}, "phase": {"const": "skip"}},
+      "oneOf": [
+        {"properties": {"which": {"const": "disconnected"}, "reason": {"enum": ["no_connector", "level_high_unchanged"]}}},
+        {"properties": {"which": {"const": "connected"}, "reason": {"enum": ["no_connector", "level_low", "disconnected", "partner_error"]}}}
+      ]
+    },
+    "cap": {
+      "required": ["limit", "reason"],
+      "properties": {
+        "event": {"const": "cap"}, "phase": {"const": "end"},
+        "seq": {"const": 128}, "limit": {"const": 128}, "reason": {"const": "budget"}
+      }
+    }
+  }
+}
