@@ -4,6 +4,10 @@ These are reviewed source checkpoints, not live-use commands. They require exact
 
 The [diagnostic plan](../../../../docs/plans/dev-147-usb-startup-diagnostic.md) owns current status and authority. The [real-control evidence](../../../../docs/evidence/dev-147-real-archive-controls-2026-08-28.md) and [diagnostic-image evidence](../../../../docs/evidence/dev-147-private-diagnostic-image-2026-08-28.md) distinguish fixture results, real-tool checks, retained failures, and untested startup behavior.
 
+Reconciled: 2026-08-28. The later [C2 evidence](../../../../docs/evidence/dev-147-c2-offline-preparation-2026-08-28.md) records E-only offline preparation and independent QA. E is not staged or boot-tested. B/G images remain unprepared; the next step is a new reviewed E-only C3 staging helper, then David's manual command.
+
+## Historical D1 sources
+
 | Source | Scope and dependencies |
 |---|---|
 | `cpio_image.py`, `cpio_image_test.py`, `test_review_archive.py` | Bounded raw-record reader/writer and real filesystem guards. 58 focused tests pass. |
@@ -12,8 +16,18 @@ The [diagnostic plan](../../../../docs/plans/dev-147-usb-startup-diagnostic.md) 
 | `inspect_indexes.py` | Historical read-only two-root comparison. It intentionally pins the retained private **first** assembly draft; that draft is not the current `prepare_image.py` in this directory. |
 | `inspect_priorities.py` | Independent read-only comparison of the two exact pinned symbol binaries. It proves that only 335 priority fields differ. It does not write an index. |
 
-All six newly exported assembly/inspection files are byte-identical to their reviewed private sources. Raw proof JSON, symbol binaries, generated dumps, modules, images, and host manifests stay private. The earlier failed drafts and RED checkpoints stay in the private evidence archive. No missing private input is permission to invent a replacement or bypass a hash check.
+At the D1 export, all six assembly/inspection files were byte-identical to their reviewed private sources. Raw proof JSON, symbol binaries, generated dumps, modules, images, and host manifests stay private. The earlier failed drafts and RED checkpoints stay in the private evidence archive. No missing private input is permission to invent a replacement or bypass a hash check.
 
-The assembly permits three replacements: ATC, `modules.dep.bin`, and `modules.alias.bin`. It adds DWC3 glue. It retains the original symbol index after verifying the regenerated scratch index and its complete binary mapping dump. Both builtin indexes and every unrelated archive record remain unchanged. The final result is written last; an absent result means incomplete output.
+The historical diagnostic assembly permits three replacements: ATC, `modules.dep.bin`, and `modules.alias.bin`. It adds DWC3 glue. It retains the original symbol index after verifying the regenerated scratch index and its complete binary mapping dump. Both builtin indexes and every unrelated archive record remain unchanged. The final result is written last; an absent result means incomplete output. D3 later failed its external-display criterion; preserve that image and evidence unchanged.
 
-No helper here stages into `/boot`, loads a module, selects a boot entry, or reboots. D2 staging and D3 attended startup require separate review and user action.
+## Distinct C2 E-only sources
+
+| Source | Scope |
+|---|---|
+| [test_e_image_red.py](test_e_image_red.py) | Frozen legitimate-E acceptance case against the old assembly gate. Setup passes; the expected rejection is `unapproved archive replacement set`. |
+| [prepare_e_image.py](prepare_e_image.py) | New E-only gate and assembly using authenticated old utilities without changing their globals or strict index pins. Adds exact packaged DWC3 and replaces only dependency/alias binary indexes; raw ATC/TIPD/unrelated records remain unchanged. |
+| [test_e_image_green.py](test_e_image_green.py) | 13 passing delta, identity, path, and preservation methods. Actual index/dependency proof is the separate 414-command assembly result, not these fixtures. |
+
+All three C2 files match their frozen reviewed private bytes. The [dated result](../../../../docs/evidence/dev-147-c2-offline-preparation-2026-08-28.md#e-only-archive-result) owns E's exact hash/size, fresh no-change control, raw-record delta, independent archive listings, and complete no-load resolution. E contains no diagnostic or rebuilt control module. Correct bytes and indexes do not prove safe probe timing or USB/display behavior.
+
+No helper here stages into `/boot`, loads a module, selects a boot entry, or reboots. The old D2/D3 handoffs are consumed. C3 staging and any C4 attended selection need their separate reviewed manual handoffs; do not replay an old helper or treat W/E/B/G as a boot schedule.

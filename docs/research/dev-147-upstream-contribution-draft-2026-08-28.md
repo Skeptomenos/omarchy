@@ -25,6 +25,7 @@ Credit belongs to haripako for the reference investigation and to the Asahi cont
 | [D3 diagnostic startup](../evidence/dev-147-usbdiag-startup-failure-2026-08-28.md) | External video failed while the internal screen remained usable. A defective diagnostic target guard suppressed the trace; it does not explain the video failure. |
 | [Separate working-image recovery](../evidence/dev-147-dp-recovery-2026-08-28.md) | Both native displays and responsiveness returned with packaged USB drivers and the working patched DP core. Only root hubs enumerated; startup USB remains HOLD. |
 | [C1 diagnostic correction](../evidence/dev-147-usbdiag-c1-correction-2026-08-28.md) | Exact OF-node guard correction and strict v2 identity passed userspace tests after genuine RED. This is instrumentation source only, not a tested USB/video fix or a v2 boot result. |
+| [C2 offline preparation](../evidence/dev-147-c2-offline-preparation-2026-08-28.md) | Fresh control/v2 modules and the E-only image passed offline checks and independent QA. E remains unbooted. This adds no USB/video fix or new hardware result. |
 
 Firmware diagnostics remain unresolved, including an unplug-time FIFO error. A separate diagnostic status read caused a recorded WARN; it was not repeated. These are not clean-log claims. No repeated hotplug, cold-start, suspend, rear-port, downstream-peripheral, or full-rollback acceptance is established. Full Gate 4b remains HOLD, and D3 video causality remains unknown. No safe general installation or kernel-update integration is claimed.
 
