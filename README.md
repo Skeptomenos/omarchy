@@ -188,6 +188,12 @@ Consider supporting the project: [![Buy Me A Coffee](https://img.shields.io/badg
 - The Omarchy manual — [manual/](manual/)
 - Btrfs snapshots and disk encryption — [docs/btrfs.md](docs/btrfs.md)
 - Upgrading from 3.x to Quattro — [docs/upgrade-to-quattro.md](docs/upgrade-to-quattro.md)
+- Apple Silicon external display prototype — [docs/apple-silicon-external-display.md](docs/apple-silicon-external-display.md)
+- DEV-147 prototype execution plan and history — [docs/plans/dev-147-m2-displayport.md](docs/plans/dev-147-m2-displayport.md)
+- DEV-147 single-reconnect evidence — [docs/evidence/dev-147-usb-reconnect-2026-08-27.md](docs/evidence/dev-147-usb-reconnect-2026-08-27.md)
+- DEV-147 USB startup investigation — [docs/research/dev-147-usb-startup-2026-08-28.md](docs/research/dev-147-usb-startup-2026-08-28.md)
+- DEV-147 reviewed one-boot USB diagnostic design — [docs/plans/dev-147-usb-startup-diagnostic.md](docs/plans/dev-147-usb-startup-diagnostic.md)
+- DEV-147 diagnostic source archive, draft and offline only — [dev/apple-dp-altmode/usbdiag/README.md](dev/apple-dp-altmode/usbdiag/README.md)
 - Apple Silicon keyboard backlight — [docs/apple-silicon-keyboard-backlight.md](docs/apple-silicon-keyboard-backlight.md)
 
 ---

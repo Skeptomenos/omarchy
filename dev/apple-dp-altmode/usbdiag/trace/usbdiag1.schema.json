@@ -1,0 +1,928 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DEV-147 USB diagnostic revision 1 record",
+  "description": "A kernel INFO JSON payload, not a hardware verdict. Source payloads are newline-terminated ASCII and at most 384 bytes including newline; validate this raw-byte constraint before JSON parsing. Missing event-specific fields mean not applicable or not yet returned, never a default observation.",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": 1
+    },
+    "revision": {
+      "const": "dev147-usbdiag1-v1"
+    },
+    "board": {
+      "const": "j413"
+    },
+    "component": {
+      "enum": [
+        "dwc3",
+        "atc"
+      ]
+    },
+    "target": {
+      "const": "front_lower"
+    },
+    "seq": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 128
+    },
+    "generation": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 4294967295
+    }
+  },
+  "required": [
+    "schema",
+    "revision",
+    "board",
+    "component",
+    "target",
+    "seq",
+    "generation"
+  ],
+  "oneOf": [
+    {
+      "description": "First marker of every target probe, before allocation. Attempt 0 means not associated with an initialization attempt.",
+      "properties": {
+        "component": {
+          "const": "dwc3"
+        },
+        "event": {
+          "const": "probe"
+        },
+        "phase": {
+          "const": "begin"
+        },
+        "seq": {
+          "maximum": 127
+        },
+        "attempt": {
+          "const": 0
+        }
+      },
+      "required": [
+        "component",
+        "event",
+        "phase",
+        "seq",
+        "attempt"
+      ]
+    },
+    {
+      "description": "Original probe result. Zero means ready, not proof that child probes completed.",
+      "properties": {
+        "component": {
+          "const": "dwc3"
+        },
+        "event": {
+          "const": "probe"
+        },
+        "phase": {
+          "const": "end"
+        },
+        "seq": {
+          "maximum": 127
+        },
+        "ret": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "attempt": {
+          "const": 0
+        }
+      },
+      "required": [
+        "component",
+        "event",
+        "phase",
+        "seq",
+        "ret",
+        "attempt"
+      ]
+    },
+    {
+      "description": "After the existing role mutex; requested role and cached controller state.",
+      "properties": {
+        "component": {
+          "const": "dwc3"
+        },
+        "event": {
+          "const": "role"
+        },
+        "phase": {
+          "const": "begin"
+        },
+        "seq": {
+          "maximum": 127
+        },
+        "role": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "state": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "attempt": {
+          "const": 0
+        }
+      },
+      "required": [
+        "component",
+        "event",
+        "phase",
+        "seq",
+        "role",
+        "state",
+        "attempt"
+      ]
+    },
+    {
+      "description": "Same-role no-op. Closes role.begin without an initialization attempt.",
+      "properties": {
+        "component": {
+          "const": "dwc3"
+        },
+        "event": {
+          "const": "role"
+        },
+        "phase": {
+          "const": "skip"
+        },
+        "seq": {
+          "maximum": 127
+        },
+        "role": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "state": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "ret": {
+          "const": 0
+        },
+        "attempt": {
+          "const": 0
+        }
+      },
+      "required": [
+        "component",
+        "event",
+        "phase",
+        "seq",
+        "role",
+        "state",
+        "ret",
+        "attempt"
+      ]
+    },
+    {
+      "description": "Original role callback result while its existing mutex remains held.",
+      "properties": {
+        "component": {
+          "const": "dwc3"
+        },
+        "event": {
+          "const": "role"
+        },
+        "phase": {
+          "const": "end"
+        },
+        "seq": {
+          "maximum": 127
+        },
+        "role": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "state": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "ret": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "attempt": {
+          "const": 0
+        }
+      },
+      "required": [
+        "component",
+        "event",
+        "phase",
+        "seq",
+        "role",
+        "state",
+        "ret",
+        "attempt"
+      ]
+    },
+    {
+      "description": "Initialization attempt within this DWC3 generation.",
+      "properties": {
+        "component": {
+          "const": "dwc3"
+        },
+        "event": {
+          "const": "init"
+        },
+        "phase": {
+          "const": "begin"
+        },
+        "seq": {
+          "maximum": 127
+        },
+        "state": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "target_state": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "attempt": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4294967295
+        }
+      },
+      "required": [
+        "component",
+        "event",
+        "phase",
+        "seq",
+        "state",
+        "target_state",
+        "attempt"
+      ]
+    },
+    {
+      "description": "Original initialization result, including unchanged cleanup/error behavior.",
+      "properties": {
+        "component": {
+          "const": "dwc3"
+        },
+        "event": {
+          "const": "init"
+        },
+        "phase": {
+          "const": "end"
+        },
+        "seq": {
+          "maximum": 127
+        },
+        "state": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "target_state": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "ret": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "attempt": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4294967295
+        }
+      },
+      "required": [
+        "component",
+        "event",
+        "phase",
+        "seq",
+        "state",
+        "target_state",
+        "ret",
+        "attempt"
+      ]
+    },
+    {
+      "description": "Immediately before the unchanged early USB2 API call. Present means non-null, including error pointers.",
+      "properties": {
+        "component": {
+          "const": "dwc3"
+        },
+        "event": {
+          "const": "early_usb2"
+        },
+        "phase": {
+          "const": "begin"
+        },
+        "seq": {
+          "maximum": 127
+        },
+        "mode": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "usb2_present": {
+          "type": "boolean"
+        },
+        "usb2_error": {
+          "type": "boolean"
+        },
+        "attempt": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4294967295
+        }
+      },
+      "required": [
+        "component",
+        "event",
+        "phase",
+        "seq",
+        "mode",
+        "usb2_present",
+        "usb2_error",
+        "attempt"
+      ]
+    },
+    {
+      "description": "The formerly ignored API return is observed, not acted on.",
+      "properties": {
+        "component": {
+          "const": "dwc3"
+        },
+        "event": {
+          "const": "early_usb2"
+        },
+        "phase": {
+          "const": "end"
+        },
+        "seq": {
+          "maximum": 127
+        },
+        "mode": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "usb2_present": {
+          "type": "boolean"
+        },
+        "usb2_error": {
+          "type": "boolean"
+        },
+        "ret": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "attempt": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4294967295
+        }
+      },
+      "required": [
+        "component",
+        "event",
+        "phase",
+        "seq",
+        "mode",
+        "usb2_present",
+        "usb2_error",
+        "ret",
+        "attempt"
+      ]
+    },
+    {
+      "description": "Existing operation entry within an initialization attempt.",
+      "properties": {
+        "component": {
+          "const": "dwc3"
+        },
+        "event": {
+          "enum": [
+            "reset_deassert",
+            "reset_assert",
+            "host_init",
+            "gadget_init"
+          ]
+        },
+        "phase": {
+          "const": "begin"
+        },
+        "seq": {
+          "maximum": 127
+        },
+        "attempt": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4294967295
+        }
+      },
+      "required": [
+        "component",
+        "event",
+        "phase",
+        "seq",
+        "attempt"
+      ]
+    },
+    {
+      "description": "Existing operation result. Host init return is not an HCD-completion marker.",
+      "properties": {
+        "component": {
+          "const": "dwc3"
+        },
+        "event": {
+          "enum": [
+            "reset_deassert",
+            "reset_assert",
+            "host_init",
+            "gadget_init"
+          ]
+        },
+        "phase": {
+          "const": "end"
+        },
+        "seq": {
+          "maximum": 127
+        },
+        "ret": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "attempt": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4294967295
+        }
+      },
+      "required": [
+        "component",
+        "event",
+        "phase",
+        "seq",
+        "ret",
+        "attempt"
+      ]
+    },
+    {
+      "description": "Before the unchanged core-init/probe helper call.",
+      "properties": {
+        "component": {
+          "const": "dwc3"
+        },
+        "event": {
+          "const": "core_init"
+        },
+        "phase": {
+          "const": "begin"
+        },
+        "seq": {
+          "maximum": 127
+        },
+        "state": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "attempt": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4294967295
+        }
+      },
+      "required": [
+        "component",
+        "event",
+        "phase",
+        "seq",
+        "state",
+        "attempt"
+      ]
+    },
+    {
+      "description": "After core-init returns, including failure paths and pointer-presence/error flags.",
+      "properties": {
+        "component": {
+          "const": "dwc3"
+        },
+        "event": {
+          "const": "core_init"
+        },
+        "phase": {
+          "const": "end"
+        },
+        "seq": {
+          "maximum": 127
+        },
+        "state": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "ret": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "usb2_present": {
+          "type": "boolean"
+        },
+        "usb2_error": {
+          "type": "boolean"
+        },
+        "attempt": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4294967295
+        }
+      },
+      "required": [
+        "component",
+        "event",
+        "phase",
+        "seq",
+        "state",
+        "ret",
+        "usb2_present",
+        "usb2_error",
+        "attempt"
+      ]
+    },
+    {
+      "description": "Reservation 128 replaces an event. The entire capture is inconclusive; attempt identifies the interrupted context, or 0.",
+      "properties": {
+        "component": {
+          "const": "dwc3"
+        },
+        "event": {
+          "const": "capture_capped"
+        },
+        "phase": {
+          "const": "end"
+        },
+        "seq": {
+          "const": 128
+        },
+        "attempt": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        }
+      },
+      "required": [
+        "component",
+        "event",
+        "phase",
+        "seq",
+        "attempt"
+      ]
+    },
+    {
+      "description": "Probe starts before allocation. Finalize starts after its existing mutex and before its first reset operation.",
+      "properties": {
+        "component": {
+          "const": "atc"
+        },
+        "event": {
+          "enum": [
+            "probe",
+            "finalize"
+          ]
+        },
+        "phase": {
+          "const": "begin"
+        },
+        "seq": {
+          "maximum": 127
+        }
+      },
+      "required": [
+        "component",
+        "event",
+        "phase",
+        "seq"
+      ]
+    },
+    {
+      "description": "Original probe/finalize result. Outer probe records do not read mutable published state.",
+      "properties": {
+        "component": {
+          "const": "atc"
+        },
+        "event": {
+          "enum": [
+            "probe",
+            "finalize"
+          ]
+        },
+        "phase": {
+          "const": "end"
+        },
+        "seq": {
+          "maximum": 127
+        },
+        "ret": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        }
+      },
+      "required": [
+        "component",
+        "event",
+        "phase",
+        "seq",
+        "ret"
+      ]
+    },
+    {
+      "description": "After existing mode resolution and under the existing mutex, before the same-mode test/configure call.",
+      "properties": {
+        "component": {
+          "const": "atc"
+        },
+        "event": {
+          "const": "mux"
+        },
+        "phase": {
+          "const": "begin"
+        },
+        "seq": {
+          "maximum": 127
+        },
+        "current_mode": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "target_mode": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "swap_lanes": {
+          "type": "boolean"
+        },
+        "pipehandler_up": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "component",
+        "event",
+        "phase",
+        "seq",
+        "current_mode",
+        "target_mode",
+        "swap_lanes",
+        "pipehandler_up"
+      ]
+    },
+    {
+      "description": "Existing same-mode no-op; closes mux.begin.",
+      "properties": {
+        "component": {
+          "const": "atc"
+        },
+        "event": {
+          "const": "mux"
+        },
+        "phase": {
+          "const": "skip"
+        },
+        "seq": {
+          "maximum": 127
+        },
+        "current_mode": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "target_mode": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "swap_lanes": {
+          "type": "boolean"
+        },
+        "pipehandler_up": {
+          "type": "boolean"
+        },
+        "ret": {
+          "const": 0
+        }
+      },
+      "required": [
+        "component",
+        "event",
+        "phase",
+        "seq",
+        "current_mode",
+        "target_mode",
+        "swap_lanes",
+        "pipehandler_up",
+        "ret"
+      ]
+    },
+    {
+      "description": "Original configure result and cached post-call state under the existing mutex.",
+      "properties": {
+        "component": {
+          "const": "atc"
+        },
+        "event": {
+          "const": "mux"
+        },
+        "phase": {
+          "const": "end"
+        },
+        "seq": {
+          "maximum": 127
+        },
+        "current_mode": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "target_mode": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "swap_lanes": {
+          "type": "boolean"
+        },
+        "pipehandler_up": {
+          "type": "boolean"
+        },
+        "ret": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        }
+      },
+      "required": [
+        "component",
+        "event",
+        "phase",
+        "seq",
+        "current_mode",
+        "target_mode",
+        "swap_lanes",
+        "pipehandler_up",
+        "ret"
+      ]
+    },
+    {
+      "description": "Execution boundary around the existing writes. These void helpers have no return field and do not measure electrical state.",
+      "properties": {
+        "component": {
+          "const": "atc"
+        },
+        "event": {
+          "enum": [
+            "usb2_power_on",
+            "usb2_power_off"
+          ]
+        },
+        "phase": {
+          "enum": [
+            "begin",
+            "end"
+          ]
+        },
+        "seq": {
+          "maximum": 127
+        }
+      },
+      "required": [
+        "component",
+        "event",
+        "phase",
+        "seq"
+      ]
+    },
+    {
+      "description": "After the existing mutex, before the unchanged setter switch.",
+      "properties": {
+        "component": {
+          "const": "atc"
+        },
+        "event": {
+          "const": "usb2_set_mode"
+        },
+        "phase": {
+          "const": "begin"
+        },
+        "seq": {
+          "maximum": 127
+        },
+        "mode": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "submode": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        }
+      },
+      "required": [
+        "component",
+        "event",
+        "phase",
+        "seq",
+        "mode",
+        "submode"
+      ]
+    },
+    {
+      "description": "Original return; HOST_SS rejection and HOST fallback remain separate pairs.",
+      "properties": {
+        "component": {
+          "const": "atc"
+        },
+        "event": {
+          "const": "usb2_set_mode"
+        },
+        "phase": {
+          "const": "end"
+        },
+        "seq": {
+          "maximum": 127
+        },
+        "mode": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "submode": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "ret": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        }
+      },
+      "required": [
+        "component",
+        "event",
+        "phase",
+        "seq",
+        "mode",
+        "submode",
+        "ret"
+      ]
+    },
+    {
+      "description": "Reservation 128 replaces an event. Later diagnostics stop without stopping driver execution.",
+      "properties": {
+        "component": {
+          "const": "atc"
+        },
+        "event": {
+          "const": "capture_capped"
+        },
+        "phase": {
+          "const": "end"
+        },
+        "seq": {
+          "const": 128
+        }
+      },
+      "required": [
+        "component",
+        "event",
+        "phase",
+        "seq"
+      ]
+    }
+  ],
+  "unevaluatedProperties": false,
+  "$comment": "Generation numbers are component-local and never a join key. Sequence is atomic reservation order, not a cross-component clock. A schema-valid consecutive prefix cannot prove no later setter. Require original journal envelopes, a bound identity manifest, complete earlier attempts, closed critical pairs, and strict timestamp non-overlap for positive order findings. Never infer the caller from time proximity. An absent cap marker does not prove that the cap was not reached."
+}

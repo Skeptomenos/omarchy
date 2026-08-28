@@ -1,0 +1,215 @@
+# DEV-147 — contained M2 DisplayPort prototype
+
+Updated: 2026-08-28, during public-source checkpoint preparation. Status: In Progress. Display startup and one reconnect passed their functional checks. The reconnect restored the monitor's USB hub and LG controls. Source review found a first-probe ordering defect in stock USB glue; its effect on this hardware is not proved. D0 design is reviewed. D1 is approved for offline work and its initial isolation check passes. The first trace/image fixture runs now show expected RED failures from unimplemented stubs. No diagnostic module or image was built. Staging and boot are not authorized. Automatic USB enumeration at attached startup remains unresolved, so full Gate 4b acceptance remains on hold. Do not repeat USB-1. This document owns the execution plan. [Linear DEV-147](https://linear.app/helmus/issue/DEV-147/usb-c-displayport-external-monitor-unavailable-on-m2-macbook-air) owns issue status and dated checkpoints.
+
+Public-copy boundary: source and reviewed notes are being prepared on `codex/dev-147-m2-dp-altmode-public`. The original branch and its 14 local commits remain private and unchanged. Boot IDs are redacted here; raw Linear exports and machine records are excluded. The public helpers have invalid machine identifiers and are not the byte-identical, tested operational copies. Do not run them live. See the [source archive](../../dev/apple-dp-altmode/usbdiag/README.md) and [dated checkpoint](../evidence/dev-147-public-source-checkpoint-2026-08-28.md).
+
+The first live test produced a working external image. This is not a permanent fix or a reliability result. See the [dated history and evidence](../evidence/dev-147-prototype-history-2026-08-27.md) for what happened, including failed prerequisites and corrected advice.
+
+Gate 4a is complete. David ran the reviewed staging helper and supplied `STAGING ONLY PASS` for `/boot/initramfs-linux-asahi-dpalt.img`. He then completed the clarified one-time GRUB selection and reported both screens working after reboot. The loaded candidate build ID and early boot log now verify candidate startup. The external display is at 3440×1440 / 99.982 Hz; the internal panel is at 2560×1664 / 60 Hz. Normal boot selection remains unchanged. Keep the [preparation evidence](../evidence/dev-147-one-boot-preparation-2026-08-27.md), [staging checkpoint](../evidence/dev-147-one-boot-staging-2026-08-27.md), and new [startup evidence](../evidence/dev-147-one-boot-startup-2026-08-27.md). This is one restart, not a cold-start or reliability pass.
+
+The monitor's USB hub and LG controls were absent at startup, although video and USB-PD were present. USB-1 restored those devices without a driver change. A stock-driver boot also began with only root hubs, so a candidate-specific regression is not established. Our earlier read of a Type-C partner's `usb_mode` status triggered a kernel WARN in `usb_mode_show`; do not repeat that read. The reconnect added one firmware FIFO error at unplug and repeated the three known firmware diagnostics. No new kernel WARN or fatal event was found in that captured interval. The [dated investigation](../research/dev-147-usb-startup-2026-08-28.md) owns the saved-log comparison and source findings. The [diagnostic subplan](dev-147-usb-startup-diagnostic.md) owns D1, now past its initial isolation check. Next, resume its already approved offline implementation, tests, and private build work. The monitor is not needed for D1; David may unplug it while leaving MagSafe connected. An unplug was permitted, not confirmed or counted as a test. Staging and an attended boot remain separate. Do not start mode, repeated hotplug, or suspend tests.
+
+The earlier 22:18 stock-driver boot and rejected Bash `initrd` command remain in the [handoff correction](../evidence/dev-147-stock-driver-boot-2026-08-27.md). That was not a candidate startup failure. No agent ran a privileged command, reboot, cable action, driver operation, or package change during this validation. The status read did have the recorded WARN/taint side effect.
+
+## Scope and safety boundaries
+
+- One machine: `omarchy-air`, Apple MacBook Air M2 J413/T8112, kernel `7.1.6-1-1-ARCH`.
+- One display path: the known working monitor and cable on the front/lower left USB-C port, controller `0-003f`, ATC PHY1, mux index 2. The rear/upper port, `0-0038`, is not routed by this prototype. Do not add a dock, MST device, or another display.
+- Keep the internal screen usable and the lid open. No clamshell testing.
+- Keep the packaged kernel, DTB, Type-C module, stock initramfs, GRUB configuration, and `/etc/default/update-m1n1` unchanged. The last path must remain absent. Do not run `update-m1n1` or `grub-mkconfig`.
+- Do not edit or switch `/home/david/o-live`. Current public source and documentation are on `codex/dev-147-m2-dp-altmode-public`. The original `codex/dev-147-m2-dp-altmode` branch at `/home/david/o/.dev147-stage/prototype` remains a private archive with the tested operational helpers. Keep artifacts and raw evidence private in the existing persistent stage. Use fresh private continuation directories for D1 outputs. Do not regenerate the old stage or replay Gates 0–3.
+- David runs every privileged command. Before a future mutation, review its exact command, rollback, file targets, and evidence checks with him. He must be present, with saved work and battery strictly above 50%.
+- Recheck the running and installed kernel, boot-chain and backup hashes before a new gate. Stop on kernel/package drift or a package update during testing. Never load this binary into another kernel.
+- Normal macOS and Recovery access are user-attested. David chose not to rehearse recovery. The offline Mac restore bundle was verified on EFI, but has not run in macOS. Do not call that recovery path runtime-tested.
+
+## Progress (LIVING)
+
+| Gate | Current state | Meaning |
+|---|---|---|
+| 0 — baseline and backups | Complete | Backup set `20260826T222113Z` exists on EFI and in the persistent stage. The recovery rehearsal was not performed. |
+| 1 — minimal build and static review | Complete, with QA qualifications | Pinned private headers and minimal M2 DT/HPD changes produced verified artifacts. The prior aggregate suite was not all green; see history. |
+| 2 — DTB activation and boot | Complete | Patched DTB booted with the stock module/initramfs. Internal screen stayed healthy; external connector appeared but was disconnected. |
+| 3 — live module test | Functional success only | One real swap produced native external video. The earlier invocation stopped at the cable guard before any swap. Do not repeat this gate. |
+| 4a — isolated image preparation, review, and staging | Complete | David's reviewed helper reached final PASS after protected post-checks and image verification. The same staged image was subsequently selected for Gate 4b. Root-only contents/logs were not re-read by the agent. |
+| 4b — one-time startup test | Display startup PASS; overall acceptance HOLD | Candidate loaded at startup; both native displays work. USB-1 restored the hub/controls absent at startup. Automatic startup enumeration, the earlier diagnostic-read WARN, and firmware findings remain open. |
+| USB-1 — one attended reconnect | Functional PASS | Internal screen stayed usable; external image returned in about 5 seconds. Hub and LG controls enumerated. One unplug-time FIFO error and the known firmware diagnostics remain recorded. Do not repeat this case. |
+| USB startup investigation | Read-only comparison complete | Stock USB-glue first-probe ordering defect confirmed in source and corroborated by the binary. Runtime sequence and hardware causality remain unmeasured. No new patch or boot. |
+| USB diagnostic D0 / D1 | D0 reviewed; D1 approved offline, isolation PASS, initial RED observed | R4 and a fresh equivalent probe passed. Frozen trace/image stubs fail their first isolated fixture runs as expected. Implementation, GREEN tests, control/diagnostic builds, and image checks remain pending. D2 and D3 remain unauthorized. |
+| Source publication checkpoint | In preparation | Export source, fixtures, plans, and reviewed notes on a clean public branch. Exclude raw private records and preserve the original local history. No push is claimed by this checkpoint. |
+| 5 — controlled behavior tests | Pending; held at Gate 4b | Refresh-rate, repeated hotplug, cold-start, and suspend reliability are unproved. Startup modesets do not count as controlled mode tests. |
+| 6 — full rollback proof | Pending | Reboot alone does not restore the original DTB. |
+| Permanent integration | Separate future design and approval | Not part of the completed prototype or this documentation update. |
+
+At the 23:31 CEST checkpoint, the same boot uses the candidate core and DTB. Both DRM outputs remain connected/enabled at their native modes; monitor USB hub/controls are now present. Battery is 100%, Full; monitor and MagSafe both report USB-PD online. This does not prove USB-C-only active charging. Taint remains 4612 from the earlier diagnostic WARN. Fourteen readable integrity pins passed. Protected stock initramfs/GRUB and staged-image contents were not freshly re-read; their last validation remains David's staging PASS. A normal, unedited reboot selects the stock driver, but retains the candidate DTB. Reconfirm live state before any later action.
+
+## Gate 4a — prepare and review a separate one-boot image
+
+The [offline helper](../../dev/apple-dp-altmode/prepare-one-boot-initramfs.sh) and [literal configuration](../../dev/apple-dp-altmode/one-boot-mkinitcpio.conf) passed scoped QA and independent review. They use the installed `mkinitcpio 41.1`, a full private module-tree copy, an explicit kernel version and output, packaged hooks, and `--nopost`. The private configuration preserves the current effective host hooks, including Asahi vendor firmware. Do not use a preset, UKI generation, a new early preload, or a custom hook. See the [installed-interface reference](https://man.archlinux.org/man/mkinitcpio.8.en).
+
+The one generated image is initramfs-linux-asahi-dpalt.img (retained privately), SHA-256 `ae8f1ed7f4f258f89931209cd7de6030be9f6875372d7329151b822a6ba2281f`, 19,184,103 bytes. Its local marker says `BUILD CHECKS ONLY`. The build log retains six warnings. A successful build is not a clean-firmware or startup result.
+
+David ran the [protected-stock reader](../../dev/apple-dp-altmode/read-protected-stock.sh). The private readback (retained privately) completed at 19:11:15 UTC. Stock initramfs and GRUB hashes matched Gate 0 before and after the read. No root extraction or privileged destination write occurred. Keep this archive private and do not rerun the reader into the same directory.
+
+1. Recheck the exact kernel, artifact pins, active candidate `boot.bin`, both stock backups, and both EFI recovery files before staging. Gate 0 recorded stock `boot.bin`, initramfs, and GRUB; packaged DTB/core pins are separate. The new pre-Gate-4 kernel-image digest is `ee36d989d62f2dd498b818e15c2044350c79d814a2017ffca61fdc2ad1aa95b6`. Both the boot copy and package copy match the installed kernel package. This is new dated evidence, not a retrospective Gate 0 hash. All 1,987 package file digests passed; `pacman -Qkk` reported 11 timestamp-only differences in generated module indexes, so do not call its metadata check an unqualified pass. David performs protected hash reads; metadata is not a substitute.
+2. Keep the reviewed installed-tool and configuration pins. `--moduleroot` expects a root containing `lib/modules/7.1.6-1-1-ARCH`. Explicit `--config` bypasses host drop-ins, so do not substitute the base configuration alone. The helper refuses drift and an existing output directory.
+3. The separate module-root and image have already been built once. Their matching dependencies and candidate bytes are verified. Keep `/usr/lib/modules` unchanged. Do not rebuild this image, regenerate the old stage, or overwrite any existing artifact to repeat a completed check.
+4. Both archives and the exact build command have been inspected. Candidate bytes/build ID, other modules, built-in dependencies, extracted index resolution, and vendor-firmware hooks passed static review. The full stock comparison is recorded below. These checks do not prove startup.
+5. Independent review passed for the build, actual boot layout, one-time edit, and bounded staging-only helper. David then ran that exact helper successfully. No persistent entry or default change is allowed.
+6. Completed: the supplied final PASS establishes successful user-run post-checks, including all protected input hashes and the new image's size/hash. Independent read-only metadata and readable-hash checks agree. The root-private logs remain unread by the agent; this distinction is recorded in the staging evidence. Preserve both backups and the offline recovery instructions. Do not rerun staging.
+
+Exit met through reviewed preparation and David's successful staging validator: the separate image and one-time selection instructions passed review; protected files matched their pins; the staged image matched the reviewed size and hash. Building or staging the image is not a boot-test pass.
+
+### Comparison result and completed staging
+
+Both images contain the same 1,163 paths and 199 modules. Only the intended core differs among those modules; all seven module indexes match. The whole image has five byte changes: core, buildconfig, runtime config with duplicate HID preloads removed, and two verified OpenSSL 3.6.4 libraries. It also has six mode-only changes. The [dated evidence](../evidence/dev-147-one-boot-preparation-2026-08-27.md) explains each. OpenSSL remains a real startup-test variable because the retained encrypt hook can call cryptsetup.
+
+Scoped tests and static content review passed. The aggregate suite still has five pre-existing failures; this is not a full-suite or release pass. Build warnings and prior firmware diagnostics remain open.
+
+The [staging-only helper](../../dev/apple-dp-altmode/stage-one-boot-initramfs.sh) pins this exact image, its size, the kernel, protected stock files, active boot, both backups, both recovery bundles, and current OpenSSL inputs. It refuses an existing destination, including a symlink. It copies at most the pinned byte count into a new root-private directory, verifies it, then publishes with an atomic non-overwriting rename on the same filesystem. It never changes the stock image, GRUB, EFI mount, modules, or live displays. Failure retains its private directory and any partial image for inspection. No cleanup runs.
+
+David completed this staging command and supplied its final PASS. The exact command and evidence provenance are in the [dated staging record](../evidence/dev-147-one-boot-staging-2026-08-27.md). Checks were retained in `/boot/.dev147-dpalt-stage.e5Cys4arMi`. The helper prints PASS only after its protected post-checks, final image verification, syncs, and completion marker. Do not rerun it: the destination now exists. Do not delete files or weaken a guard to repeat a completed step.
+
+Independent checks at 22:00 CEST confirmed the destination is root-owned, mode `0600`, and 19,184,103 bytes; its log directory is root-owned, mode `0700`. The source image, active boot, both backups, recovery files, packaged DTB/core, and both kernel-image copies matched their pins. The agent could not read the root-only staged image, stock initramfs/GRUB, or retained logs. Their post-check result comes from David's successful validator output, not an independent re-read. No additional privileged readback is needed merely to repeat those completed checks.
+
+Staging an unselected alternate image does not change normal startup. Its rollback is to leave it unselected. This does not undo the pre-existing prototype DTB. Keep all artifacts and both stock backups.
+
+## Gate 4b — user-selected one-time startup test
+
+David completed the one-time selection and reboot. Boot ID `REDACTED_CANDIDATE_BOOT` uses candidate build ID `8fd9e3d39ee211f439471a812fb5eaa2622f7585`. David confirmed a physical image on both screens. The full startup log shows external DCP binding, HPD, and native modesets. The [startup record](../evidence/dev-147-one-boot-startup-2026-08-27.md) owns the measurements, USB comparison, warning trace, and capture limits.
+
+The startup USB criterion is still open. Only xHCI root hubs enumerated at candidate startup; Gate 3 had the monitor hub and LG controls. USB-1 later restored them in the same candidate boot. An earlier verified stock-driver boot initially had only root hubs too, then enumerated those devices after controller removal/re-registration. Its trigger is unknown. Do not assign the initial absence to the candidate without a controlled comparison. The diagnostic-read WARN happened after USB absence was already observed; it is not evidence that the read caused the missing enumeration.
+
+David approved the bounded USB diagnostic and completed one disconnect/reconnect. He had reported only another HDMI cable, with no downstream USB device. Independent design and result reviews passed for this single functional case. Exclude partner `usb_mode` reads from diagnostics; retain their trace for separate investigation. That case authorized no kernel patch. The later D1 approval permits offline diagnostic instrumentation only, not a behavior fix or live kernel action. Gate 5 remains on hold until Gate 4b acceptance is resolved.
+
+### USB-1 — one attended monitor reconnect, functional PASS
+
+The [dated USB-1 record](../evidence/dev-147-usb-reconnect-2026-08-27.md) owns the preflight, physical report, event sequence, timing limits, and result. Preserve the preflight directory (retained privately) and result directory (retained privately). Earlier pending instructions are superseded by this completed checkpoint; do not replay them.
+
+David reports that the internal screen stayed usable while disconnected and the external image returned in about 5 seconds after reconnect. Both native modes are restored. USB2 hub `0bda:5411` and LG controls `043e:9a39` now enumerate. Both PD sources remain online, with a full battery. The same boot/core/kernel and all 14 readable pins pass. No HDMI/input change was reported; the OSD input was not independently read. Linux DPTX and modeset events verify USB-C DP recovery independently of an HDMI picture.
+
+All 159 entries after the pre-action cursor through 23:32:10 CEST were retained at every priority. The interval contains one FIFO error at unplug and one recurrence each of EDT, CAHandler, and PMU diagnostics. No new kernel WARN, fatal-pattern match, or USB error was found. This is not a clean-firmware result. Controller removal to registration spans 31.875 seconds; the requested 10-second physical wait was not independently verified. The logged native modeset finishes 2.470 seconds after DPTX connect; that is distinct from David's approximate visible recovery time.
+
+USB-1 proves one functional recovery, not automatic USB enumeration at attached startup or Gate 5 reliability. The later offline D1 approval allows the monitor to be unplugged; this is not another hardware test. Recheck the actual setup before a future attended case. The saved-evidence comparison is now complete; use the findings below before designing any further case. Do not repeat USB-1 or reboot just to clear the old taint.
+
+### USB startup investigation — completed
+
+The [2026-08-28 investigation](../research/dev-147-usb-startup-2026-08-28.md) records the matched controller startup, missing downstream attachment, source/binary provenance, and remaining alternatives. The first USB2 HOST request in stock `dwc3-apple` precedes acquisition of its PHY handle. A later HCD path supplies a HOST setter, so this is a missed early configuration step, not proof that HOST is never set. It is the strongest lead, not a proven cause or tested fix. No change to the DP HPD patch or `appledrm` is justified by the present evidence.
+
+The source review found no clear-swap-timeout/crashed-latch sequence in USB-1. Completed poweroff and the later modeset argue against that specific workaround. FIFO and the other firmware diagnostics remain open. Gate 4b acceptance and Gate 5 remain on hold; this investigation adds no hardware-test pass.
+
+### USB startup diagnostic — design reviewed
+
+The [diagnostic subplan](dev-147-usb-startup-diagnostic.md) passed independent source/measurement, image/rollback, and safety review. D0 is complete. It proposes bounded, controller-attributed records in `dwc3-apple.c` and `atc.c`, without changing driver control flow, DP HPD, or shared USB code. Record first probes and retries, handle presence/error state without addresses, actual setter returns, and ordering around power and core initialization. Missing starts, final records, or diagnostic identities make relevant conclusions inconclusive. Software sequence alone cannot prove hardware causation.
+
+The working image contains ATC but not DWC3 glue. A future image would retain all 199 module paths, replace ATC, and add only the diagnostic glue: 200 modules total. Adding it can advance automatic probing; this is not a timing-matched A/B test. Require a no-change archive/index control, pinned inputs to a separate reduced index root, unchanged builtin indexes, and exact preservation of unrelated payloads, metadata, and archive structure. Keep the existing image and old helpers unchanged.
+
+David approved D1: offline source implementation, focused QA, independent review, and private module/image preparation in an actual unprivileged build sandbox. The [D1 hold record](../evidence/dev-147-usbdiag-d1-hold-2026-08-28.md) retains verified source/input pins, private drafts, and the earlier three failed sandbox QA rounds. David then approved one correction and a fourth round. The [R4 record](../evidence/dev-147-sandbox-r4-2026-08-28.md) records its full probe PASS without widening the protection policy. The earlier missing errno remains unknown. A fresh private continuation passed the same isolation checks and ran the original trace/image stubs to their expected RED failures; see the [source checkpoint](../evidence/dev-147-public-source-checkpoint-2026-08-28.md). Fifteen readable integrity pins still match. No diagnostic module or image has been built. Next, complete the reviewed public checkpoint, then continue offline implementation, focused GREEN/negative cases, independent review, and private control/diagnostic builds. No installation, staging, or reboot belongs to this phase. D2 requires a separately reviewed, fixed-target staging helper run by David. D3 requires a separate attended one-time boot and fresh preflight, including the actual cable and device state. The proposed destination `/boot/initramfs-linux-asahi-dpalt-usbdiag1.img` has not been created or selected.
+
+No diagnostic patch, binary, image, or staging helper was created during D0. Preserve the working `/boot/initramfs-linux-asahi-dpalt.img`, stock files, backups, current DP route, and recovery instructions. No live swap, sysfs write, register access, partner `usb_mode` read, automated device action, or mouse test. The design evidence archive (retained privately) retains the checks and review record. Full Gate 4b remains on hold.
+
+### One-time selection reference — not an instruction to reboot now
+
+This reference names the existing working DP image, not the proposed USB diagnostic image. A diagnostic boot needs its own reviewed filename and handoff after D2. Keep these instructions for a later reviewed candidate boot. Save work, keep battery above 50%, and keep the lid open. Leave cables as specified for that case, with the monitor on the front/lower port. The old unplug-all rule applied to the completed live swap. Stop on kernel/package drift. The GRUB editor appears before Linux starts, not in the desktop Terminal or macOS Recovery. If menu access or the entry differs, stop instead of using blind key presses through Apple/U-Boot screens.
+
+For a later approved repeat, the only desktop Terminal command for this step is `sudo reboot`, when David is ready. The edit happens during startup, before login. At the visible GRUB menu, an arrow key stops its countdown; Enter could instead boot the selected entry. `/etc/default/grub` requests a visible five-second menu; the exact observed timing was not logged. If Linux reaches login before the edit, it is too late for that boot: do not type `initrd` in Terminal or compensate with a live swap. Keep the offline recovery guide (retained privately) available before restarting. No visit to macOS Recovery is required for this selection.
+
+The protected readback confirms the normal entry is `Arch Linux`. In the GRUB menu, highlight that entry and press `e` to open its editor. Find the existing `initrd` line. In that line only, replace the filename `initramfs-linux-asahi.img` with `initramfs-linux-asahi-dpalt.img`. Keep its `/boot/` prefix. These are boot-entry contents to edit, not commands to run at a Bash or `grub>` prompt. Do not install a command called `initrd` or prefix it with `sudo`.
+
+Leave the `linux /boot/vmlinuz-linux-asahi ...` line and all its arguments unchanged. Ctrl-x boots this edit; Esc cancels it. This is an in-memory menu edit, not a new saved entry. See the [GRUB menu-editor reference](https://www.gnu.org/software/grub/manual/grub/html_node/Menu-entry-editor.html). If the menu/path differs, cancel and stop. Do not compensate with another live module swap.
+
+1. David uses GRUB's one-time edit to select the reviewed alternate initramfs with the unchanged target kernel. Do not save a GRUB entry.
+2. After startup, first confirm the internal screen and login. Confirm the external screen physically shows an image. Report both results and stop for read-only validation. Do not unplug/replug, change modes, or suspend yet.
+3. Verify the live core build ID against the Gate 3 candidate, not just the module filename. Capture DRM connector state, EDID and mode, HPD/DCP connection events, and Hyprland's actual output state.
+4. Check USB devices and charging. Capture full kernel/RTKit firmware logs at all priorities and compare them with the pre-swap and first-image evidence.
+5. Apply the stop conditions below. Record whether the test was a restart or a full cold power-on; do not infer cold-start reliability from a restart.
+
+Exit: both screens work at startup using the verified candidate module, USB and charging remain usable, and the log findings have been reviewed. Current result meets the display part, not the full exit. USB-1 restored USB after reconnect; automatic enumeration at attached startup and the diagnostic-read finding remain open. Unresolved firmware diagnostics stay open even if the image works.
+
+Each later boot that requires the candidate must repeat the one-time initramfs selection. A normal, unedited boot selects the stock driver, not the original DTB. Before starting the edited entry, Esc cancels it. If the test fails but Linux remains responsive, unplug the monitor and restart normally. If Linux cannot boot or display, use the existing offline Mac recovery guide. Do not use another live swap to compensate for selecting the stock image.
+
+## Gate 5 — one variable at a time
+
+Run only after Gate 4b passes. Review live compositor configuration and advertised modes before providing exact temporary mode commands. Do not write permanent display settings.
+
+1. Test native `3440×1440` at about 100 Hz, then the same resolution at about 60 Hz. Record the actual advertised timing and observed refresh rate for each. Restore the previous tested mode between unrelated cases.
+2. Test three controlled unplug/replug cycles on the same front/lower port. Capture each disconnect and recovery separately.
+3. Test a full cold start with the cable attached. Select the candidate initramfs for that boot.
+4. Test startup without the cable, then attach it after login. Select the candidate initramfs for that boot too.
+5. Test suspend/resume last, once only, with David present and ready to recover. Review all earlier logs before approving this case. The reference implementation reported an unresolved reconnect-after-suspend problem.
+
+Keep the lid open throughout. Do not automate these actions or mix a port, cable, power-source, or mode change into another test. For each case, save the kernel/RTKit log window, DRM state, EDID/modes, compositor state, charging state, USB devices/errors, user-visible result, and any recovery action.
+
+Exit: every case has its own result and evidence. An omitted or failed case remains open; a working initial image does not fill in missing tests.
+
+## Firmware investigation and stop conditions
+
+The Gate 3 record contains a frequency-setup `EDT ERROR`, a CAHandler data-version diagnostic, and PMU return `0xe00002d8`. The startup capture repeats these external-DCP classes: four frequency messages, three CAHandler messages, and three PMU messages. USB-1 adds one FIFO error interrupt `COMMON_INT_STA_3=0x00000010` at deliberate unplug, followed by successful poweroff/reconnect, and one recurrence of each known class. Five initial crossbar `-517` deferrals recover into successful binding. The PMU return was previously mapped to `kIOReturnNotReady`; the frequency and CAHandler consequences remain unresolved. Do not describe these messages as harmless or the firmware as clean. The earlier `usb_mode_show` WARN belongs to the diagnostic read, not the DCP startup sequence; its trace and taint change remain open.
+
+RTKit forwards firmware messages at info priority. Always inspect full firmware syslog, not only warning-priority journal output. Compare frequency and recurrence across modes, startup, and reconnect cases. Earlier USB `-71` setup-address failures, port-enable failures, and an invalid-context warning occurred before the patched module; preserve that baseline instead of assigning them to the candidate.
+
+Stop the current test on unexpected or persistent display loss, failure to recover after an intentional unplug/replug, repeated timeouts, a new DCP/coprocessor crash, DART/IOMMU faults, kernel BUG/panic, or charging/USB regression. An intentional unplug is not itself a failure. Capture evidence if the machine remains responsive, then use the appropriate rollback below. Do not repeat a live swap.
+
+Do not add the `appledrm` poweroff patch unless evidence reproduces its exact proposed failure: a clear-swap timeout followed by persistent atomic-commit `-EINVAL`. Any such patch needs a separate high-risk review. The current result does not require it.
+
+## Gate 6 — prove full rollback, then retain the evidence
+
+This gate is pending. It is also the exit route if testing must stop. David runs commands one at a time.
+
+For driver-only rollback, unplug the monitor and run `sudo reboot`. Boot normally without the test initramfs. This discards the live candidate module; it does not undo the DTB.
+
+For full rollback, use the existing transactional script:
+
+```bash
+sudo bash /home/david/o/.dev147-stage/commands/02-rollback-dtb.sh
+```
+
+Only after it reports `Gate 2 rollback PASS`, reboot:
+
+```bash
+sudo reboot
+```
+
+Use the stock initramfs on that boot. If Linux cannot boot or display, follow the existing offline Mac recovery guide (retained privately). Do not improvise a new partition target.
+
+After the stock boot:
+
+- Verify `dcpext` is disabled, its alias is absent, and neither USB-C connector has the prototype `displayport` property.
+- Verify the loaded Type-C core is the stock in-tree module. Confirm the internal screen is normal.
+- Compare stock `boot.bin`, initramfs, and GRUB with the privileged baseline manifest (retained privately). Obtain root-only hash checks from David. Compare the packaged DTB/core with their recorded pins, and the kernel image with the new dated pre-Gate-4 baseline if Gate 4 was undertaken. If rollback happens before that baseline exists, state that the original kernel-image digest is missing; do not claim a retrospective hash match. Verify the pinned kernel package and `pacman -Qkk linux-asahi` results, and explain any discrepancy.
+- Confirm `/etc/default/update-m1n1` remains absent and no persistent GRUB or display settings were added. Record the rollback output, resulting hashes, and live state.
+
+Exit: every system file placed in scope matches its baseline and the stock boot/driver are verified. Do not mark full rollback passed from a successful copy or reboot alone.
+
+Do not remove the test image, stage, source, evidence, notes, or either backup automatically. Retain both `boot.bin.pre-dpalt-20260826T222113Z` copies: one under `/boot/efi/m1n1` and one under `/home/david/o/.dev147-stage/recovery`. Any cleanup needs a later explicit, bounded approval after rollback proof.
+
+## Separate future permanent integration
+
+Only propose permanent integration after Gates 4–6 and review of the firmware findings. It needs a new design and explicit approval. Require an uninstall path, exact kernel-version pin or compatibility check, and protection/fallback for kernel updates. Never reuse the old binary with a new kernel. A permanent module, initramfs change, boot override, or automatic startup action is outside this reconciliation.
+
+## Decision Log (LIVING)
+
+- 2026-08-26/27: Use the minimal J413/M2 DT route plus generic CD321x HPD forwarding. Reject the M1 installer/DTB and leave the full fairydust, audio, SIO, suspend always-on, and `appledrm` changes out. Rationale and pins are in the dated history.
+- 2026-08-27: Add an offline Mac restore bundle after finding the initial Linux-only recovery gap. Accept David's macOS/Recovery attestation and his choice not to rehearse it. Keep runtime restore validation explicitly unproved.
+- 2026-08-27: Correct the Gate 3 power rule: MagSafe is Type-C partner `0-003a` and must be disconnected along with all USB-C cables for that swap. The first call refused before mutation; exactly one later swap ran. Preserve the incorrect advice and correction in history.
+- 2026-08-27: Treat Gate 3 as functional live-session success, not stability or permanence. Do not replay it. Split Gate 4 into image preparation/review and a separately selected startup test.
+- 2026-08-27: Use native ~100 Hz and same-resolution ~60 Hz, controlled reconnect/startup cases, and suspend last. Review full firmware logs at all priorities.
+- 2026-08-27: Separate rollback proof from cleanup. Supersede the old instruction to remove staging and retain only one backup; retain both backups and all evidence until explicit cleanup approval.
+- 2026-08-27: Reconcile documentation only. Preserve the original issue description and all nine comments in the private Linear snapshot, excluded from this public export. The dated history owns past events; this plan owns future gates.
+- 2026-08-27: Continue with isolated Gate 4a preparation after David's request. Keep all 27 original artifact/evidence/recovery files and all four Gates 0–3 scripts byte-identical. Build in a fresh private directory, not over the old stage or stock files. The user-run protected readback is separate from staging and boot authority.
+- 2026-08-27: Correct two defects found before use: GNU `dd` requires `conv=excl,fsync`, and DPTX/crossbar must not be forced into the early image when the retained hooks do not select them. Real exclusive-copy regression tests now pass. Keep package-verified normal-root driver availability; do not add preloads to satisfy a verifier.
+- 2026-08-27: Accept the recorded current-package OpenSSL rebuild difference for a contained startup experiment, not as proof of runtime compatibility. Keep the stock image untouched and require separate user-selected boot validation. Do not describe the whole image as core-only.
+- 2026-08-27: Hand off reviewed staging only, with a clean environment before Bash. Keep a separate stop before reboot. Staging and startup results remain pending until David runs their gates. After an interruption, `INCOMPLETE` alongside `RESULT.txt` is a hold: recheck; do not automatically retry or clean up.
+- 2026-08-27: David ran the pinned staging helper and supplied final `STAGING ONLY PASS`; the root-private check directory is `/boot/.dev147-dpalt-stage.e5Cys4arMi`. Accept its protected post-checks as validated user-run execution, not agent-read root logs. Independent metadata/readable-hash checks agree. Gate 4a is complete; Gate 4b is the next separately selected action. Keep the normal boot entry unchanged and preserve all prior evidence. No startup, reliability, or full rollback pass is claimed.
+- 2026-08-27: Record the 22:18 reboot as stock-core operation, not a failed candidate test. The terminal `initrd` error exposed an unclear handoff between desktop Bash and the pre-login GRUB editor. Separate those contexts explicitly and establish that the user saw the menu before another attempt. Do not infer the chosen image solely from the loaded core, repeat the live swap, or make the test persistent to bypass this handoff.
+- 2026-08-27: David completed the clarified one-time GRUB selection. The new boot, early candidate-core load, both native outputs, and his physical confirmation establish display startup success. Keep overall Gate 4b on hold: monitor USB enumeration is missing, and the same initial absence occurred in an earlier verified stock-driver boot. Preserve this as an unresolved comparison, not a new candidate-specific regression. Both PD sources are online with a full battery; isolated USB-C charging remains untested.
+- 2026-08-27: Our read-only partner-status loop triggered `usb_mode_show` / `sysfs_emit_at` WARN while reading `usb_mode`. Record this diagnostic side effect and the taint increase from 4100 to 4612. Do not repeat that read or patch the kernel in this checkpoint. Keep startup evidence separate from the later warning. Hold Gate 5 and review a single attended USB diagnostic case next; no further device action ran.
+- 2026-08-27: David approved proceeding with USB-1. Read-only preflight and bounded design review passed. Require a physical check for devices on the unseen monitor hub before release; software enumeration alone is insufficient. Keep MagSafe connected, use one identical-port reconnect, and stop on internal-screen loss or failed recovery. No cable action has run at this checkpoint; physical hub check and saved-work readiness are pending.
+- 2026-08-27: David reports only another HDMI cable on the monitor. Treat the USB-device check as cleared. Keep HDMI and input settings unchanged; automatic input switching is an interpretation caveat, not proof of USB-C recovery. Fresh pre-action checks and independent review passed. Hand off one reconnect after saved-work readiness; result remains pending.
+- 2026-08-27: USB-1 completed with functional PASS: internal screen remained usable, external image returned in about 5 seconds, and USB hub/LG controls enumerated. Preserve the unplug-time FIFO error and three known firmware recurrences; no new kernel WARN or fatal-pattern/USB-error match appeared in the captured interval. This supersedes the pending handoff above, not the startup USB hold. Do not repeat the case. Compare saved startup and reconnect initialization read-only before any new reviewed device/boot test. Full Gate 4b, Gate 5, full rollback, and permanent integration remain open.
+- 2026-08-28: Complete the read-only startup/reconnect investigation. Record the stock USB-glue first-probe ordering defect as a strong causal lead, not a measured runtime event or tested fix. Retain the later HCD HOST setter and mux-power-order qualifications. Do not add an appledrm patch for the observed FIFO event. Supersede the pending comparison with a proposed offline, controller-attributed one-boot diagnostic design; require separate review/approval before implementation, build, staging, or boot. Preserve the working DP image, all earlier evidence, and both backups. No hardware state changed; full Gate 4b remains on hold.
+- 2026-08-28: Complete D0 offline diagnostic design after independent source/measurement, image/rollback, and safety review. Capture retry generations and diagnostic identity from first probe; missing final records cannot prove no late setter occurred. Record the earlier-probe timing change from adding DWC3 glue to the image. Require a no-change archive/index control and preserve builtin indexes with pinned missing inputs. D1 implementation/QA/private build needs approval as one phase; D2 staging and D3 attended startup remain separate. No diagnostic source or image was created, no hardware action ran, and no acceptance hold was cleared.
+- 2026-08-28: David approved D1, then preparation stopped after three sandbox QA failures. Save source drafts, schema, unrun RED fixtures, recovered inputs, and all failed runs. The namespace assertion needs an observed return/errno before it can classify denial; no escape or isolation pass is established. Ask before one further correction/check. No module/image build, live driver action, staging, or reboot ran. D1 does not require the monitor connected; a permitted unplug was not confirmed or counted as a test. Full Gate 4b and all later gates remain open.
+- 2026-08-28: David approved the narrow assertion correction and one additional sandbox QA round. R4 passed; its exact namespace denials and seven focused tests are retained in new evidence. Preserve the old three failures without inferring their missing errno. The initial isolation hold is cleared; remaining offline D1 implementation, tests, and private builds are next. No driver/image build or hardware action ran in R4. Full Gate 4b and later acceptance gates remain open; D2 and D3 still require separate review and user action.
+- 2026-08-28: David asked to commit and push all work, then proceed. Prepare `codex/dev-147-m2-dp-altmode-public` from the verified public base. The original 14-commit private history contains a raw Linear export, so retain it unchanged instead of publishing it or rewriting history. Export authored source, fixtures, plans, and reviewed notes; use invalid public machine-identity placeholders and keep raw logs, manifests, packages, binaries, boot files, and recovery backups private. Commit and push completed reviewed checkpoints, not only local documentation. No release or permanent deployment is authorized.
+- 2026-08-28: Resume approved offline D1 in fresh private outputs after the R4-equivalent isolation probe passed. Run the frozen trace and image stubs once to establish RED: 32 trace tests report 40 NotImplementedError errors; 16 image tests report 30. Both runs preserve inputs and do not time out. These failures prove missing implementation, not correctness or hardware safety. Keep the old checkpoints unchanged and proceed to implementation and independent QA.

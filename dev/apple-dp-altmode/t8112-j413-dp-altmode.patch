@@ -1,0 +1,78 @@
+Pinned from the J413/T8112 subset of AsahiLinux/linux fairydust commit:
+  ad272ad5d6742869cdd13320e43f9ed01bd1fb33
+
+This first video-only candidate applies to asahi-7.1.6-1. It deliberately
+leaves out the fairydust SIO, audio, suspend, and other board changes. Only
+usb-pd@3f, the front/lower left port, gets a displayport phandle. usb-pd@38
+does not.
+
+--- a/arch/arm64/boot/dts/apple/t8112-j413.dts
++++ b/arch/arm64/boot/dts/apple/t8112-j413.dts
+@@ -9,6 +9,8 @@
+ 
+ /dts-v1/;
+ 
++#define ENABLE_DCPEXT_TYPEC
++
+ #include "t8112.dtsi"
+ #include "t8112-jxxx.dtsi"
+ #include <dt-bindings/leds/common.h>
+--- a/arch/arm64/boot/dts/apple/t8112-jxxx.dtsi
++++ b/arch/arm64/boot/dts/apple/t8112-jxxx.dtsi
+@@ -96,6 +96,11 @@
+ 			power-role = "dual";
+ 			data-role = "dual";
+ 
++#ifdef ENABLE_DCPEXT_TYPEC
++			/* hacks */
++			displayport = <&dcpext>;
++#endif
++
+ 			ports {
+ 				#address-cells = <1>;
+ 				#size-cells = <0>;
+@@ -116,6 +121,44 @@
+ 	};
+ };
+ 
++#ifdef ENABLE_DCPEXT_TYPEC
++/ {
++	aliases {
++		dcpext = &dcpext;
++	};
++};
++
++&display {
++	iommus = <&disp0_dart 0>, <&dispext0_dart 0>;
++};
++
++&dispext0_dart {
++	status = "okay";
++};
++
++&dcpext_dart {
++	status = "okay";
++};
++
++&dcpext_mbox {
++	status = "okay";
++};
++
++&dcpext {
++	status = "okay";
++	apple,connector-type = "DP";
++
++	/* hacks */
++	apple,dptx-phy = <1>;
++	phys = <&atcphy1 PHY_TYPE_DP>;
++	phy-names = "dp-phy";
++	mux-controls = <&atcphy1_xbar 0>;
++	mux-control-names = "dp-xbar";
++	mux-index = <2>;
++};
++
++#endif
++
+ /* USB controllers */
+ &dwc3_0 {
+ 	ports {

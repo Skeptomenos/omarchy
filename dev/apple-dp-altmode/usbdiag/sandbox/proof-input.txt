@@ -1,0 +1,1 @@
+Private read-only input for the DEV-147 sandbox isolation probe.

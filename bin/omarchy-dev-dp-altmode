@@ -1,0 +1,1173 @@
+#!/bin/bash
+
+# omarchy:summary=Build a contained M2 J413 DisplayPort prototype
+# omarchy:group=dev
+# omarchy:args=check | build --source DIR --header-root DIR --output DIR
+# omarchy:examples=omarchy dev dp-altmode check | omarchy dev dp-altmode build --source ~/src/linux-asahi-7.1.6-1 --header-root ~/dpalt-headers --output ~/dpalt-stage
+
+# Public archival copy: the EFI identity is deliberately unusable. Do not run
+# this copy live. The reviewed machine-pinned original remains private.
+
+set -euo pipefail
+
+readonly DPALT_KERNEL_RELEASE="7.1.6-1-1-ARCH"
+readonly DPALT_DTB_REL="arch/arm64/boot/dts/apple/t8112-j413.dts"
+readonly DPALT_DTSI_REL="arch/arm64/boot/dts/apple/t8112-jxxx.dtsi"
+readonly DPALT_CORE_REL="drivers/usb/typec/tipd/core.c"
+readonly DPALT_HEADER_REL="drivers/usb/typec/tipd/tps6598x.h"
+readonly DPALT_TRACE_C_REL="drivers/usb/typec/tipd/trace.c"
+readonly DPALT_TRACE_H_REL="drivers/usb/typec/tipd/trace.h"
+readonly DPALT_MODULE_REL="kernel/drivers/usb/typec/tipd/tps6598x-core.ko"
+readonly DPALT_PATCHED_DTB_SHA256="23945f8ca60a6db63ef81bbd95ee4cdd9bb63f54cd6b07b001c677f0a15ef07b"
+
+dpalt_error() {
+  printf 'Error: %s\n' "$1" >&2
+  return 1
+}
+
+usage() {
+  cat <<'USAGE'
+Usage: omarchy dev dp-altmode check
+       omarchy dev dp-altmode build --source DIR --header-root DIR --output DIR
+
+Builds and verifies contained DisplayPort artifacts for exactly:
+  Apple MacBook Air M2 J413/T8112
+  linux-asahi 7.1.6-1-1-ARCH
+  front/lower left USB-C port (usb-pd@3f)
+
+--source       Extracted official Asahi asahi-7.1.6-1 source tree.
+--header-root  Private package root containing usr/lib/modules/7.1.6-1-1-ARCH/build.
+--output       Explicit persistent staging directory. tmpfs is refused.
+
+The command builds candidate files and non-executable command plans. It never installs or activates them.
+It refuses root, wrong hardware, kernel drift,
+persistent update-m1n1 configuration, and protected output paths. The first
+candidate excludes the fairydust SIO, audio, suspend, and appledrm changes.
+USAGE
+}
+
+dpalt_system_path() {
+  local root="$1"
+  local path="$2"
+
+  if [[ $root == "/" ]]; then
+    printf '%s\n' "$path"
+  else
+    printf '%s%s\n' "$root" "$path"
+  fi
+}
+
+dpalt_read_dt_string() {
+  tr -d '\0' <"$1"
+}
+
+verify_host_baseline() {
+  local root="${OMARCHY_DPALT_TEST_ROOT:-/}"
+  local kernel_release=""
+  local compatible=""
+  local dcp_status=""
+  local path=""
+
+  if [[ $root != "/" ]]; then
+    [[ $root == /tmp/* ]] || dpalt_error "test root must stay under /tmp"
+    kernel_release="${OMARCHY_DPALT_TEST_KERNEL_RELEASE:-}"
+  else
+    kernel_release=$(uname -r)
+  fi
+
+  path=$(dpalt_system_path "$root" "/proc/device-tree/compatible")
+  [[ -r $path ]] || dpalt_error "device-tree compatible data is unreadable"
+  compatible=$(tr '\0' '\n' <"$path")
+  grep -Fxq 'apple,j413' <<<"$compatible" && grep -Fxq 'apple,t8112' <<<"$compatible" ||
+    dpalt_error "prototype requires apple,j413 and apple,t8112"
+
+  [[ $kernel_release == "$DPALT_KERNEL_RELEASE" ]] ||
+    dpalt_error "prototype requires kernel $DPALT_KERNEL_RELEASE; running $kernel_release"
+
+  path=$(dpalt_system_path "$root" "/etc/default/update-m1n1")
+  [[ ! -e $path ]] || dpalt_error "persistent update-m1n1 override exists at $path"
+
+  path=$(dpalt_system_path "$root" "/proc/device-tree/soc/dcp@271c00000/status")
+  [[ -r $path ]] || dpalt_error "external DCP status is unreadable"
+  dcp_status=$(dpalt_read_dt_string "$path")
+  [[ $dcp_status == "disabled" ]] ||
+    dpalt_error "baseline external DCP is not disabled"
+
+  for path in \
+    "/proc/device-tree/aliases/dcpext" \
+    "/proc/device-tree/soc/i2c@235010000/usb-pd@38/connector/displayport" \
+    "/proc/device-tree/soc/i2c@235010000/usb-pd@3f/connector/displayport"; do
+    path=$(dpalt_system_path "$root" "$path")
+    [[ ! -e $path ]] || dpalt_error "baseline already contains prototype property $path"
+  done
+
+  for path in \
+    "/usr/lib/modules/$DPALT_KERNEL_RELEASE/dtbs/t8112-j413.dtb" \
+    "/usr/lib/modules/$DPALT_KERNEL_RELEASE/$DPALT_MODULE_REL" \
+    "/usr/lib/asahi-boot/m1n1.bin" \
+    "/usr/lib/asahi-boot/u-boot-nodtb.bin" \
+    "/boot/efi/m1n1/boot.bin" \
+    "/boot/initramfs-linux-asahi.img"; do
+    path=$(dpalt_system_path "$root" "$path")
+    [[ -e $path ]] || dpalt_error "required stock file is missing: $path"
+  done
+
+  printf 'Host gate: PASS (%s, %s)\n' "apple,j413/apple,t8112" "$kernel_release"
+}
+
+validate_output_path() {
+  local requested="$1"
+  local output=""
+  local probe=""
+  local fstype=""
+
+  [[ $requested == /* ]] || {
+    dpalt_error "--output must be an absolute path"
+    return 1
+  }
+  [[ $requested != *$'\n'* && $requested != *"'"* ]] || {
+    dpalt_error "--output contains an unsupported quote or newline"
+    return 1
+  }
+  output=$(realpath -m -- "$requested")
+
+  case "$output" in
+    / | /boot | /boot/* | /etc | /etc/* | /usr | /usr/* | /lib | /lib/* | /proc | /proc/* | /sys | /sys/* | /dev | /dev/* | /run | /run/* | /home/david/o-live | /home/david/o-live/*)
+      dpalt_error "--output targets a protected path: $output"
+      return 1
+      ;;
+  esac
+
+  if [[ -e $output ]]; then
+    [[ -d $output && ! -L $output ]] || {
+      dpalt_error "--output must be a directory, not a file or symlink"
+      return 1
+    }
+    [[ -z $(find "$output" -mindepth 1 -maxdepth 1 -print -quit) ]] || {
+      dpalt_error "--output must not contain existing files"
+      return 1
+    }
+  fi
+
+  probe="$output"
+  while [[ ! -e $probe ]]; do
+    probe=$(dirname -- "$probe")
+  done
+  fstype=$(findmnt -n -o FSTYPE -T "$probe" 2>/dev/null | sed -n '1p' || true)
+  [[ -n $fstype ]] || {
+    dpalt_error "cannot determine the --output filesystem"
+    return 1
+  }
+  if [[ $fstype == "tmpfs" || $fstype == "ramfs" ]]; then
+    [[ ${OMARCHY_DPALT_TEST_ALLOW_TMPFS:-0} == 1 ]] || {
+      dpalt_error "--output must use a persistent filesystem; $probe is $fstype"
+      return 1
+    }
+  fi
+
+  printf '%s\n' "$output"
+}
+
+verify_sha256() {
+  local path="$1"
+  local expected="$2"
+  local description="$3"
+  local actual=""
+
+  [[ -f $path ]] || dpalt_error "$description is missing: $path"
+  actual=$(sha256sum "$path" | cut -d' ' -f1)
+  [[ $actual == "$expected" ]] ||
+    dpalt_error "$description checksum mismatch: expected $expected, got $actual"
+}
+
+verify_source_tree() {
+  local source="$1"
+
+  verify_sha256 "$source/$DPALT_DTB_REL" "ba488713e2b84bb4993e8f120fa9341a27695d8c0cd093c7875dd17d95d22d78" "stock J413 DTS"
+  verify_sha256 "$source/$DPALT_DTSI_REL" "3338b8bf62d5b6458b4f72f4ea583a8a6e0cbdb6a89d378570b5bebdcb327319" "stock T8112 common DTSI"
+  verify_sha256 "$source/$DPALT_CORE_REL" "3f581b0837bf24c085fb08db0043329b6d3043fc1c9f6b25b005f7e7bdba0a72" "stock tipd core"
+  verify_sha256 "$source/$DPALT_HEADER_REL" "cf71a3a19d7d9a39f1987c7631cc955f8a150f8a5761c9567b7c421fbd7fe545" "stock tipd header"
+  verify_sha256 "$source/$DPALT_TRACE_C_REL" "1aa4062980d6c62ddec438abdff474408ee6ff9c891ca134153a8187fbb92e87" "stock tipd trace source"
+  verify_sha256 "$source/$DPALT_TRACE_H_REL" "21a469e23cf48152c31f61c0eea8723d43b650facb730bbb352193c73e27e4e6" "stock tipd trace header"
+}
+
+copy_and_patch_sources() {
+  local source="$1"
+  local patched="$2"
+  local patch_dir="$3"
+  local relative=""
+
+  for relative in "$DPALT_DTB_REL" "$DPALT_DTSI_REL" "$DPALT_CORE_REL" "$DPALT_HEADER_REL" "$DPALT_TRACE_C_REL" "$DPALT_TRACE_H_REL"; do
+    install -D -m 0644 "$source/$relative" "$patched/$relative"
+  done
+
+  patch -d "$patched" -p1 --batch --forward <"$patch_dir/t8112-j413-dp-altmode.patch"
+  patch -d "$patched" -p1 --batch --forward <"$patch_dir/tipd-cd321x-hpd.patch"
+
+  verify_sha256 "$patched/$DPALT_DTB_REL" "4a9b680b5a3190ec9942b6b2c07b3a0b9345c5f86c60211b42863dbb99e10b1c" "patched J413 DTS"
+  verify_sha256 "$patched/$DPALT_DTSI_REL" "8f3270cb9314698e4321932e84ffd13e89adf84a10de69c127823f8018f8b021" "minimal patched T8112 DTSI"
+  verify_sha256 "$patched/$DPALT_CORE_REL" "bb19187a1c41517e4b9f0fc3da7089fd41d26851774001ae3ad10c43139f2e15" "patched tipd core"
+  verify_sha256 "$patched/$DPALT_HEADER_REL" "1126fc478ac09242b6c36b36a370812138f7d56d1bd0686acb9ecf6a7dfc0f73" "patched tipd header"
+}
+
+compile_dtb() {
+  local source="$1"
+  local dts="$2"
+  local output="$3"
+  local dtc="$4"
+  local extra_include="$5"
+  local preprocessed="${output%.dtb}.preprocessed.dts"
+  local include_prefixes="$source/scripts/dtc/include-prefixes"
+  local apple_dts="$source/arch/arm64/boot/dts/apple"
+
+  cc -E -nostdinc -I "$extra_include" -I "$apple_dts" -I "$include_prefixes" \
+    -undef -D__DTS__ -x assembler-with-cpp -o "$preprocessed" "$dts"
+  "$dtc" -I dts -O dtb -o "$output" -b 0 \
+    -i "$extra_include" -i "$apple_dts" -i "$include_prefixes" \
+    -Wno-unique_unit_address -Wno-unit_address_vs_reg \
+    -Wno-avoid_unnecessary_addr_size -Wno-alias_paths \
+    -Wno-interrupt_map -Wno-simple_bus_reg "$preprocessed"
+}
+
+extract_dts_node() {
+  local source="$1"
+  local node="$2"
+
+  awk -v node="$node" '
+    !inside && $0 ~ "^[[:space:]]*" node "[[:space:]]*\\{" { inside = 1 }
+    inside {
+      print
+      line = $0
+      opens = gsub(/\{/, "{", line)
+      line = $0
+      closes = gsub(/\}/, "}", line)
+      depth += opens - closes
+      if (depth == 0) exit
+    }
+  ' "$source"
+}
+
+verify_patched_dtb() {
+  local dtb="$1"
+  local dtc="$2"
+  local evidence="$3"
+  local decompiled="$evidence/t8112-j413-dpalt.dts"
+  local port_front="$evidence/usb-pd-3f.dts"
+  local port_back="$evidence/usb-pd-38.dts"
+  local dcpext="$evidence/dcpext.dts"
+
+  verify_sha256 "$dtb" "$DPALT_PATCHED_DTB_SHA256" "minimal patched J413 DTB"
+  "$dtc" -q -I dtb -O dts -o "$decompiled" "$dtb"
+  extract_dts_node "$decompiled" 'usb-pd@3f' >"$port_front"
+  extract_dts_node "$decompiled" 'usb-pd@38' >"$port_back"
+  extract_dts_node "$decompiled" 'dcp@271c00000' >"$dcpext"
+
+  grep -Fq 'displayport = <' "$port_front" ||
+    dpalt_error "usb-pd@3f lacks the displayport phandle"
+  ! grep -Fq 'displayport = <' "$port_back" ||
+    dpalt_error "usb-pd@38 was changed; only usb-pd@3f is permitted"
+  grep -Fq 'dcpext = "/soc/dcp@271c00000";' "$decompiled" ||
+    dpalt_error "patched DTB lacks the dcpext alias"
+  grep -Fq 'status = "okay";' "$dcpext" ||
+    dpalt_error "patched external DCP is not enabled"
+  grep -Fq 'apple,connector-type = "DP";' "$dcpext" ||
+    dpalt_error "patched external DCP is not a DisplayPort connector"
+  grep -Fq 'phys = <' "$dcpext" && grep -Fq '0x06>;' "$dcpext" ||
+    dpalt_error "patched external DCP does not select PHY_TYPE_DP"
+  grep -Fq 'mux-index = <0x02>;' "$dcpext" ||
+    dpalt_error "patched external DCP does not select M2 mux index 2"
+}
+
+prepare_private_header_build() {
+  local header_root="$1"
+  local stage="$2"
+  local source_build="$header_root/usr/lib/modules/$DPALT_KERNEL_RELEASE/build"
+  local private_root="$stage/work/private-header-root"
+  local private_build="$private_root/usr/lib/modules/$DPALT_KERNEL_RELEASE/build"
+  local header_package="$(dirname -- "$header_root")/linux-asahi-headers-7.1.6.asahi1-1-aarch64.pkg.tar.xz"
+
+  mkdir -p "$private_root"
+  if [[ -f $header_package ]]; then
+    verify_sha256 "$header_package" "5aa3168b27dfc845db8ec078ca648040d4451275eb12d7c7f4992d6208c4c91d" "private header package"
+    bsdtar -xf "$header_package" -C "$private_root" "usr/lib/modules/$DPALT_KERNEL_RELEASE/build"
+  else
+    verify_sha256 "$source_build/Makefile" "137a58ad1417e413962dbe6e91dbb0b2385fbc8733db7d4ecf659959cd9bac82" "private header Makefile"
+    mkdir -p "$(dirname -- "$private_build")"
+    cp -a --reflink=auto "$source_build" "$private_build"
+  fi
+
+  verify_sha256 "$private_build/Makefile" "137a58ad1417e413962dbe6e91dbb0b2385fbc8733db7d4ecf659959cd9bac82" "staged header Makefile"
+  verify_sha256 "$private_build/Module.symvers" "d5eea549b9333f717fdc932683ea6633d58049c1e3f8f9e0be12e05d7610dd82" "staged Module.symvers"
+  [[ -f $private_build/version && $(<"$private_build/version") == "$DPALT_KERNEL_RELEASE" ]] ||
+    dpalt_error "staged private headers do not match $DPALT_KERNEL_RELEASE"
+  printf '%s\n' "$private_build"
+}
+
+build_module() {
+  local patched="$1"
+  local header_root="$2"
+  local patch_dir="$3"
+  local stage="$4"
+  local module_source="$stage/work/tps6598x-core"
+  local header_build=""
+  local stock_module="/usr/lib/modules/$DPALT_KERNEL_RELEASE/$DPALT_MODULE_REL"
+  local candidate="$stage/artifacts/tps6598x-core.ko"
+  local file=""
+
+  header_build=$(prepare_private_header_build "$header_root" "$stage")
+  [[ -x $header_build/scripts/dtc/dtc && -f $header_build/Module.symvers ]] ||
+    dpalt_error "private header root lacks the matching Kbuild files"
+  verify_sha256 "$header_root/usr/bin/pahole" "6720f51a6a3b0f439e5d74fb07acfcd75bed599fd333c819eb3b1ced441f56ed" "private pahole"
+
+  mkdir -p "$module_source"
+  for file in core.c tps6598x.h trace.c trace.h; do
+    install -m 0644 "$patched/drivers/usb/typec/tipd/$file" "$module_source/$file"
+  done
+  install -m 0644 "$patch_dir/tps6598x-core.Makefile" "$module_source/Makefile"
+
+  (
+    cd "$module_source"
+    # Linux 7.1 can overwrite the header Makefile when external output
+    # variables select a separate module output directory. Keep cwd equal to
+    # M, clear every output override, and verify the header again below.
+    env -u O -u MO \
+      -u KBUILD_OUTPUT -u KBUILD_EXTMOD -u KBUILD_EXTMOD_OUTPUT \
+      PATH="$header_root/usr/bin:$PATH" \
+      LD_LIBRARY_PATH="$header_root/usr/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" \
+      make -f "$header_build/Makefile" M="$module_source" -j"$(nproc)" modules
+  ) >"$stage/evidence/module-build.log" 2>&1
+  verify_sha256 "$header_build/Makefile" "137a58ad1417e413962dbe6e91dbb0b2385fbc8733db7d4ecf659959cd9bac82" "post-build staged header Makefile"
+  install -m 0644 "$module_source/tps6598x-core.ko" "$candidate"
+
+  [[ $(modinfo -F vermagic "$candidate") == $(modinfo -F vermagic "$stock_module") ]] ||
+    dpalt_error "candidate module vermagic differs from stock"
+  [[ $(modinfo -F depends "$candidate") == $(modinfo -F depends "$stock_module") ]] ||
+    dpalt_error "candidate module dependencies differ from stock"
+  nm -g --defined-only "$stock_module" | awk '{print $NF}' | sort -u >"$stage/evidence/stock-defined-symbols.txt"
+  nm -g --defined-only "$candidate" | awk '{print $NF}' | sort -u >"$stage/evidence/candidate-defined-symbols.txt"
+  cmp -s "$stage/evidence/stock-defined-symbols.txt" "$stage/evidence/candidate-defined-symbols.txt" ||
+    dpalt_error "candidate module changes the stock defined-symbol surface"
+  nm -u "$candidate" | awk '{print $NF}' | sort -u >"$stage/evidence/candidate-imports.txt"
+  nm -u "$stock_module" | awk '{print $NF}' | sort -u >"$stage/evidence/stock-imports.txt"
+  comm -13 "$stage/evidence/stock-imports.txt" "$stage/evidence/candidate-imports.txt" >"$stage/evidence/candidate-added-imports.txt"
+  printf '%s\n' \
+    'drm_connector_oob_hotplug_event' \
+    'fwnode_find_reference' \
+    'fwnode_property_present' >"$stage/evidence/expected-added-imports.txt"
+  cmp -s "$stage/evidence/expected-added-imports.txt" "$stage/evidence/candidate-added-imports.txt" ||
+    dpalt_error "candidate module has an unexpected imported-symbol delta"
+  grep -Fxq 'drm_connector_oob_hotplug_event' "$stage/evidence/candidate-imports.txt" ||
+    dpalt_error "candidate module does not import the DRM HPD function"
+}
+
+append_m1n1_config() {
+  local config="$1"
+  local output="$2"
+  local line=""
+
+  [[ -f $config ]] || return 0
+  while IFS= read -r line || [[ -n $line ]]; do
+    case "$line" in
+      "" | \#*) ;;
+      chosen.*=* | display=* | mitigations=*) printf '%s\n' "$line" >>"$output" ;;
+    esac
+  done <"$config"
+}
+
+assemble_boot_bin() {
+  local dtb_dir="$1"
+  local output="$2"
+  local dtbs=("$dtb_dir"/*.dtb)
+
+  [[ -e ${dtbs[0]} ]] || dpalt_error "DTB staging directory is empty"
+  cat /usr/lib/asahi-boot/m1n1.bin "${dtbs[@]}" >"$output"
+  gzip -c /usr/lib/asahi-boot/u-boot-nodtb.bin >>"$output"
+  append_m1n1_config /etc/m1n1.conf "$output"
+}
+
+build_boot_candidates() {
+  local stage="$1"
+  local patched_dtb="$2"
+  local stock_dtbs="/usr/lib/modules/$DPALT_KERNEL_RELEASE/dtbs"
+  local candidate_dtbs="$stage/work/candidate-dtbs"
+  local stock_boot="$stage/evidence/boot.bin.stock-rebuilt"
+  local candidate_boot="$stage/artifacts/boot.bin.dpalt"
+
+  assemble_boot_bin "$stock_dtbs" "$stock_boot"
+  cmp -s "$stock_boot" /boot/efi/m1n1/boot.bin ||
+    dpalt_error "stock boot.bin is not reproducible from the pinned stock inputs"
+
+  mkdir -p "$candidate_dtbs"
+  cp -a "$stock_dtbs/." "$candidate_dtbs/"
+  install -m 0755 "$patched_dtb" "$candidate_dtbs/t8112-j413.dtb"
+  assemble_boot_bin "$candidate_dtbs" "$candidate_boot"
+
+  [[ $(sha256sum "$stock_dtbs/t8112-j413.dtb" | cut -d' ' -f1) != $(sha256sum "$candidate_dtbs/t8112-j413.dtb" | cut -d' ' -f1) ]] ||
+    dpalt_error "candidate DTB directory still contains the stock J413 DTB"
+}
+
+write_command_plan() {
+  local stage="$1"
+  local timestamp="$2"
+  local boot_sha=""
+  local module_sha=""
+  local stock_sha=""
+  local stock_source=""
+  local rollback_note_content=""
+  local rollback_note_sha=""
+  local mac_script_sha=""
+  local mac_guide_sha=""
+  local esp_partuuid="LOCAL_ONLY_ESP_PARTUUID"
+  local backup="/boot/efi/m1n1/boot.bin.pre-dpalt-$timestamp"
+  local persistent_backup="$stage/recovery/boot.bin.pre-dpalt-$timestamp"
+  local rollback_note="$stage/recovery/ROLLBACK-$timestamp.txt"
+  local mac_script="$stage/recovery/RESTORE-DPALT-MAC-$timestamp.sh"
+  local mac_guide="$stage/recovery/RECOVERY-DPALT-MAC-$timestamp.txt"
+
+  mkdir -p "$stage/commands" "$stage/recovery"
+  if [[ -f $stage/evidence/boot.bin.stock-rebuilt ]]; then
+    stock_source="$stage/evidence/boot.bin.stock-rebuilt"
+  else
+    stock_source="$stage/evidence/boot.bin.stock"
+  fi
+  [[ -f $stock_source ]] || dpalt_error "stock boot evidence is missing"
+  install -m 0600 -T "$stock_source" "$stage/recovery/boot.bin.stock-built"
+
+  boot_sha=$(sha256sum "$stage/artifacts/boot.bin.dpalt" | cut -d' ' -f1)
+  module_sha=$(sha256sum "$stage/artifacts/tps6598x-core.ko" | cut -d' ' -f1)
+  stock_sha=$(sha256sum "$stage/recovery/boot.bin.stock-built" | cut -d' ' -f1)
+
+  rollback_note_content=$(cat <<EOF
+DEV-147 DisplayPort prototype recovery
+
+Target: Apple MacBook Air M2 J413/T8112, kernel $DPALT_KERNEL_RELEASE
+Stock boot SHA-256: $stock_sha
+Candidate boot SHA-256: $boot_sha
+EFI backup: $backup
+Persistent backup: $persistent_backup
+
+Run the fixed rollback script from the persistent stage:
+sudo bash '$stage/commands/02-rollback-dtb.sh'
+
+Do not run update-m1n1. Do not overwrite a stock module or initramfs.
+EOF
+  )
+  if [[ -e $rollback_note || -L $rollback_note ]]; then
+    [[ -f $rollback_note && ! -L $rollback_note ]] &&
+      printf '%s\n' "$rollback_note_content" | cmp -s - "$rollback_note" || {
+      dpalt_error "existing timestamped Linux recovery note differs; preserve the Gate 0 evidence"
+      return 1
+    }
+  else
+    printf '%s\n' "$rollback_note_content" >"$rollback_note"
+    chmod 0600 "$rollback_note"
+  fi
+  rollback_note_sha=$(sha256sum "$rollback_note" | cut -d' ' -f1)
+
+  cat >"$mac_script" <<EOF
+#!/bin/bash
+
+# Use only Bash 3.2 and macOS tools; Recovery can lack a working Perl runtime.
+set -euo pipefail
+
+fail() {
+  printf 'Error: %s\n' "\$1" >&2
+  exit 1
+}
+
+mode="\${1:---check}"
+(( \$# <= 1 )) || fail 'Use --check or --restore, with no other arguments.'
+case "\$mode" in
+  --check | --restore) ;;
+  *) fail 'Use --check or --restore, with no other arguments.' ;;
+esac
+[[ \$(/usr/bin/uname -s) == 'Darwin' ]] ||
+  fail 'This recovery script only runs in macOS or macOS Recovery.'
+if [[ \$mode == '--restore' ]]; then
+  (( EUID == 0 )) || fail 'Restore requires sudo /bin/bash in macOS, or the root Recovery Terminal.'
+fi
+
+EXPECTED_UUID='$esp_partuuid'
+EXPECTED_VOLUME='EFI - OMARC'
+EXPECTED_STOCK='$stock_sha'
+
+disk_info=\$(/usr/sbin/diskutil info -plist "\$EXPECTED_UUID") ||
+  fail 'Cannot inspect the pinned EFI partition. Do not guess a disk number.'
+plist_value() {
+  printf '%s\n' "\$disk_info" | /usr/bin/plutil -extract "\$1" raw -o - -
+}
+disk_uuid=\$(plist_value DiskUUID) || fail 'diskutil did not provide DiskUUID.'
+filesystem=\$(plist_value FilesystemType) || fail 'diskutil did not provide FilesystemType.'
+volume_name=\$(plist_value VolumeName) || fail 'diskutil did not provide VolumeName.'
+mount_point=\$(plist_value MountPoint) || fail 'The EFI partition must already be mounted.'
+disk_uuid=\$(printf '%s' "\$disk_uuid" | /usr/bin/tr '[:upper:]' '[:lower:]')
+[[ \$disk_uuid == "\$EXPECTED_UUID" ]] || fail 'EFI partition UUID mismatch.'
+[[ \$filesystem == 'msdos' ]] || fail 'The pinned partition is not a FAT EFI filesystem.'
+[[ \$volume_name == "\$EXPECTED_VOLUME" ]] || fail 'EFI volume label mismatch.'
+[[ \$mount_point == /Volumes/* && -d \$mount_point && ! -L \$mount_point ]] ||
+  fail 'Unexpected EFI mount point.'
+mount_point=\$(cd -P "\$mount_point" && pwd -P) || fail 'Cannot resolve the EFI mount point.'
+[[ ! -L \${BASH_SOURCE[0]} && -d \$mount_point/m1n1 && ! -L \$mount_point/m1n1 ]] ||
+  fail 'The recovery script and m1n1 directory must not be symlinks.'
+script_dir=\$(cd -P "\$(/usr/bin/dirname "\${BASH_SOURCE[0]}")" && pwd -P) ||
+  fail 'Cannot resolve the recovery script directory.'
+[[ \$script_dir == "\$mount_point/m1n1" ]] ||
+  fail 'Run the recovery script from m1n1 on the verified EFI partition.'
+
+backup="\$script_dir/boot.bin.pre-dpalt-$timestamp"
+active="\$script_dir/boot.bin"
+temporary="\$script_dir/.boot.bin.mac-restore-$timestamp.tmp"
+[[ -f \$backup && -r \$backup && ! -L \$backup ]] ||
+  fail 'The timestamped stock backup is missing, unreadable, or a symlink.'
+[[ ! -L \$active && ( ! -e \$active || -f \$active ) ]] ||
+  fail 'The active boot.bin is a directory, symlink, or special file.'
+[[ ! -L \$temporary && ( ! -e \$temporary || -f \$temporary ) ]] ||
+  fail 'The recovery temporary path is a directory, symlink, or special file.'
+
+sha256_file() {
+  local digest=''
+  if [[ -x /usr/bin/shasum ]] && digest=\$(/usr/bin/shasum -a 256 "\$1" 2>/dev/null); then
+    digest="\${digest%% *}"
+  elif [[ -x /usr/bin/openssl ]] && digest=\$(/usr/bin/openssl dgst -sha256 "\$1" 2>/dev/null); then
+    digest="\${digest##* }"
+  else
+    fail 'No working SHA-256 tool. Stop without changing boot.bin.'
+  fi
+  [[ \$digest =~ ^[0-9a-fA-F]{64}$ ]] || fail 'Invalid SHA-256 output.'
+  printf '%s\n' "\$digest" | /usr/bin/tr '[:upper:]' '[:lower:]'
+}
+
+backup_sha=\$(sha256_file "\$backup") || fail 'Cannot hash the stock backup.'
+[[ \$backup_sha == "\$EXPECTED_STOCK" ]] || fail 'Stock backup checksum mismatch. No files changed.'
+printf 'Verified EFI partition: %s (%s)\n' "\$EXPECTED_UUID" "\$mount_point"
+printf 'Verified stock backup SHA-256: %s\n' "\$backup_sha"
+if [[ \$mode == '--check' ]]; then
+  printf 'CHECK PASS. No files changed. Restore is a separate --restore command.\n'
+  exit 0
+fi
+
+restore_exit() {
+  local status=\$?
+  if (( status != 0 )); then
+    printf 'RESTORE FAILED. Keep the backup. Do not restart Linux until restore succeeds.\n' >&2
+  fi
+  return "\$status"
+}
+trap restore_exit EXIT
+trap 'exit 130' INT TERM HUP
+
+# Keep the old active image until a complete stock copy has been verified and synced.
+/bin/cp "\$backup" "\$temporary"
+temporary_sha=\$(sha256_file "\$temporary")
+[[ \$temporary_sha == "\$EXPECTED_STOCK" ]] || fail 'Temporary stock copy checksum mismatch.'
+/bin/sync
+/bin/mv -f "\$temporary" "\$active"
+active_sha=\$(sha256_file "\$active")
+[[ \$active_sha == "\$EXPECTED_STOCK" ]] || fail 'Restored boot.bin checksum mismatch.'
+/bin/sync
+trap - EXIT INT TERM HUP
+printf 'RESTORE PASS. Stock boot.bin is verified. No reboot was requested.\n'
+printf 'Unmount the pinned EFI partition, then restart when ready.\n'
+EOF
+  chmod 0600 "$mac_script"
+  mac_script_sha=$(sha256sum "$mac_script" | cut -d' ' -f1)
+
+  cat >"$mac_guide" <<EOF
+DEV-147 offline macOS recovery — $timestamp
+
+Only this MacBook Air M2 J413/T8112. Restore only m1n1/boot.bin.
+EFI label: EFI - OMARC
+GPT partition UUID: $esp_partuuid
+Stock backup SHA-256: $stock_sha
+Recovery script SHA-256: $mac_script_sha
+
+Run one command at a time. Stop on any error or an unexpected mount path.
+The commands below use normal macOS Terminal. In Recovery Terminal, omit sudo.
+No editor, Linux filesystem, network, security change, or partition change is needed.
+
+Optional read-only check:
+sudo diskutil mount readOnly $esp_partuuid
+/bin/bash "/Volumes/EFI - OMARC/m1n1/RESTORE-DPALT-MAC-$timestamp.sh" --check
+sudo diskutil unmount $esp_partuuid
+
+Restore if Linux cannot boot, or to undo the prototype:
+First unmount any earlier readOnly mount with the unmount command above.
+sudo diskutil mount $esp_partuuid
+sudo /bin/bash "/Volumes/EFI - OMARC/m1n1/RESTORE-DPALT-MAC-$timestamp.sh" --restore
+sudo diskutil unmount $esp_partuuid
+
+Restart only after RESTORE PASS and a successful unmount. The script never reboots.
+If the displayed mount path is not /Volumes/EFI - OMARC, stop and record diskutil info for the UUID.
+Keep the timestamped backup. Do not replace it with boot.bin.old.
+The temporary copy, checksum, sync, and rename reduce risk; FAT is not power-loss-proof.
+EOF
+  chmod 0600 "$mac_guide"
+  mac_guide_sha=$(sha256sum "$mac_guide" | cut -d' ' -f1)
+
+  cat >"$stage/commands/00-baseline-and-backup.sh" <<EOF
+#!/bin/bash
+set -Eeuo pipefail
+
+[[ \$EUID -eq 0 ]] || { printf 'Run with sudo bash, not as an executable.\n' >&2; exit 1; }
+EXPECTED_KERNEL='$DPALT_KERNEL_RELEASE'
+EXPECTED_STOCK='$stock_sha'
+EXPECTED_NOTE='$rollback_note_sha'
+ESP='/boot/efi'
+ESP_DEVICE='/dev/nvme0n1p4'
+ACTIVE='/boot/efi/m1n1/boot.bin'
+EFI_BACKUP='$backup'
+PERSISTENT_BACKUP='$persistent_backup'
+ROLLBACK_NOTE='$rollback_note'
+EFI_NOTE='/boot/efi/m1n1/ROLLBACK-DPALT-$timestamp.txt'
+BASELINE='$stage/evidence/privileged-baseline-$timestamp.sha256'
+
+compatible=\$(tr '\0' '\n' </proc/device-tree/compatible)
+grep -Fxq 'apple,j413' <<<"\$compatible"
+grep -Fxq 'apple,t8112' <<<"\$compatible"
+[[ \$(uname -r) == "\$EXPECTED_KERNEL" ]]
+[[ ! -e /etc/default/update-m1n1 ]]
+battery=\$(</sys/class/power_supply/macsmc-battery/capacity)
+(( battery > 50 ))
+[[ \$(findmnt -n -o SOURCE -T "\$ESP" | sed -n '1p') == "\$ESP_DEVICE" ]]
+[[ \$(findmnt -n -o FSTYPE -T "\$ESP" | sed -n '1p') == 'vfat' ]]
+mount_options=\$(findmnt -n -o OPTIONS -T "\$ESP" | sed -n '1p')
+if [[ ,\$mount_options, == *,rw,* ]]; then
+  mount -o remount,ro "\$ESP"
+  mount_options=\$(findmnt -n -o OPTIONS -T "\$ESP" | sed -n '1p')
+fi
+[[ ,\$mount_options, == *,ro,* ]]
+printf '%s  %s\n' "\$EXPECTED_STOCK" "\$ACTIVE" | sha256sum --check --strict
+printf '%s  %s\n' "\$EXPECTED_NOTE" "\$ROLLBACK_NOTE" | sha256sum --check --strict
+[[ ! -e \$EFI_BACKUP && ! -e \$PERSISTENT_BACKUP && ! -e \$EFI_NOTE && ! -e \$BASELINE ]]
+
+esp_rw=0
+remount_esp_ro() {
+  local status=\$?
+  local options=''
+  if (( esp_rw )); then
+    if mount -o remount,ro "\$ESP"; then
+      options=\$(findmnt -n -o OPTIONS -T "\$ESP" | sed -n '1p')
+      if [[ ,\$options, == *,ro,* ]]; then
+        esp_rw=0
+      else
+        status=1
+      fi
+    else
+      status=1
+    fi
+  fi
+  return "\$status"
+}
+trap remount_esp_ro EXIT
+trap 'exit 130' INT TERM HUP
+
+esp_rw=1
+mount -o remount,rw "\$ESP"
+mount_options=\$(findmnt -n -o OPTIONS -T "\$ESP" | sed -n '1p')
+[[ ,\$mount_options, == *,rw,* ]]
+cp --preserve=timestamps --no-clobber "\$ACTIVE" "\$EFI_BACKUP"
+cp --preserve=timestamps --no-clobber "\$ACTIVE" "\$PERSISTENT_BACKUP"
+cp --no-clobber "\$ROLLBACK_NOTE" "\$EFI_NOTE"
+chmod 0644 "\$EFI_NOTE"
+printf '%s  %s\n' "\$EXPECTED_STOCK" "\$EFI_BACKUP" | sha256sum --check --strict
+printf '%s  %s\n' "\$EXPECTED_STOCK" "\$PERSISTENT_BACKUP" | sha256sum --check --strict
+printf '%s  %s\n' "\$EXPECTED_NOTE" "\$EFI_NOTE" | sha256sum --check --strict
+sha256sum "\$ACTIVE" /boot/initramfs-linux-asahi.img /boot/grub/grub.cfg >"\$BASELINE"
+sync -f "\$EFI_BACKUP"
+sync -f "\$EFI_NOTE"
+sync -f "\$ESP"
+mount -o remount,ro "\$ESP"
+mount_options=\$(findmnt -n -o OPTIONS -T "\$ESP" | sed -n '1p')
+if [[ ,\$mount_options, == *,rw,* ]]; then
+  mount -o remount,ro "\$ESP"
+  mount_options=\$(findmnt -n -o OPTIONS -T "\$ESP" | sed -n '1p')
+fi
+[[ ,\$mount_options, == *,ro,* ]]
+esp_rw=0
+trap - EXIT INT TERM HUP
+printf 'Gate 0 PASS. Keep both timestamped backups.\n'
+EOF
+
+  cat >"$stage/commands/02-activate-dtb.sh" <<EOF
+#!/bin/bash
+set -Eeuo pipefail
+
+[[ \$EUID -eq 0 ]] || { printf 'Run with sudo bash, not as an executable.\n' >&2; exit 1; }
+EXPECTED_KERNEL='$DPALT_KERNEL_RELEASE'
+EXPECTED_STOCK='$stock_sha'
+EXPECTED_CANDIDATE='$boot_sha'
+EXPECTED_MAC_SCRIPT='$mac_script_sha'
+EXPECTED_MAC_GUIDE='$mac_guide_sha'
+ESP='/boot/efi'
+ESP_DEVICE='/dev/nvme0n1p4'
+ESP_PARTUUID='$esp_partuuid'
+ACTIVE='/boot/efi/m1n1/boot.bin'
+EFI_BACKUP='$backup'
+PERSISTENT_BACKUP='$persistent_backup'
+MAC_SCRIPT='$mac_script'
+MAC_GUIDE='$mac_guide'
+EFI_MAC_SCRIPT='/boot/efi/m1n1/RESTORE-DPALT-MAC-$timestamp.sh'
+EFI_MAC_GUIDE='/boot/efi/m1n1/RECOVERY-DPALT-MAC-$timestamp.txt'
+CANDIDATE='$stage/artifacts/boot.bin.dpalt'
+TMP='/boot/efi/m1n1/.boot.bin.dpalt-$timestamp.tmp'
+ROLLBACK_TMP='/boot/efi/m1n1/.boot.bin.rollback-$timestamp.tmp'
+
+compatible=\$(tr '\0' '\n' </proc/device-tree/compatible)
+grep -Fxq 'apple,j413' <<<"\$compatible"
+grep -Fxq 'apple,t8112' <<<"\$compatible"
+[[ \$(uname -r) == "\$EXPECTED_KERNEL" ]]
+[[ ! -e /etc/default/update-m1n1 ]]
+battery=\$(</sys/class/power_supply/macsmc-battery/capacity)
+(( battery > 50 ))
+[[ \$(findmnt -n -o SOURCE -T "\$ESP" | sed -n '1p') == "\$ESP_DEVICE" ]]
+[[ \$(findmnt -n -o FSTYPE -T "\$ESP" | sed -n '1p') == 'vfat' ]]
+[[ \$(lsblk -dnro PARTUUID "\$ESP_DEVICE") == "\$ESP_PARTUUID" ]]
+mount_options=\$(findmnt -n -o OPTIONS -T "\$ESP" | sed -n '1p')
+if [[ ,\$mount_options, == *,rw,* ]]; then
+  mount -o remount,ro "\$ESP"
+  mount_options=\$(findmnt -n -o OPTIONS -T "\$ESP" | sed -n '1p')
+fi
+[[ ,\$mount_options, == *,ro,* ]]
+printf '%s  %s\n' "\$EXPECTED_STOCK" "\$ACTIVE" | sha256sum --check --strict
+printf '%s  %s\n' "\$EXPECTED_STOCK" "\$EFI_BACKUP" | sha256sum --check --strict
+printf '%s  %s\n' "\$EXPECTED_STOCK" "\$PERSISTENT_BACKUP" | sha256sum --check --strict
+printf '%s  %s\n' "\$EXPECTED_CANDIDATE" "\$CANDIDATE" | sha256sum --check --strict
+printf '%s  %s\n' "\$EXPECTED_MAC_SCRIPT" "\$MAC_SCRIPT" | sha256sum --check --strict
+printf '%s  %s\n' "\$EXPECTED_MAC_GUIDE" "\$MAC_GUIDE" | sha256sum --check --strict
+[[ ! -e \$TMP && ! -e \$ROLLBACK_TMP ]]
+partner_3f=''
+for partner in /sys/class/typec/port*-partner; do
+  [[ -e \$partner ]] || continue
+  resolved=\$(readlink -f "\$partner")
+  [[ \$resolved != *'/0-0038/'* ]]
+  if [[ \$resolved == *'/0-003f/'* ]]; then
+    partner_3f="\$resolved"
+  fi
+done
+[[ \$partner_3f == *'/0-003f/'* ]]
+
+esp_rw=0
+remount_esp_ro() {
+  local status=\$?
+  local options=''
+  if (( esp_rw )); then
+    if mount -o remount,ro "\$ESP"; then
+      options=\$(findmnt -n -o OPTIONS -T "\$ESP" | sed -n '1p')
+      if [[ ,\$options, == *,ro,* ]]; then
+        esp_rw=0
+      else
+        status=1
+      fi
+    else
+      status=1
+    fi
+  fi
+  return "\$status"
+}
+activation_failed() {
+  local status="\${1:-\$?}"
+  local current_sha=""
+  local recovery_rw=0
+  trap - ERR INT TERM HUP
+  set +e
+  current_sha=\$(sha256sum "\$ACTIVE" 2>/dev/null | awk '{print \$1}')
+  if [[ \$current_sha != "\$EXPECTED_STOCK" ]]; then
+    esp_rw=1
+    if mount -o remount,rw "\$ESP"; then
+      recovery_rw=1
+    else
+      status=1
+    fi
+    if (( recovery_rw )) && printf '%s  %s\n' "\$EXPECTED_STOCK" "\$EFI_BACKUP" | sha256sum --check --strict; then
+      install -m 0755 -T "\$EFI_BACKUP" "\$ROLLBACK_TMP" &&
+        printf '%s  %s\n' "\$EXPECTED_STOCK" "\$ROLLBACK_TMP" | sha256sum --check --strict &&
+        sync -f "\$ROLLBACK_TMP" &&
+        mv --no-copy -T "\$ROLLBACK_TMP" "\$ACTIVE" &&
+        printf '%s  %s\n' "\$EXPECTED_STOCK" "\$ACTIVE" | sha256sum --check --strict &&
+        sync -f "\$ACTIVE" || status=1
+    else
+      status=1
+    fi
+  fi
+  rm -f "\$TMP" "\$ROLLBACK_TMP"
+  exit "\$status"
+}
+trap remount_esp_ro EXIT
+trap activation_failed ERR
+trap 'activation_failed 130' INT TERM HUP
+
+esp_rw=1
+mount -o remount,rw "\$ESP"
+mount_options=\$(findmnt -n -o OPTIONS -T "\$ESP" | sed -n '1p')
+[[ ,\$mount_options, == *,rw,* ]]
+install -m 0644 -T "\$MAC_SCRIPT" "\$EFI_MAC_SCRIPT"
+install -m 0644 -T "\$MAC_GUIDE" "\$EFI_MAC_GUIDE"
+printf '%s  %s\n' "\$EXPECTED_MAC_SCRIPT" "\$EFI_MAC_SCRIPT" | sha256sum --check --strict
+printf '%s  %s\n' "\$EXPECTED_MAC_GUIDE" "\$EFI_MAC_GUIDE" | sha256sum --check --strict
+sync -f "\$EFI_MAC_SCRIPT"
+sync -f "\$EFI_MAC_GUIDE"
+sync -f "\$ESP"
+install -m 0755 -T "\$CANDIDATE" "\$TMP"
+printf '%s  %s\n' "\$EXPECTED_CANDIDATE" "\$TMP" | sha256sum --check --strict
+sync -f "\$TMP"
+mv --no-copy -T "\$TMP" "\$ACTIVE"
+printf '%s  %s\n' "\$EXPECTED_CANDIDATE" "\$ACTIVE" | sha256sum --check --strict
+sync -f "\$ACTIVE"
+sync -f "\$ESP"
+mount -o remount,ro "\$ESP"
+mount_options=\$(findmnt -n -o OPTIONS -T "\$ESP" | sed -n '1p')
+[[ ,\$mount_options, == *,ro,* ]]
+esp_rw=0
+trap - EXIT ERR INT TERM HUP
+printf 'Gate 2 activation PASS. Reboot, then verify the internal panel before Gate 3.\n'
+EOF
+
+  cat >"$stage/commands/02-rollback-dtb.sh" <<EOF
+#!/bin/bash
+set -Eeuo pipefail
+
+[[ \$EUID -eq 0 ]] || { printf 'Run with sudo bash, not as an executable.\n' >&2; exit 1; }
+EXPECTED_KERNEL='$DPALT_KERNEL_RELEASE'
+EXPECTED_STOCK='$stock_sha'
+EXPECTED_CANDIDATE='$boot_sha'
+ESP='/boot/efi'
+ESP_DEVICE='/dev/nvme0n1p4'
+ACTIVE='/boot/efi/m1n1/boot.bin'
+EFI_BACKUP='$backup'
+PERSISTENT_BACKUP='$persistent_backup'
+TMP='/boot/efi/m1n1/.boot.bin.rollback-$timestamp.tmp'
+
+compatible=\$(tr '\0' '\n' </proc/device-tree/compatible)
+grep -Fxq 'apple,j413' <<<"\$compatible"
+grep -Fxq 'apple,t8112' <<<"\$compatible"
+[[ \$(uname -r) == "\$EXPECTED_KERNEL" ]]
+[[ ! -e /etc/default/update-m1n1 ]]
+[[ \$(findmnt -n -o SOURCE -T "\$ESP" | sed -n '1p') == "\$ESP_DEVICE" ]]
+[[ \$(findmnt -n -o FSTYPE -T "\$ESP" | sed -n '1p') == 'vfat' ]]
+mount_options=\$(findmnt -n -o OPTIONS -T "\$ESP" | sed -n '1p')
+if [[ ,\$mount_options, == *,rw,* ]]; then
+  mount -o remount,ro "\$ESP"
+  mount_options=\$(findmnt -n -o OPTIONS -T "\$ESP" | sed -n '1p')
+fi
+[[ ,\$mount_options, == *,ro,* ]]
+current_sha=\$(sha256sum "\$ACTIVE" 2>/dev/null | awk '{print \$1}' || true)
+printf 'Current active boot SHA-256: %s\n' "\${current_sha:-unreadable}"
+printf '%s  %s\n' "\$EXPECTED_STOCK" "\$EFI_BACKUP" | sha256sum --check --strict
+printf '%s  %s\n' "\$EXPECTED_STOCK" "\$PERSISTENT_BACKUP" | sha256sum --check --strict
+
+esp_rw=0
+remount_esp_ro() {
+  local status=\$?
+  local options=''
+  if (( esp_rw )); then
+    if mount -o remount,ro "\$ESP"; then
+      options=\$(findmnt -n -o OPTIONS -T "\$ESP" | sed -n '1p')
+      if [[ ,\$options, == *,ro,* ]]; then
+        esp_rw=0
+      else
+        status=1
+      fi
+    else
+      status=1
+    fi
+  fi
+  return "\$status"
+}
+rollback_failed() {
+  local status="\${1:-\$?}"
+  local current_sha=""
+  local recovery_rw=0
+  trap - ERR INT TERM HUP
+  set +e
+  current_sha=\$(sha256sum "\$ACTIVE" 2>/dev/null | awk '{print \$1}')
+  if [[ \$current_sha != "\$EXPECTED_STOCK" ]]; then
+    esp_rw=1
+    if mount -o remount,rw "\$ESP"; then
+      recovery_rw=1
+    else
+      status=1
+    fi
+    if (( recovery_rw )) && printf '%s  %s\n' "\$EXPECTED_STOCK" "\$EFI_BACKUP" | sha256sum --check --strict; then
+      install -m 0755 -T "\$EFI_BACKUP" "\$TMP" &&
+        printf '%s  %s\n' "\$EXPECTED_STOCK" "\$TMP" | sha256sum --check --strict &&
+        sync -f "\$TMP" &&
+        mv --no-copy -T "\$TMP" "\$ACTIVE" &&
+        printf '%s  %s\n' "\$EXPECTED_STOCK" "\$ACTIVE" | sha256sum --check --strict &&
+        sync -f "\$ACTIVE" || status=1
+    else
+      status=1
+    fi
+  fi
+  rm -f "\$TMP"
+  exit "\$status"
+}
+trap remount_esp_ro EXIT
+trap rollback_failed ERR
+trap 'rollback_failed 130' INT TERM HUP
+
+esp_rw=1
+mount -o remount,rw "\$ESP"
+mount_options=\$(findmnt -n -o OPTIONS -T "\$ESP" | sed -n '1p')
+[[ ,\$mount_options, == *,rw,* ]]
+install -m 0755 -T "\$EFI_BACKUP" "\$TMP"
+printf '%s  %s\n' "\$EXPECTED_STOCK" "\$TMP" | sha256sum --check --strict
+sync -f "\$TMP"
+mv --no-copy -T "\$TMP" "\$ACTIVE"
+printf '%s  %s\n' "\$EXPECTED_STOCK" "\$ACTIVE" | sha256sum --check --strict
+sync -f "\$ACTIVE"
+sync -f "\$ESP"
+mount -o remount,ro "\$ESP"
+mount_options=\$(findmnt -n -o OPTIONS -T "\$ESP" | sed -n '1p')
+if [[ ,\$mount_options, == *,rw,* ]]; then
+  mount -o remount,ro "\$ESP"
+  mount_options=\$(findmnt -n -o OPTIONS -T "\$ESP" | sed -n '1p')
+fi
+[[ ,\$mount_options, == *,ro,* ]]
+esp_rw=0
+trap - EXIT ERR INT TERM HUP
+printf 'Gate 2 rollback PASS. Reboot to the stock DTB.\n'
+EOF
+
+  cat >"$stage/commands/03-live-module.sh" <<EOF
+#!/bin/bash
+set -Eeuo pipefail
+
+[[ \$EUID -eq 0 ]] || { printf 'Run with sudo bash, not as an executable.\n' >&2; exit 1; }
+EXPECTED_KERNEL='$DPALT_KERNEL_RELEASE'
+EXPECTED_STOCK='$stock_sha'
+EXPECTED_BOOT='$boot_sha'
+EXPECTED_MODULE='$module_sha'
+ESP='/boot/efi'
+ESP_DEVICE='/dev/nvme0n1p4'
+ACTIVE='/boot/efi/m1n1/boot.bin'
+EFI_BACKUP='$backup'
+CANDIDATE='$stage/artifacts/tps6598x-core.ko'
+
+compatible=\$(tr '\0' '\n' </proc/device-tree/compatible)
+grep -Fxq 'apple,j413' <<<"\$compatible"
+grep -Fxq 'apple,t8112' <<<"\$compatible"
+[[ \$(uname -r) == "\$EXPECTED_KERNEL" ]]
+[[ ! -e /etc/default/update-m1n1 ]]
+battery=\$(</sys/class/power_supply/macsmc-battery/capacity)
+(( battery > 50 ))
+[[ \$(findmnt -n -o SOURCE -T "\$ESP" | sed -n '1p') == "\$ESP_DEVICE" ]]
+[[ \$(findmnt -n -o FSTYPE -T "\$ESP" | sed -n '1p') == 'vfat' ]]
+mount_options=\$(findmnt -n -o OPTIONS -T "\$ESP" | sed -n '1p')
+if [[ ,\$mount_options, == *,rw,* ]]; then
+  mount -o remount,ro "\$ESP"
+  mount_options=\$(findmnt -n -o OPTIONS -T "\$ESP" | sed -n '1p')
+fi
+[[ ,\$mount_options, == *,ro,* ]]
+printf '%s  %s\n' "\$EXPECTED_BOOT" "\$ACTIVE" | sha256sum --check --strict
+printf '%s  %s\n' "\$EXPECTED_STOCK" "\$EFI_BACKUP" | sha256sum --check --strict
+printf '%s  %s\n' "\$EXPECTED_MODULE" "\$CANDIDATE" | sha256sum --check --strict
+[[ \$(tr -d '\0' </proc/device-tree/soc/dcp@271c00000/status) == 'okay' ]]
+[[ -r /proc/device-tree/aliases/dcpext ]]
+[[ -r /proc/device-tree/soc/i2c@235010000/usb-pd@3f/connector/displayport ]]
+[[ ! -e /proc/device-tree/soc/i2c@235010000/usb-pd@38/connector/displayport ]]
+if compgen -G '/sys/class/typec/port*-partner' >/dev/null; then
+  printf 'Unplug every USB-C cable before the live module swap.\n' >&2
+  exit 1
+fi
+for controller in 0-003a 0-0038 0-003f; do
+  [[ -L /sys/bus/i2c/drivers/tps6598x/\$controller ]]
+done
+[[ -d /sys/module/tps6598x_core && -d /sys/module/tps6598x ]]
+
+restore_stock() {
+  local status="\${1:-\$?}"
+  trap - EXIT ERR INT TERM HUP
+  set +e
+  modprobe -r tps6598x tps6598x_core
+  modprobe tps6598x || status=1
+  for controller in 0-003a 0-0038 0-003f; do
+    [[ -L /sys/bus/i2c/drivers/tps6598x/\$controller ]] || status=1
+  done
+  [[ -d /sys/module/tps6598x_core && -d /sys/module/tps6598x ]] || status=1
+  exit "\$status"
+}
+trap restore_stock EXIT ERR
+trap 'restore_stock 130' INT TERM HUP
+
+modprobe -r tps6598x tps6598x_core
+insmod "\$CANDIDATE"
+modprobe tps6598x
+for controller in 0-003a 0-0038 0-003f; do
+  [[ -L /sys/bus/i2c/drivers/tps6598x/\$controller ]]
+done
+trap - EXIT ERR INT TERM HUP
+
+printf 'Patched core loaded. Now connect the monitor to the front/lower left USB-C port.\n'
+read -r -p 'Press Enter after the monitor is connected: '
+partner_path=''
+for (( attempt = 0; attempt < 20; attempt++ )); do
+  for partner in /sys/class/typec/port*-partner; do
+    [[ -e \$partner ]] || continue
+    resolved=\$(readlink -f "\$partner")
+    if [[ \$resolved == *'/0-003f/'* ]]; then
+      partner_path="\$resolved"
+      break 2
+    fi
+  done
+  sleep 0.5
+done
+[[ \$partner_path == *'/0-003f/'* ]] || {
+  printf 'No partner appeared on 0-003f. Unplug the cable and reboot to restore the stock module.\n' >&2
+  exit 1
+}
+printf 'Gate 3 PASS: partner is %s\n' "\$partner_path"
+EOF
+
+  cat >"$stage/commands/04-one-boot-initramfs.txt" <<'EOF'
+Gate 4 — DEFERRED. This prototype does not build or install an alternate initramfs yet.
+Do not run grub-mkconfig. Do not edit /boot/grub/grub.cfg or /etc/default/grub.
+The next implementation must use a new '/boot/initramfs-linux-asahi-dpalt.img' and a one-time GRUB edit only.
+EOF
+
+  cat >"$stage/commands/06-cleanup.txt" <<EOF
+Restore the stock boot chain with the fixed transactional script:
+sudo bash '$stage/commands/02-rollback-dtb.sh'
+sudo reboot
+
+After the stock boot, verify package files and keep the EFI backup until DEV-147 closes:
+pacman -Qkk linux-asahi
+test ! -e '/etc/default/update-m1n1'
+EOF
+
+  cat >"$stage/commands/README.txt" <<EOF
+DEV-147 contained J413 DisplayPort gates
+
+Inspect each non-executable script before use. Run one gate at a time.
+Before activation, confirm normal macOS or Recovery access and keep the battery above 50%.
+Keep the offline instructions in '$mac_guide' available before reboot.
+Gate 2 copies and verifies that guide and its macOS restore script onto EFI before replacing boot.bin.
+
+Gate 0: sudo bash '$stage/commands/00-baseline-and-backup.sh'
+Gate 2: sudo bash '$stage/commands/02-activate-dtb.sh'
+Then: sudo reboot
+Gate 3 after the DTB-only boot passes: sudo bash '$stage/commands/03-live-module.sh'
+
+Immediate live-module rollback: unplug the monitor, then run sudo reboot
+DTB rollback: sudo bash '$stage/commands/02-rollback-dtb.sh'
+Then: sudo reboot
+
+Gate 4 is deferred. Do not run update-m1n1 or grub-mkconfig.
+EOF
+
+  chmod 0600 "$stage/commands"/*.txt
+  chmod 0600 "$stage/commands"/*.sh
+}
+
+build_prototype() {
+  local source="$1"
+  local header_root="$2"
+  local requested_output="$3"
+  local output=""
+  local patched=""
+  local patch_dir=""
+  local dtc=""
+  local stock_dtb=""
+  local patched_dtb=""
+  local timestamp=""
+
+  [[ ${OMARCHY_DPALT_TEST_ROOT:-/} == "/" ]] ||
+    dpalt_error "build cannot run with a test system root"
+  [[ ${OMARCHY_DPALT_TEST_ALLOW_TMPFS:-0} != 1 ]] ||
+    dpalt_error "build cannot bypass the persistent-output gate"
+  (( EUID != 0 )) || dpalt_error "build must run without root or sudo"
+  verify_host_baseline >/dev/null
+
+  source=$(realpath -e -- "$source")
+  header_root=$(realpath -e -- "$header_root")
+  [[ -d $source && -d $header_root ]] || dpalt_error "source and header root must be directories"
+  output=$(validate_output_path "$requested_output")
+  [[ $output != "$source" && $output != "$source"/* && $output != "$header_root" && $output != "$header_root"/* ]] ||
+    dpalt_error "--output must be separate from source and header inputs"
+
+  : "${OMARCHY_PATH:?OMARCHY_PATH must point to this checkout}"
+  patch_dir="$OMARCHY_PATH/dev/apple-dp-altmode"
+  [[ -f $patch_dir/t8112-j413-dp-altmode.patch && -f $patch_dir/tipd-cd321x-hpd.patch ]] ||
+    dpalt_error "prototype patches are missing under OMARCHY_PATH"
+
+  umask 077
+  mkdir -p "$output/artifacts" "$output/evidence" "$output/work"
+  printf 'Build incomplete. Do not activate artifacts.\n' >"$output/BUILD-INCOMPLETE"
+  patched="$output/work/patched-source"
+
+  verify_source_tree "$source"
+  copy_and_patch_sources "$source" "$patched" "$patch_dir"
+
+  dtc="$header_root/usr/lib/modules/$DPALT_KERNEL_RELEASE/build/scripts/dtc/dtc"
+  [[ -x $dtc ]] || dpalt_error "matching private DTC is missing: $dtc"
+  stock_dtb="$output/evidence/t8112-j413.stock-built.dtb"
+  patched_dtb="$output/artifacts/t8112-j413.dpalt.dtb"
+  compile_dtb "$source" "$source/$DPALT_DTB_REL" "$stock_dtb" "$dtc" "$(dirname "$source/$DPALT_DTB_REL")"
+  cmp -s "$stock_dtb" "/usr/lib/modules/$DPALT_KERNEL_RELEASE/dtbs/t8112-j413.dtb" ||
+    dpalt_error "unmodified source does not reproduce the packaged J413 DTB"
+  compile_dtb "$source" "$patched/$DPALT_DTB_REL" "$patched_dtb" "$dtc" "$(dirname "$patched/$DPALT_DTB_REL")"
+  verify_patched_dtb "$patched_dtb" "$dtc" "$output/evidence"
+
+  build_module "$patched" "$header_root" "$patch_dir" "$output"
+  build_boot_candidates "$output" "$patched_dtb"
+  verify_source_tree "$source"
+
+  timestamp=$(date -u +%Y%m%dT%H%M%SZ)
+  write_command_plan "$output" "$timestamp"
+  sha256sum "$output/artifacts"/* >"$output/evidence/artifacts.sha256"
+  rm -f "$output/BUILD-INCOMPLETE"
+  printf 'Prototype build: PASS\nStage: %s\nNext: read %s/commands/README.txt\n' "$output" "$output"
+}
+
+main() {
+  local action="${1:-}"
+  local source=""
+  local header_root=""
+  local output=""
+
+  case "$action" in
+    -h | --help | "")
+      usage
+      ;;
+    check)
+      shift
+      (( $# == 0 )) || dpalt_error "check takes no arguments"
+      (( EUID != 0 )) || dpalt_error "check must run without root or sudo"
+      verify_host_baseline
+      ;;
+    build)
+      shift
+      while (( $# )); do
+        case "$1" in
+          --source)
+            [[ $# -ge 2 ]] || dpalt_error "--source needs a directory"
+            source="$2"
+            shift 2
+            ;;
+          --header-root)
+            [[ $# -ge 2 ]] || dpalt_error "--header-root needs a directory"
+            header_root="$2"
+            shift 2
+            ;;
+          --output)
+            [[ $# -ge 2 ]] || dpalt_error "--output needs a directory"
+            output="$2"
+            shift 2
+            ;;
+          *)
+            dpalt_error "unknown build option: $1"
+            ;;
+        esac
+      done
+      [[ -n $source && -n $header_root && -n $output ]] ||
+        dpalt_error "build requires --source, --header-root, and --output"
+      build_prototype "$source" "$header_root" "$output"
+      ;;
+    *)
+      dpalt_error "unknown action: $action"
+      ;;
+  esac
+}
+
+if [[ ${OMARCHY_DPALT_LIBRARY:-0} != 1 ]]; then
+  main "$@"
+fi
