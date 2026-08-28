@@ -21,7 +21,7 @@ Both initial RED runs used frozen private stubs in a fresh, reviewed sandbox. In
 
 The [D2 preparation record](../../../docs/evidence/dev-147-usbdiag-staging-helper-2026-08-28.md) preserves the genuine RED runs, environment-loop failure, EXIT-trap defect, corrections, and final independent 38-test PASS. The private staging helper differs only in three fixed assignments. The subsequent [D2 staging record](../../../docs/evidence/dev-147-usbdiag-staging-2026-08-28.md) records David's successful private invocation and independent metadata checks. Root-private bytes/logs were not independently reread.
 
-No public install or quick-start command is provided. Tests and builds need a separately reviewed private continuation with pinned read-only inputs and fresh writable output/temp directories. Do not weaken a guard, create an unrestricted fallback, or rerun a frozen checkpoint's launcher. The monitor is not needed for offline work. D2 staging is complete; do not rerun its command. The living diagnostic plan owns the next readiness review. D3 attended boot remains separately gated and unauthorized.
+No public install or quick-start command is provided. Tests and builds need a separately reviewed private continuation with pinned read-only inputs and fresh writable output/temp directories. Do not weaken a guard, create an unrestricted fallback, or rerun a frozen checkpoint's launcher. The monitor is not needed for offline work. D2 staging is complete; do not rerun its command. The living diagnostic plan now holds the reviewed one-time D3 handoff after readiness confirmation. Its [readiness record](../../../docs/evidence/dev-147-usbdiag-boot-readiness-2026-08-28.md) is not a diagnostic startup or hardware-test result.
 
 ## Provenance and design limits
 

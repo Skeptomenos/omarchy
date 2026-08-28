@@ -1,6 +1,6 @@
 # DEV-147 — one-boot USB startup diagnostic design
 
-Updated: 2026-08-28, after David's successful D2 staging run. Status: offline D1 complete; D2 helper preparation complete with 38 isolated tests and independent safety review passing. The trace, archive, and assembly suites pass 59, 58, and 55 methods. Private builds, import/logging checks, exact no-change controls, and the 413-command diagnostic assembly pass. The new private image has 200 modules and exactly four archive changes. D0 remains complete. User-run D2 staging now passes; independent file metadata agrees. D3 boot remains separately gated and unauthorized.
+Updated: 2026-08-28, after D3 readiness confirmation. Status: offline D1 complete; D2 helper preparation complete with 38 isolated tests and independent safety review passing. The trace, archive, and assembly suites pass 59, 58, and 55 methods. Private builds, import/logging checks, exact no-change controls, and the 413-command diagnostic assembly pass. The new private image has 200 modules and exactly four archive changes. D0 remains complete. User-run D2 staging now passes; independent file metadata agrees. D3 readiness passes and the one-time handoff below is ready for David. No diagnostic boot or result is reported yet.
 
 Current source branch: `codex/dev-147-m2-dp-altmode-public`. Its first checkpoint `c781312d1` was pushed and verified by remote readback. The [public archive](../../dev/apple-dp-altmode/usbdiag/README.md) preserves the authored drafts and fixtures, but excludes host manifests and raw logs. Public helpers have invalid machine-identity/path placeholders and must not run live. The original operational helpers and private branch remain unchanged. The [dated source checkpoint](../evidence/dev-147-public-source-checkpoint-2026-08-28.md) distinguishes historical R4 evidence from the new private RED runs.
 
@@ -19,7 +19,7 @@ This experiment can establish software call order. It cannot read whether the PH
 | D0 — design and independent review | Complete; design only | Measurement, image boundary, parser checks, and rollback reviewed; no implementation. |
 | D1 — offline implementation and build | Complete; offline QA PASS | 59 trace, 58 archive, and 55 assembly tests pass. Private builds, import/logging checks, no-change controls, and one verified 200-module diagnostic image pass. All 413 assembly commands pass. No module load or hardware-test pass. |
 | D2 — stage a distinct image | Complete; user-run staging PASS | David's final helper PASS validates image and protected post-checks. All 40 reported pin records match; independent metadata agrees. Root-private contents were not reread. No reboot implied. |
-| D3 — one attended diagnostic startup | Not authorized | Fresh preflight and user-selected one-time boot; capture and physical report; no automatic retry. |
+| D3 — one attended diagnostic startup | Readiness PASS; handoff ready; result pending | David confirmed physical readiness. Fresh checks pass. One user-selected boot and fixed-boot capture only; no automatic retry or completed startup claim. |
 
 D1 included source implementation, focused fixtures, the two module builds, and private image preparation under David's explicit approval. It did not include installation, staging, a driver reload, or a reboot. David then approved D2 helper preparation. Its offline implementation and tests are complete in a fresh private continuation. David has now completed the reviewed production preflight and privileged staging. The agent did not execute either. Each later action stops for its own review and user action.
 
@@ -101,7 +101,25 @@ D2 helper preparation is complete. The new reviewed, fixed-source/fixed-destinat
 
 The 38 focused failure-path and real-tool tests pass in isolation with synthetic boot/source files. They cover existing destinations and links, source/protected-file drift, synthetic host/kernel/package records, package lock, space validation, bounded copy failure, interruption, and final success-marker ordering. A missing-path sync error checks propagation, not storage-device failure. Independent QA and safety review pass. Never run the helper against live `/boot` for QA. Preserve partial results on failure; do not add an overwrite or automatic cleanup option. David's complete final PASS now supplies the user-run result. Its root-private check directory is `/boot/.dev147-usbdiag-stage.ESqzIgLr8I`; the agent checked only directory/file metadata. The paste has no separate numeric exit-status capture. Do not repeat a completed gate or treat staging success as permission to reboot.
 
-## D3 — proposed attended case, not instructions to run now
+## D3 — attended diagnostic case
+
+### Current D3 handoff — one user-selected restart
+
+Read these steps before restarting and keep a copy available on another device. David confirmed no other active work, both physical screens normal, MagSafe and the front/lower USB-C monitor connected, and no device attached to the monitor's USB ports. Keep the lid open and the cable orientation, HDMI cable, and input settings unchanged. The fresh readiness checks are in the [dated record](../evidence/dev-147-usbdiag-boot-readiness-2026-08-28.md). This handoff permits one attended diagnostic selection, not a repeated test or permanent change.
+
+1. When ready to leave this Linux session, run only `sudo reboot` in the desktop Terminal.
+2. At the visible GRUB menu, press an arrow key to stop the countdown. Highlight `Arch Linux`, then press `e`. Do not send blind key presses through other boot screens.
+3. Find the existing `initrd` line. Replace only the filename `initramfs-linux-asahi.img` with `initramfs-linux-asahi-dpalt-usbdiag1.img`. Keep the existing `/boot/` prefix and any other entry contents. The expected line is shown below; it is not a Terminal command.
+4. Leave the `linux /boot/vmlinuz-linux-asahi ...` line and every kernel argument unchanged. Press Ctrl-x once to boot the edited entry. Esc cancels the edit. These keys follow the [GRUB menu-editor reference](https://www.gnu.org/software/grub/manual/grub/html_node/Menu-entry-editor.html).
+5. After login, report whether each physical screen shows an image. Keep all cables, input settings, modes, and lid position unchanged. Allow one 30-second observation before the fixed-boot log capture described below. Do not reconnect, retry, change modes, or suspend.
+
+```text
+initrd /boot/initramfs-linux-asahi-dpalt-usbdiag1.img
+```
+
+If the menu, expected stock filename, or path differs, press Esc and stop this case. If startup passes the menu and reaches login without the edit, report that missed selection; do not start another test boot or use a Terminal `initrd` command. A failed test has only the reviewed recovery route below, not an automatic retry. If a safety-stop event occurs, stop immediately; do not wait 30 seconds just to collect more data.
+
+The edit changes only this boot's in-memory entry. A normal unedited boot selects the stock driver image but leaves the candidate DTB installed and can lose external video. It is not full rollback. Keep the working DP image and both timestamped backups. Before restarting, make the existing private macOS recovery guide available without relying on Linux; no Recovery visit or rehearsal is required now. Its restore execution remains untested.
 
 Save work. Confirm healthy internal display, matching kernel/packages, intact backups/recovery bundle, battery strictly above 50%, and David's attendance. Recheck that no downstream storage or other new USB device was added to the monitor. If its contents are unknown, hold; software absence does not clear that physical check.
 
@@ -149,6 +167,8 @@ Before staging, rollback is simply not selecting the private experiment. After s
 After a diagnostic boot, a normal unedited restart selects the stock driver image; it does not restore the original DTB and may leave external video unavailable. The known working DP image remains a separate one-time selection option after review; never compensate with a live swap. The main plan's [full rollback gate](dev-147-m2-displayport.md#gate-6--prove-full-rollback-then-retain-the-evidence) restores the original DTB and verifies a stock boot. Keep both timestamped backups and the offline macOS bundle. macOS restore execution remains untested. No cleanup, package install, persistent boot change, or live checkout edit is part of this design.
 
 ## Decision Log (LIVING)
+
+- 2026-08-28: David cleared the physical readiness hold: MagSafe/front-lower monitor connected, no other active work, both screens normal, and no downstream USB device. Fresh preflight passes, with protected root-only bytes still evidenced by his D2 validator. Save one explicit desktop-to-GRUB handoff using `initramfs-linux-asahi-dpalt-usbdiag1.img`; keep kernel arguments, normal boot, cables, and modes unchanged. One attended restart only. No diagnostic startup or USB result has occurred at this checkpoint.
 
 - 2026-08-28: D2 user-run staging PASS. The complete transcript matches all 32 protected and eight proof records. The root-owned mode-0600 diagnostic image is 19,647,739 bytes; the check directory is root-owned mode 0700. Accept the helper's protected post-checks from David's validated execution, not an independent root-log or image-byte read. Preserve sealed evidence and the unselected image. D3 requires fresh physical readiness and explicit approval; no boot is authorized.
 
