@@ -44,7 +44,7 @@ The earlier 22:18 stock-driver boot and rejected Bash `initrd` command remain in
 | C3 — E-only staging | Complete; user-run staging PASS | All 41 visible initial-preflight rows match. David's complete final report evidences the later private checks; independent readable hashes and metadata agree. E is staged. Handoff consumed; no retry. |
 | C4 — E case | External-display FAIL; E selection confirmed | User confirmation plus saved boot capture establish the result, not shared IDs alone. Cause unknown; handoff consumed and no retry. |
 | Recovery after E | Functional display recovery observed; handoff consumed | Fresh boot has both native outputs after the intended W handoff. Filename was not restated, so shared IDs do not prove W artifact startup. Root hubs only; USB acceptance HOLD. |
-| Autonomous offline goal | A0 findings recorded; A1 selects T1 for offline A2–A4 | Independent reviews agree on the single TIPD sender case. No T1 implementation, build, image, live change, or hardware PASS yet. |
+| Autonomous offline goal | A0/A1 complete; A2 source tests pass, artifact work continues | [T1 foundation evidence](../evidence/dev-147-t1-offline-foundation-2026-08-29.md) records 22 production-source methods, the rebuilt control/type checks, 15 pure image checks, and retained semantic REDs. No T1 image, manual handoff, or hardware PASS yet. |
 | Source publication checkpoint | Published and verified | `c781312d1` on the clean public branch contains source, fixtures, plans, and reviewed notes. Raw private records and the original local history remain private. This is not a build or hardware acceptance pass. |
 | 5 — controlled behavior tests | Pending; held at Gate 4b | Refresh-rate, repeated hotplug, cold-start, and suspend reliability are unproved. Startup modesets do not count as controlled mode tests. |
 | 6 — full rollback proof | Pending | Reboot alone does not restore the original DTB. |
@@ -175,7 +175,7 @@ The login-focus report is separate. Saved greeter observations show a second dis
 
 ### Autonomous offline goal — next-test package (LIVING)
 
-Current offline step, 2026-08-29: independent safety, documentation QA, and source/design reviews agree on the [T1 sender-only selection](dev-147-usb-startup-diagnostic.md#a1-selection--t1-tipd-sender-diagnostic-living), based on the [A0 HPD findings](../research/dev-147-hpd-startup-2026-08-29.md). Proceed through offline A2–A4 after fresh containment validation; T1 implementation has not begun at this checkpoint. The source proves a pre-registration drop mechanism, not that it caused E's failure. The detailed contract belongs only to the subplan; no new manual step is released.
+Current offline step, 2026-08-29: T1's [offline foundation](../evidence/dev-147-t1-offline-foundation-2026-08-29.md) is recorded. Fresh isolation, the uninstrumented control, scoped layout/frontend evidence, 22 production-source methods, and 15 pure image checks pass. Genuine driver/trace/image REDs remain preserved. Continue the separate parser, actual candidate-module and E-control/image gates, then A3/A4. No T1 image or manual action is ready. The [subplan](dev-147-usb-startup-diagnostic.md#a2-foundation--continued-offline-preparation-living) owns the detailed sequence; source/test success does not establish runtime causality.
 
 Goal: reach the furthest evidence-led offline outcome for dependable video and monitor-USB startup on the existing front/lower M2 path, while preserving the working setup. Deliver one fully reviewed next-test package, or an independently reviewed NO-GO dossier if an indispensable observation or authority is missing. David authorized progress without manual intervention. This plan must pass review before follow-on work. The [diagnostic subplan](dev-147-usb-startup-diagnostic.md#autonomous-offline-technical-gates-living) owns the technical gates: authenticate saved inputs, compare evidence/source, select one justified candidate or diagnostic, implement and verify only that selection, then prepare and seal its handoff.
 
@@ -344,6 +344,8 @@ The [unsent contribution draft](../research/dev-147-upstream-contribution-draft-
 - Preserve original author credit and per-file licenses. The HPD forwarding derives from the cited Asahi commits; it is not a new invention from this experiment. No upstream issue, PR, comment, release, or deployment is authorized by D2 preparation.
 
 ## Decision Log (LIVING)
+
+- 2026-08-29: Record the separate T1 foundation checkpoint: fresh containment, a rebuilt uninstrumented control, scoped type/frontend checks, genuine REDs, 22 passing source methods, and 15 passing pure image methods. Retain missing-type/noisy-BTF observations and their narrow resolution. T1 artifact, parser, staging, and final review work remain open; no live change or manual action follows.
 
 - 2026-08-29: Link the dated A0 HPD investigation and select T1 for offline A2–A4 after independent safety, documentation QA, and source/design review agreement. Preserve the proposal anchor and exact containment gates. No T1 source, binary, or image exists yet; source/read-only checks do not establish runtime causality or permit a behavior fix. Preserve the working setup, E/D3 history, qualified latest W recovery, and USB/firmware HOLD. No manual action is released.
 

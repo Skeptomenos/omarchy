@@ -29,7 +29,7 @@ The design intended to establish software call order. D3 did not measure it beca
 | C3 — E-only staging | Complete; user-run staging PASS | All 41 visible initial-preflight rows match. David's final report validates the later root-private checks; independent readable hashes and metadata agree. E is staged; no replay. |
 | C4 — E case | External-display FAIL; E selection confirmed | User confirmation and saved boot capture agree. Cause unknown; handoff consumed and no retry. |
 | Recovery after E | Functional display recovery observed; handoff consumed | Fresh boot and both native outputs after intended W recovery; filename not restated and shared IDs not image proof. Root hubs only; USB HOLD. |
-| Autonomous offline goal | A0 findings recorded; A1 selects T1 for offline A2–A4 | Independent safety, documentation QA, and source/design reviews agree. T1 implementation/build/image work has not begun; no hardware PASS. |
+| Autonomous offline goal | A0/A1 complete; A2 source tests pass, artifact work continues | [Foundation evidence](../evidence/dev-147-t1-offline-foundation-2026-08-29.md): 22 production-source and 15 pure image methods pass; baseline/trace/image REDs and scoped control/type checks are retained. Candidate image, parser acceptance, staging package, and final seal remain pending. |
 
 D1 included source implementation, focused fixtures, the two module builds, and private image preparation under David's explicit approval. It did not include installation, staging, a driver reload, or a reboot. David then approved D2 helper preparation. Its offline implementation and tests are complete in a fresh private continuation. David has now completed the reviewed production preflight and privileged staging. The agent did not execute either. Each later action stops for its own review and user action.
 
@@ -288,11 +288,18 @@ The [main goal](dev-147-m2-displayport.md#autonomous-offline-goal--next-test-pac
 
 If bounded A0/A1 investigation establishes an indispensable missing observation or authority, independently review a NO-GO dossier with the exact minimal next capture/action. Seal and publish those findings and sync DEV-147. This alternative is not a completed test package, nor a shortcut for uncertainty, slow work, or failing tests. Preserve old seals, images, operational helpers, and every dated result. New isolated helper execution does not permit historical replay, production preflight, or live writes. A later mouse/device test needs hub enumeration and separate review; keep downstream ports empty now. SDDM fixes remain separate.
 
+### A2 foundation — continued offline preparation (LIVING)
+
+The [dated foundation record](../evidence/dev-147-t1-offline-foundation-2026-08-29.md) owns executed checks and their limits. Fresh containment and the uninstrumented control pass. Correct per-module BTF bases resolve three shared types; the SN layout uses a separate compile-only witness and actual allocation-table evidence. The packaged frontend confirms the dynamic-size allocation contract. None of this alone accepts the new candidate ABI.
+
+T1 source now passes 22 focused methods after its preserved two-assertion RED. The original 13 test bodies and independent operation models remain unchanged. The pure TIPD-only archive contract passes 15 methods after its own RED; its operational assembly gate remains closed. The separate trace contract has genuine RED and awaits accepted GREEN. No T1 image or staging instruction exists at this checkpoint.
+
+Next: accept the strict trace parser; build and independently inspect the candidate module; run a fresh E no-change/index control; then assemble and verify only T1. The image contract now requires all seven original E indexes to stay byte-identical. Any unexpected index difference is HOLD, not permission to broaden the delta. Finish the new staging-only helper, recovery case, independent QA/review, seals, own-branch publication, and Linear sync before the first manual boundary. A3/A4 and all live exclusions remain unchanged.
 <a id="a1-proposal--t1-tipd-sender-diagnostic-living"></a>
 
 ### A1 selection — T1 TIPD sender diagnostic (LIVING)
 
-Selected for offline A2–A4 after independent safety PASS, exact four-document QA PASS, and source/design review agreement. The [dated A0 investigation](../research/dev-147-hpd-startup-2026-08-29.md) owns source pins, saved timing, and competing explanations. No behavior fix is selected. T1 asks whether the front-controller worker chooses and returns from the connected-HPD call, with the cached state and actual mux/role outcomes that precede it. It cannot prove that DRM delivered the notification or that a PHY latched a setting. No T1 source, binary, or image exists at this checkpoint. Implementation must first pass fresh containment and then the gates below; no staging or manual action is released.
+Selected for offline A2–A4 after independent safety PASS, exact four-document QA PASS, and source/design review agreement. The [dated A0 investigation](../research/dev-147-hpd-startup-2026-08-29.md) owns source pins, saved timing, and competing explanations. No behavior fix is selected. T1 asks whether the front-controller worker chooses and returns from the connected-HPD call, with the cached state and actual mux/role outcomes that precede it. It cannot prove that DRM delivered the notification or that a PHY latched a setting. At the A1 selection checkpoint, no T1 source, binary, or image existed. The gates below governed later implementation; current progress is recorded in A2 foundation. No staging or manual action is released.
 
 #### Single candidate and preservation boundary
 
