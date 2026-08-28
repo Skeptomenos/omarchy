@@ -4,7 +4,7 @@ These are reviewed source checkpoints, not live-use commands. They require exact
 
 The [diagnostic plan](../../../../docs/plans/dev-147-usb-startup-diagnostic.md) owns current status and authority. The [real-control evidence](../../../../docs/evidence/dev-147-real-archive-controls-2026-08-28.md) and [diagnostic-image evidence](../../../../docs/evidence/dev-147-private-diagnostic-image-2026-08-28.md) distinguish fixture results, real-tool checks, retained failures, and untested startup behavior.
 
-Reconciled: 2026-08-28. The later [C2 evidence](../../../../docs/evidence/dev-147-c2-offline-preparation-2026-08-28.md) records E-only offline preparation and independent QA. E is not staged or boot-tested. B/G images remain unprepared; the next step is a new reviewed E-only C3 staging helper, then David's manual command.
+Reconciled: 2026-08-28. The sealed [C2 evidence](../../../../docs/evidence/dev-147-c2-offline-preparation-2026-08-28.md) records E-only offline preparation and independent QA. The later [C3 record](../../../../docs/evidence/dev-147-usbearly-staging-helper-2026-08-28.md) records syntax, 42 focused staging-helper tests, independent QA, and exact private-copy review PASS. Next is David's separate staging-only command. E is not staged or boot-tested; B/G images remain unprepared. See the [staging archive](../staging/README.md), not a live-use command here.
 
 ## Historical D1 sources
 

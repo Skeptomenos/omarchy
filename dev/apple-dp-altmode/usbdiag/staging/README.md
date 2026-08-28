@@ -1,4 +1,25 @@
-# D2 staging helper — offline preparation
+# Staging helper source archive
+
+## C3 E-only helper — offline preparation
+
+Reconciled: 2026-08-28. The [C3 evidence](../../../../docs/evidence/dev-147-usbearly-staging-helper-2026-08-28.md) records syntax, all 42 focused methods, independent saved-run QA, helper review, and exact private-copy review PASS. E remains unstaged and unbooted. The [main plan](../../../../docs/plans/dev-147-m2-displayport.md#current-handoff--c3-staging-only-living) owns David's next staging-only handoff; C4 selection/reboot is separate.
+
+| Source | Scope |
+|---|---|
+| [stage-usbearly-initramfs.sh](../../stage-usbearly-initramfs.sh) | Distinct fail-closed E-only helper. Public source/proof-root/UUID assignments are deliberately invalid; do not run it live. |
+| [test_stage_usbearly_red.py](test_stage_usbearly_red.py) | Frozen two-assertion RED against the actual old D2 image/proof producers, with successful setup and collectors. |
+| [test_stage_usbearly_green.py](test_stage_usbearly_green.py) | Same 42 bodies and fixed expectations; only the subject-helper SHA and explanatory docstring differ. All 38 historical bodies remain unchanged. |
+| [c3-test-contracts.md](c3-test-contracts.md) | Retained test-first handoff. Its initial pending wording is historical; the dated C3 evidence owns the later executed results. |
+
+All four files match their frozen reviewed private bytes. The new helper keeps the old algorithms and all 32 protected rows, adds the retained failed-v1 image, and binds eight sealed C2 proofs. The 33 + 8 unique rows are tested producer assertions, not fresh protected-file reads. The four new methods cover those records, exact E identities/staging names, and uninstrumented completion wording. E contains packaged DWC3, not diagnostic or rebuilt control modules.
+
+The runs used four individual read-only input files, not the whole sealed C2 directory. Real temporary files and expected refusal/trap/interruption outcomes remain private. They do not prove production preflight, root execution, current power/mount state, storage power-loss behavior, boot safety, or hardware acceptance. The public helper stays nonoperational. Independent private-copy review proves exactly three approved literal assignment changes and all remaining bytes equal; any change invalidates that comparison.
+
+No production preflight or staging has run for E. David must use the separately supplied exact private command, with the environment cleared before Bash. No monitor connection is required; keep current cables unchanged, MagSafe connected, battery strictly above 50%, the lid open, and the internal screen usable. Review the full protected/image post-checks, final sync/marker, console PASS, and exit 0 before any C4 proposal. A provisional `RESULT.txt` alone is insufficient. Stop on refusal or missing completion; preserve outputs and backups without retry or cleanup. No reboot is authorized.
+
+<a id="d2-staging-helper--offline-preparation"></a>
+
+## D2 staging helper — offline preparation (historical)
 
 The new [helper](../../stage-usbdiag-initramfs.sh) is a public, fail-closed source copy. Its source root and host UUID are deliberately invalid. Do not run or adapt it on a live machine. A separate reviewed and hash-pinned private operational copy is required. Only the three fixed source, proof-root, and UUID assignments differ; the function bodies remain identical. The old working-DP staging helper remains unchanged.
 
