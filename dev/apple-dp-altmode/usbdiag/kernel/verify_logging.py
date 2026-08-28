@@ -15,8 +15,8 @@ import subprocess
 
 
 PINS = {
-  "dwc3": ("dwc3-apple.c", "2ce7c85eb7d5324d13629a1030436d8350cb426cd646cf43cd40c0dbd8c1c752"),
-  "atc": ("atc.c", "852f5d8e19894473390fc74464496029e20ef440aef37618cf530264b49cb113"),
+  "dwc3": ("dwc3-apple.c", "247f8bbe481699e288dc9476a6b1143484b3b9dbf9b1aaab5d7f9ea8241e4de1"),
+  "atc": ("atc.c", "352bfd35397e76a487176404a715f2388595f070b97ad2c657cdf08f0e439ac4"),
 }
 LINK_PINS = {
   "libgcc_s_asneeded.so": "10bc094393cfacd92e7683eff066803c7c5bfd51ac8ee8eb7b57847a4c9b3ebb",
@@ -241,7 +241,7 @@ def parsed(raw: bytes) -> list[dict[str, object]]:
   for line in lines:
     item = json.loads(line.decode("ascii"))
     require(isinstance(item, dict), "record must be an object")
-    require(item["revision"] == "dev147-usbdiag1-v1", "revision changed")
+    require(item["revision"] == "dev147-usbdiag2-v1", "revision changed")
     require(item["board"] == "j413" and item["target"] == "front_lower", "target changed")
     records.append(item)
   return records

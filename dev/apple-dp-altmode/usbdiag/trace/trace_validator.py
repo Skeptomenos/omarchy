@@ -18,7 +18,7 @@ from typing import Literal
 
 Component = Literal["dwc3", "atc"]
 Phase = Literal["begin", "end", "skip"]
-REVISION = "dev147-usbdiag1-v1"
+REVISION = "dev147-usbdiag2-v1"
 UINT32_MAX = (1 << 32) - 1
 UINT64_MAX = (1 << 64) - 1
 INT32_MIN = -(1 << 31)

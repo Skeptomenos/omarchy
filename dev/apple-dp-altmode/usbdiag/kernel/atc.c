@@ -55,7 +55,7 @@
  */
 #define DEV147_ATC_LIMIT 128
 #define DEV147_ATC_PREFIX \
-	"{\"schema\":1,\"revision\":\"dev147-usbdiag1-v1\",\"board\":\"j413\"," \
+	"{\"schema\":1,\"revision\":\"dev147-usbdiag2-v1\",\"board\":\"j413\"," \
 	"\"component\":\"atc\",\"target\":\"front_lower\",\"seq\":%u," \
 	"\"generation\":%u,"
 
@@ -64,8 +64,16 @@ static atomic_t dev147_atc_generations = ATOMIC_INIT(0);
 
 static unsigned int dev147_atc_new_generation(struct device *dev)
 {
-	if (!of_machine_is_compatible("apple,j413") ||
-	    strcmp(of_node_full_name(dev->of_node), "/soc/phy@503000000"))
+	struct device_node *target;
+	bool matches;
+
+	if (!of_machine_is_compatible("apple,j413") || !dev->of_node)
+		return 0;
+
+	target = of_find_node_by_path("/soc/phy@503000000");
+	matches = target && target == dev->of_node;
+	of_node_put(target);
+	if (!matches)
 		return 0;
 
 	return (unsigned int)atomic_inc_return(&dev147_atc_generations);

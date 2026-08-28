@@ -11,6 +11,8 @@ class ProbeFinalizeReview(unittest.TestCase):
     result = validate_capture(capture, MANIFEST)
     self.assertEqual(result.status, "inconclusive")
     self.assertEqual(result.findings, ())
+    self.assertIn("incomplete_probe", result.issues)
+    self.assertFalse(result.negative_late_setter_claim)
 
   def test_atc_success_without_finalize_pair(self) -> None:
     capture = complete_trace().capture()

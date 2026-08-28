@@ -6,7 +6,7 @@ import unittest
 
 from trace_validator import ValidationResult, validate_capture
 
-REVISION = "dev147-usbdiag1-v1"
+REVISION = "dev147-usbdiag2-v1"
 BOOT_ID = "0123456789abcdef0123456789abcdef"
 MANIFEST: dict[str, object] = {
     "revision": REVISION,
@@ -489,6 +489,79 @@ class TraceValidatorTests(unittest.TestCase):
         capture = complete_trace().capture()
         replace_message(select(capture, "atc", "usb2_set_mode", "end", mode=1), submode=9)
         self.assert_inconclusive(capture, "pair_mismatch")
+
+
+class RevisionIdentityTests(unittest.TestCase):
+  def assert_rejected(self, capture: object, manifest: object, issue: str) -> None:
+    result = validate_capture(capture, manifest)
+    self.assertEqual(result.status, "inconclusive")
+    self.assertEqual(result.findings, ())
+    self.assertFalse(result.negative_late_setter_claim)
+    self.assertEqual(result.issues, (issue,))
+
+  def test_literal_v2_manifest_and_both_producers_are_accepted(self) -> None:
+    capture = complete_trace().capture()
+    self.assertEqual(MANIFEST["revision"], "dev147-usbdiag2-v1")
+    for component in ("dwc3", "atc"):
+      own = [message(entry) for entry in records(capture)
+             if message(entry)["component"] == component]
+      self.assertTrue(own)
+      self.assertTrue(all(record["revision"] == "dev147-usbdiag2-v1" for record in own))
+    result = validate_capture(capture, MANIFEST)
+    self.assertEqual(result.status, "positive_software_sequence")
+    self.assertEqual(len(result.findings), 1)
+    self.assertFalse(result.negative_late_setter_claim)
+
+  def test_v1_manifest_is_rejected_with_either_record_revision(self) -> None:
+    for revision in ("dev147-usbdiag1-v1", "dev147-usbdiag2-v1"):
+      with self.subTest(record_revision=revision):
+        capture = complete_trace().capture()
+        for entry in records(capture):
+          replace_message(entry, revision=revision)
+        manifest = deepcopy(MANIFEST)
+        manifest["revision"] = "dev147-usbdiag1-v1"
+        self.assert_rejected(capture, manifest, "invalid_manifest")
+
+  def test_v1_records_are_rejected_under_v2_manifest(self) -> None:
+    capture = complete_trace().capture()
+    for entry in records(capture):
+      replace_message(entry, revision="dev147-usbdiag1-v1")
+    self.assert_rejected(capture, MANIFEST, "invalid_record")
+
+  def test_either_v1_component_rejects_a_mixed_revision_capture(self) -> None:
+    for component in ("dwc3", "atc"):
+      with self.subTest(old_component=component):
+        capture = complete_trace().capture()
+        for entry in records(capture):
+          if message(entry)["component"] == component:
+            replace_message(entry, revision="dev147-usbdiag1-v1")
+        self.assert_rejected(capture, MANIFEST, "invalid_record")
+
+  def test_late_v1_record_is_rejected_after_valid_v2_first_markers(self) -> None:
+    for component in ("dwc3", "atc"):
+      with self.subTest(old_record_component=component):
+        capture = complete_trace().capture()
+        for first_component in ("dwc3", "atc"):
+          first = message(select(capture, first_component, "probe", "begin"))
+          self.assertEqual(first["revision"], "dev147-usbdiag2-v1")
+          self.assertEqual(first["seq"], 1)
+        own = [entry for entry in records(capture) if message(entry)["component"] == component]
+        self.assertGreater(len(own), 1)
+        replace_message(own[-1], revision="dev147-usbdiag1-v1")
+        self.assert_rejected(capture, MANIFEST, "invalid_record")
+
+  def test_each_component_hash_and_build_id_remain_strict(self) -> None:
+    for component in ("dwc3", "atc"):
+      for field, replacement in (("sha256", "f" * 64), ("build_id", "f" * 40)):
+        with self.subTest(component=component, field=field):
+          capture = complete_trace().capture()
+          identities: dict[str, dict[str, str]] = {
+            "dwc3": {"sha256": "d" * 64, "build_id": "1" * 40},
+            "atc": {"sha256": "a" * 64, "build_id": "2" * 40},
+          }
+          identities[component][field] = replacement
+          capture["identities"] = identities
+          self.assert_rejected(capture, MANIFEST, "identity_mismatch")
 
 
 class TraceBoundaryTests(unittest.TestCase):
