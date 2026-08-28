@@ -2,6 +2,8 @@
 
 This directory preserves the offline diagnostic work for one M2 J413 USB-C startup investigation.
 
+Reconciled: 2026-08-28, after D3 external-display failure and inconclusive measurement. The [dated result](../../../docs/evidence/dev-147-usbdiag-startup-failure-2026-08-28.md) owns the observations and logging-defect proof.
+
 > Public archival copy. Do not run these helpers on a live machine. The public sandbox has deliberately invalid `LOCAL_ONLY_*` paths and no host tool manifest. The public parent build/staging helpers also have invalid machine-identity placeholders. The operational, machine-pinned originals remain private. Edited public helpers are not byte-identical to the previously tested originals. R4's isolation proof applies to its private pinned launcher and inputs, not this public copy.
 
 The [diagnostic plan](../../../docs/plans/dev-147-usb-startup-diagnostic.md) owns current work and authority. The [main plan](../../../docs/plans/dev-147-m2-displayport.md) owns display acceptance and rollback. The [public-source checkpoint](../../../docs/evidence/dev-147-public-source-checkpoint-2026-08-28.md) records the export boundary and initial isolated RED runs. Historical evidence links to raw files are labeled “retained privately”; those files are not missing publication deliverables.
@@ -10,10 +12,10 @@ The [diagnostic plan](../../../docs/plans/dev-147-usb-startup-diagnostic.md) own
 
 | Directory | Contents | State at this checkpoint |
 |---|---|---|
-| [kernel](kernel/) | Instrumented drivers, matching patch, import and logging verifiers | Private controls/diagnostics compile with BTF. Exact import checks and bounded userspace logging QA pass. No load or hardware validation. |
+| [kernel](kernel/) | Instrumented drivers, matching patch, import and logging verifiers | Historical build/import/logging checks PASS. D3 loaded IDs match, but an OF target-name guard defect suppresses every marker. External-display FAIL; no valid call-order measurement. |
 | [trace](trace/) | Event schema, typed validator, synthetic and independent review fixtures | Implemented; 59 isolated tests PASS after correction of three review failures. Software-order evidence only. |
-| [image](image/README.md) | Bounded newc helper, filesystem guards, fixtures, real control, private assembly | 58 archive and 55 assembly tests PASS. Exact no-change controls and the separate 200-module diagnostic image pass offline QA. User staging is recorded separately below; no diagnostic startup test. |
-| [staging](staging/README.md) | Fixed-source staging helper and real-file failure fixtures | 38 isolated tests and independent safety review PASS. Public constants are invalid. User-run D2 staging now passes; no boot permission. |
+| [image](image/README.md) | Bounded newc helper, filesystem guards, fixtures, real control, private assembly | 58 archive and 55 assembly tests PASS. Exact no-change controls and the 200-module diagnostic image pass offline QA. The later D3 startup failed; preserve the image unchanged. |
+| [staging](staging/README.md) | Fixed-source staging helper and real-file failure fixtures | 38 isolated tests, independent safety review, and user-run D2 staging PASS. Public constants are invalid. Staging is complete; do not repeat it. |
 | [build](build/README.md) | Exact authentication, extraction, build, and control-QA workload sources | Historical failures and successful private runs are labeled separately. Not a live installer or quick-start. |
 | [sandbox](sandbox/) | R4 launcher, isolation probe, stdlib smoke tests, launcher test, proof input | PUBLIC REFERENCE ONLY. Invalid fixed paths; private runtime manifest deliberately omitted. |
 
@@ -21,7 +23,7 @@ Both initial RED runs used frozen private stubs in a fresh, reviewed sandbox. In
 
 The [D2 preparation record](../../../docs/evidence/dev-147-usbdiag-staging-helper-2026-08-28.md) preserves the genuine RED runs, environment-loop failure, EXIT-trap defect, corrections, and final independent 38-test PASS. The private staging helper differs only in three fixed assignments. The subsequent [D2 staging record](../../../docs/evidence/dev-147-usbdiag-staging-2026-08-28.md) records David's successful private invocation and independent metadata checks. Root-private bytes/logs were not independently reread.
 
-No public install or quick-start command is provided. Tests and builds need a separately reviewed private continuation with pinned read-only inputs and fresh writable output/temp directories. Do not weaken a guard, create an unrestricted fallback, or rerun a frozen checkpoint's launcher. The monitor is not needed for offline work. D2 staging is complete; do not rerun its command. The living diagnostic plan now holds the reviewed one-time D3 handoff after readiness confirmation. Its [readiness record](../../../docs/evidence/dev-147-usbdiag-boot-readiness-2026-08-28.md) is not a diagnostic startup or hardware-test result.
+No public install or quick-start command is provided. Tests and builds need a separately reviewed private continuation with pinned read-only inputs and fresh writable output/temp directories. Do not weaken a guard, create an unrestricted fallback, or rerun a frozen checkpoint's launcher. D2 staging is complete. The [D3 readiness handoff](../../../docs/evidence/dev-147-usbdiag-boot-readiness-2026-08-28.md) was consumed by the failed diagnostic startup; do not repeat either action. The main plan owns the separately reviewed [working-DP recovery handoff](../../../docs/plans/dev-147-m2-displayport.md#current-recovery-handoff--previous-working-dp-image-living). Its user-run result is pending. Keep current cables unchanged; no retry, hotplug, live swap, mode change, suspend, correction, or rebuild is authorized.
 
 ## Provenance and design limits
 
@@ -32,7 +34,9 @@ The two kernel drafts derive from Asahi Linux commit [`e2e1930a9595bffafad92cec2
 
 SPDX notices and upstream author attribution are retained. The draft patch targets those original kernel paths. Kernel indentation is preserved; it is not reformatted as Omarchy shell code.
 
-The proposed records use revision `dev147-usbdiag1-v1`, board `j413`, and target `front_lower`. They filter `/soc/usb@502280000` and `/soc/phy@503000000`. Fixed INFO JSON records operation order without an intended change to the original hardware calls, error handling, lock order, retries, or timing policy. The per-component limit is 128 records including a final cap marker, with a 384-byte record bound. Compilation and userspace fragment/cap checks pass. The latter use C11/stdio shims, not kernel atomic/printk execution.
+The v1 records use revision `dev147-usbdiag1-v1`, board `j413`, and target `front_lower`. The intended targets are `/soc/usb@502280000` and `/soc/phy@503000000`. The implementation instead compares these absolute paths with the leaf value from `of_node_full_name()`; this returns generation zero and suppresses every marker. The [D3 evidence](../../../docs/evidence/dev-147-usbdiag-startup-failure-2026-08-28.md#confirmed-logging-defect) proves the mismatch from exact pinned OF sources. It explains missing instrumentation, not the external-video failure.
+
+The intended fixed INFO/JSON records observe operation order without changing hardware calls, error handling, lock order, retries, or timing policy. The per-component limit is 128 records including a final cap marker, with a 384-byte bound. Historical compilation and userspace fragment/cap checks remain PASS. They use C11/stdio shims, not kernel atomic/printk execution, and missed the OF target-name semantics. The source remains unchanged at this failed-result checkpoint.
 
 Software order cannot prove PHY latching or hardware causation. A complete-looking sequence prefix cannot prove that no late setter occurred. Adding the missing DWC3 glue to an early image can itself change probe timing. The schema and synthetic fixtures are contracts, not hardware simulations or evidence of a fix. Synthetic boot IDs and repeated hash strings in fixtures are intentionally retained.
 
