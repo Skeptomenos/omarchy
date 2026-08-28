@@ -232,10 +232,9 @@ class ArchiveSafetyTests(unittest.TestCase):
       with self.subTest(raw=raw[:32]), self.assertRaises(ArchiveError):
         parse_newc(raw)
 
-  def test_invalid_modes_links_and_symlink_payloads_fail(self) -> None:
+  def test_invalid_modes_and_symlink_payloads_fail(self) -> None:
     bad = [archive(member("a", mode=mode)) for mode in
            (stat.S_IFBLK | 0o600, stat.S_IFSOCK | 0o600, 0o644, stat.S_IFREG | (1 << 16))]
-    bad.append(archive(member("a", nlink=0)))
     bad.extend(archive(member("a", target, mode=stat.S_IFLNK | 0o777))
                for target in (b"", b"a\0b", b"x" * MAX_NAME_BYTES))
     for raw in bad:
@@ -356,6 +355,71 @@ class ArchiveSafetyTests(unittest.TestCase):
     after = parse_newc(replace_members(before, {"a": b"longer replacement"}, (("b", b"new"),)))
     self.assertEqual(after.tail, before.tail)
     self.assertEqual(after.members[-1].fields[1:6], (stat.S_IFREG | 0o644, 0, 0, 1, 0))
+
+
+class LibarchiveCompatibilityTests(unittest.TestCase):
+  def test_zero_link_records_roundtrip_and_replace_without_metadata_rewrite(self) -> None:
+    before = parse_newc(archive(member("usr/", mode=stat.S_IFDIR | 0o755, nlink=0),
+                                member("usr/a", b"old", ino=2, nlink=0),
+                                member("link", b"/vendorfw/current", mode=stat.S_IFLNK | 0o777,
+                                       ino=3, nlink=0)))
+    self.assertEqual(replace_members(before, {}, ()), before.raw)
+    after = parse_newc(replace_members(before, {"usr/a": b"longer replacement"}, (("usr/b", b"new"),)))
+    self.assertEqual([entry.name for entry in after.members], ["usr", "usr/a", "link", "usr/b"])
+    self.assertEqual(after.members[0].raw, before.members[0].raw)
+    self.assertEqual(after.members[2].raw, before.members[2].raw)
+    self.assertEqual(after.members[1].raw[:54], before.members[1].raw[:54])
+    self.assertEqual(after.members[1].fields[4], 0)
+    self.assertEqual(after.members[-1].fields[4], 1)
+    self.assertEqual(after.tail, before.tail)
+
+  def test_one_directory_slash_and_dot_prefix_keep_raw_names(self) -> None:
+    for name in ("dir/", "./dir/"):
+      with self.subTest(name=name):
+        before = parse_newc(archive(member(name, mode=stat.S_IFDIR | 0o755, nlink=0),
+                                    member("dir/file", b"old", ino=2, nlink=0)))
+        self.assertEqual(before.members[0].name, "dir")
+        self.assertEqual(before.members[0].raw_name, name.encode("ascii") + b"\0")
+        after = parse_newc(replace_members(before, {"dir/file": b"new"}, ()))
+        self.assertEqual(after.members[0].raw, before.members[0].raw)
+
+  def test_directory_slash_aliases_cannot_duplicate_members(self) -> None:
+    for first, second in (("usr", "usr/"), ("./usr", "usr/"), ("usr/", "./usr/")):
+      with self.subTest(first=first, second=second), self.assertRaises(ArchiveError):
+        parse_newc(archive(member(first, mode=stat.S_IFDIR | 0o755, nlink=0),
+                           member(second, mode=stat.S_IFDIR | 0o755, ino=2, nlink=0)))
+
+  def test_directory_normalization_rejects_unsafe_slash_and_dot_forms(self) -> None:
+    for name in ("/", "//", "a//", ".//", "././", "././a/", "a//b/", "a/../", "a/./", "../a/", "/a/"):
+      with self.subTest(name=name), self.assertRaises(ArchiveError):
+        parse_newc(archive(member(name, mode=stat.S_IFDIR | 0o755, nlink=0)))
+
+  def test_non_directory_trailing_slash_is_never_accepted(self) -> None:
+    for file_type in (stat.S_IFREG, stat.S_IFLNK):
+      for nlink in (0, 1):
+        for name in ("a/", "./a/"):
+          with self.subTest(file_type=file_type, nlink=nlink, name=name), self.assertRaises(ArchiveError):
+            parse_newc(archive(member(name, b"target", mode=file_type | 0o644, nlink=nlink)))
+
+  def test_hardlink_counts_still_block_replacement(self) -> None:
+    for nlink in (2, 3, 0xffffffff):
+      with self.subTest(nlink=nlink):
+        before = parse_newc(archive(member("linked", b"keep", nlink=nlink),
+                                    member("ordinary", b"old", ino=2, nlink=0)))
+        after = parse_newc(replace_members(before, {"ordinary": b"new"}, ()))
+        self.assertEqual(after.members[0].raw, before.members[0].raw)
+        with self.assertRaises(ArchiveError):
+          replace_members(before, {"linked": b"changed"}, ())
+
+  def test_zero_link_root_aliases_remain_deliberate(self) -> None:
+    for name in (".", "./"):
+      with self.subTest(name=name):
+        before = parse_newc(archive(member(name, mode=stat.S_IFDIR | 0o755, nlink=0)))
+        self.assertEqual(before.members[0].name, ".")
+        self.assertEqual(replace_members(before, {}, ()), before.raw)
+        for file_type in (stat.S_IFREG, stat.S_IFLNK):
+          with self.assertRaises(ArchiveError):
+            parse_newc(archive(member(name, b"target", mode=file_type | 0o644, nlink=0)))
 
 
 class FilesystemSafetyTests(unittest.TestCase):

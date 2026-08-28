@@ -4,11 +4,13 @@ This is an offline helper, not a collector, extractor, image builder, or sandbox
 Filesystem calls require the separately reviewed sandbox and absolute paths.
 They do not grant authority to access a host path. No CLI or live fallback exists.
 
-Names are printable ASCII, with at most one initial ``./``. A root-directory
-record may use ``.`` or ``./``. Symlink targets stay opaque and may be absolute;
-this module never follows an archive link or materializes archive members.
-Mutation keys must use canonical names. Parents must be directory records in
-the original archive. Only regular, single-link members may be changed or added.
+Names are printable ASCII, with at most one initial ``./``. Only directory
+records may have one trailing slash; a root directory may use ``.`` or ``./``.
+Symlink targets stay opaque and may be absolute; this module never follows an
+archive link or materializes archive members. Mutation keys use canonical names
+and parents must be original directory records. Only regular records with an
+archive link count of 0 or 1 may change; counts of 2 or more remain untouched.
+This archive rule does not relax the physical-filesystem single-link checks.
 
 Untouched records, the trailer, and its exact zero tail remain byte-identical.
 Changed payloads receive four-byte alignment; no new 512-byte blocking is added.
@@ -66,7 +68,7 @@ def _aligned(size: int) -> int:
   return (size + 3) & ~3
 
 
-def _name(value: str, *, allow_root: bool = False) -> str:
+def _name(value: str, *, allow_root: bool = False, directory_slash: bool = False) -> str:
   _require(type(value) is str, "member name must be a string")
   _require(0 < len(value) < MAX_NAME_BYTES, "member name exceeds bound")
   _require(all(32 <= ord(char) <= 126 for char in value), "invalid member name bytes")
@@ -74,6 +76,9 @@ def _name(value: str, *, allow_root: bool = False) -> str:
     _require(allow_root, "root is not a mutation target")
     return "."
   canonical = value[2:] if value.startswith("./") else value
+  if canonical.endswith("/"):
+    _require(directory_slash, "trailing slash on a non-directory name")
+    canonical = canonical[:-1]
   parts = canonical.split("/")
   _require(len(parts) <= _MAX_DEPTH, "member path exceeds depth bound")
   _require(all(part not in ("", ".", "..") and len(part) <= _MAX_COMPONENT_BYTES
@@ -121,16 +126,16 @@ def parse_newc(raw: bytes) -> Archive:
                "data follows the newc trailer")
       return Archive(raw, tuple(members), raw[start:])
     _require(len(members) < MAX_MEMBERS, "archive member count exceeds bound")
-    try:
-      name = _name(raw_name[:-1].decode("ascii"), allow_root=True)
-    except UnicodeDecodeError:
-      raise ArchiveError("invalid member name bytes") from None
-    _require(name not in names, "duplicate canonical member name")
     mode = fields[1]
     file_type = stat.S_IFMT(mode)
     _require(mode <= 0xffff and file_type in (stat.S_IFREG, stat.S_IFDIR, stat.S_IFLNK),
              "unsupported archive member type")
-    _require(fields[4] > 0, "zero archive link count")
+    try:
+      name = _name(raw_name[:-1].decode("ascii"), allow_root=True,
+                   directory_slash=file_type == stat.S_IFDIR)
+    except UnicodeDecodeError:
+      raise ArchiveError("invalid member name bytes") from None
+    _require(name not in names, "duplicate canonical member name")
     _require(name != "." or file_type == stat.S_IFDIR, "root member is not a directory")
     _require(file_type != stat.S_IFDIR or file_size == 0, "nonempty archive directory")
     payload = raw[payload_start:payload_end]
@@ -184,7 +189,9 @@ def replace_members(original: Archive, replacements: Mapping[str, bytes],
 
   A caller-created Archive cannot bypass validation. Additions are appended in
   supplied order with fresh inode numbers, root UID/GID, mode 0644, and mtime zero.
-  Existing hardlink groups are preserved, never expanded or rewritten.
+  Linux initramfs.c maybe_link treats only archive nlink >= 2 as hardlinked.
+  Existing counts of 0 or 1 remain verbatim; new regular records use 1.
+  Hardlink groups are preserved, never expanded or rewritten.
   """
   _require(type(original) is Archive, "expected a parsed archive")
   validated = parse_newc(original.raw)
@@ -204,8 +211,8 @@ def replace_members(original: Archive, replacements: Mapping[str, bytes],
     _payload(payload)
     _require(name not in updates and name in by_name, "unknown or duplicate replacement")
     member = by_name[name]
-    _require(stat.S_ISREG(member.fields[1]) and member.fields[4] == 1,
-             "replacement is not a regular single-link member")
+    _require(stat.S_ISREG(member.fields[1]) and member.fields[4] in (0, 1),
+             "replacement is not a non-hardlinked regular archive member")
     _mutation_path(name, by_name, ordered_names)
     output_size += _aligned(len(payload)) - _aligned(len(member.payload))
     updates[name] = payload

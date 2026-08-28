@@ -193,7 +193,7 @@ Consider supporting the project: [![Buy Me A Coffee](https://img.shields.io/badg
 - DEV-147 single-reconnect evidence — [docs/evidence/dev-147-usb-reconnect-2026-08-27.md](docs/evidence/dev-147-usb-reconnect-2026-08-27.md)
 - DEV-147 USB startup investigation — [docs/research/dev-147-usb-startup-2026-08-28.md](docs/research/dev-147-usb-startup-2026-08-28.md)
 - DEV-147 reviewed one-boot USB diagnostic design — [docs/plans/dev-147-usb-startup-diagnostic.md](docs/plans/dev-147-usb-startup-diagnostic.md)
-- DEV-147 diagnostic source archive, draft and offline only — [dev/apple-dp-altmode/usbdiag/README.md](dev/apple-dp-altmode/usbdiag/README.md)
+- DEV-147 diagnostic source archive, offline only — [dev/apple-dp-altmode/usbdiag/README.md](dev/apple-dp-altmode/usbdiag/README.md)
 - Apple Silicon keyboard backlight — [docs/apple-silicon-keyboard-backlight.md](docs/apple-silicon-keyboard-backlight.md)
 
 ---
