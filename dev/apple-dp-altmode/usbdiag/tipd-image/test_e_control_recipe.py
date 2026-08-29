@@ -18,7 +18,7 @@ import unittest
 
 
 SUBJECT = Path("/inputs/recipe")
-SUBJECT_SHA256 = "099be3713b7d7b40020de10ca38f0a943da3da60509acb153b2d3de390e44f1d"
+SUBJECT_SHA256 = "70f369f87942b6ca6826c808536353ae0cc400123204040b9c005995ab43c3e3"
 ASSEMBLY = Path("/inputs/assembly/prepare_image.py")
 CONTRACT = Path("/inputs/contract/image_contract.py")
 COMMANDS = Path("/inputs/subject/e_control.py")

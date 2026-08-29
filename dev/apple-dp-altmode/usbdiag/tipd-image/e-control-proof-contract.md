@@ -1,6 +1,6 @@
 # Fixed E-only control: recipe and proof contract
 
-Status: preserved three-assertion RED and completed pure fixture GREEN. No real E-control workload has run from the current source. The [bounded command/root/lookup helpers](e-control-test-contract.md) have their own retained RED and GREEN. That earlier result does not cover this recipe. T1 assembly remains unavailable.
+Status: preserved three-assertion RED, current pure fixture GREEN, accepted raw-observation semantic GREEN, and current structural regression. No real E-control workload has run from the current source. The [bounded command/root/lookup helpers](e-control-test-contract.md) have their own retained RED and GREEN. T1 assembly remains unavailable.
 
 ## First checkpoint: three genuine assertion REDs (preserved)
 
@@ -16,7 +16,7 @@ The retained run is `run-9fmdox3j`. Setup passed. It produced exactly the intend
 
 The current [run_e_control.py](run_e_control.py) is the tested pure post-RED implementation. `select_e()` binds the one complete E byte string before it parses the exact streams, 200 modules, four named payloads and seven indexes. The sorted 200-entry name/path model has fixed SHA `eee8ad06a36c1537d53e0c416db998110d10638076a32bdd3fc8987f65b54bff`; a caller cannot exchange one unrelated but well-shaped module path. `validate_regeneration()` requires the fixed eleven outputs and full binary dump, checks the complete dependency model and mapping multiplicities, and preserves the one reviewed `modules.symbols.bin` distinction. `command_plan()` returns only the fixed 424 command tuples. These functions have no file, environment or subprocess API. `main()` remains unconditionally closed.
 
-The unchanged full companion has 16 methods. It covers the exact E selector, base hash/size/type rejection, the seven original and eleven generated index identities, strict index membership/types, the one reviewed symbol-index distinction, exact dump bytes, complete dependency-model membership, exact command sequence, invalid names/placement, and closed operational/assembly gates. The retained GREEN is `run-7vguug70`: setup passed, 16/16 methods passed, the 605 read-only bindings remained unchanged, the workload did not time out, and it executed zero children. Its result explicitly records `fresh_control_proved=false`, `image_created=false`, `module_loaded=false`, `staged=false`, and `booted=false`. The RED remains retained as `run-9fmdox3j`. Both selections write only `setup.json` and `test-result.json` under the fresh `/work/e-recipe-fixtures` directory. Input files and their identities are read again after the assertions. This pure fixture GREEN does not claim fresh depmod, lookup, gzip, image or hardware success.
+The full companion has 16 methods. It covers the exact E selector, base hash/size/type rejection, the seven original and eleven generated index identities, strict index membership/types, the one reviewed symbol-index distinction, exact dump bytes, complete dependency-model membership, exact command sequence, invalid names/placement, and closed operational/assembly gates. The current regression is `run-m64c0_of`: setup passed, 16/16 methods passed, the 605 read-only bindings remained unchanged, the workload did not time out, and it executed zero children. Its result explicitly records `fresh_control_proved=false`, `image_created=false`, `module_loaded=false`, `staged=false`, and `booted=false`. The earlier GREEN `run-7vguug70` and RED `run-9fmdox3j` remain preserved. These runs write only fixture metadata under the fresh `/work/e-recipe-fixtures` directory. Input files and identities are rechecked. This pure fixture GREEN does not claim fresh depmod, lookup, gzip, image or hardware success.
 
 ## Narrow read-only fixture bindings
 
@@ -25,7 +25,7 @@ Use the unchanged reviewed A2 runtime. These are 20 inputs: seven source/runner 
 | Sandbox binding | Input |
 |---|---|
 | `/inputs/test` | New `test_e_control_recipe.py`, pinned by the outer launcher. |
-| `/inputs/recipe` | Tested pure GREEN subject SHA `4058fd04de35307a7321c4254efccb55e8089aa571fdddb63ad383a67bbbd207`. |
+| `/inputs/recipe` | Current tested subject SHA `70f369f87942b6ca6826c808536353ae0cc400123204040b9c005995ab43c3e3`. |
 | `/inputs/subject/e_control.py` | Frozen tested helper SHA `abbf59410a05fd5c789820df3d40e59d0a5c33cf1204ab93c7aeef806da7b1df`. |
 | `/inputs/contract/image_contract.py` | Pure image contract SHA `a1eda280aa56967aa06b01a2cca0dfc70c3da6df25066f8a1e815beec719f1bf`. |
 | `/inputs/assembly/prepare_image.py` | Pure dependency source SHA `00caceb3b7fa236dcc030fb4007d0baa75bfa08fcd1590626f85fcc8c22d5f60`. |

@@ -1,6 +1,6 @@
 # Fixed E-only structural boundary before operational control
 
-Status: corrected zero-child structural GREEN accepted. Retained run `run-elj0pbjn` passed all three selected checks with 594 unchanged read-only inputs and zero of the 424 control-workload commands executed. The accepted RED, the rejected first GREEN candidate and the accepted corrected candidate remain separate below. Nothing in this checkpoint runs the 424-command control, creates a real control result, constructs an image, stages, boots or changes hardware.
+Status: corrected zero-child structural GREEN accepted and regressed. Retained run `run-elj0pbjn` is the original acceptance. Current run `run-f0tjlamv` passed all three selected checks with 594 unchanged read-only inputs and zero of the 424 control-workload commands executed. The accepted RED, rejected first GREEN, corrected candidate, two repository-mode setup stops, and current regression remain separate. Nothing in this checkpoint runs the 424-command control, creates a real control result, constructs an image, stages, boots or changes hardware.
 
 ## Provenance history
 
@@ -84,8 +84,8 @@ The corrected test has nine task bindings: the future eight operational inputs p
 
 | Sandbox target | Frozen input and guard |
 |---|---|
-| `/inputs/test` | Corrected runner above; private mode `0600`, UID/GID 1001, single-link and under 128 KiB. |
-| `/inputs/recipe` | Corrected subject above; private mode `0600`, UID/GID 1001 and single-link. |
+| `/inputs/test` | Current tracked runner; exact mode `0644`, UID/GID 1001, single-link and under 128 KiB. |
+| `/inputs/recipe` | Current tracked subject; exact mode `0644`, UID/GID 1001 and single-link. |
 | `/inputs/subject/e_control.py` | SHA `abbf59410a05fd5c789820df3d40e59d0a5c33cf1204ab93c7aeef806da7b1df`; sole file in a private source directory. |
 | `/inputs/contract/image_contract.py` | SHA `a1eda280aa56967aa06b01a2cca0dfc70c3da6df25066f8a1e815beec719f1bf`; sole file in a private source directory. |
 | `/inputs/assembly/prepare_image.py` | SHA `00caceb3b7fa236dcc030fb4007d0baa75bfa08fcd1590626f85fcc8c22d5f60`; sole file in a private source directory. |
@@ -107,5 +107,7 @@ The runner requires exact `/inputs` membership and fixed `/inputs/proof` SHA `91
 ## Retained limits and next gate
 
 This checkpoint does not implement direct self-authentication in `main()`, root construction, `Commands.run()`, archive-tool execution, gzip, depmod, lookup execution, real evidence production or real result finalization. The next implementation must preserve the reviewed 424-command order, active child caps and reaping, 270-second internal budget, 280/285-second outer limits, exclusive outputs, complete input/root readback, all 200 lookups, exact alias/symbol checks, the known `modules.symbols.bin` exception and all seven retained E indexes.
+
+The first current-source rerun, `run-urf729h4`, stopped before setup because the runner still expected its old private-snapshot mode. `run-b_gwjn23` stopped next because the subject still expected its old private-snapshot mode. Both retained unchanged inputs, passed isolation, ran no tests or workload children, and created no control artifact. The two corrections are exact: only the test and `/inputs/recipe` modes changed to `0644`; all other pinned private inputs remain `0600`. `run-f0tjlamv` then passed 3/3. Independent QA and safety review passed.
 
 Only the later executed workload may claim a fresh control. T1 assembly, image creation, staging, module load and hardware testing remain separate and unavailable.

@@ -19,7 +19,7 @@ import unittest
 
 TEST = Path("/inputs/test")
 SUBJECT = Path("/inputs/recipe")
-SUBJECT_SHA256 = "099be3713b7d7b40020de10ca38f0a943da3da60509acb153b2d3de390e44f1d"
+SUBJECT_SHA256 = "70f369f87942b6ca6826c808536353ae0cc400123204040b9c005995ab43c3e3"
 ASSEMBLY = Path("/inputs/assembly/prepare_image.py")
 CONTRACT = Path("/inputs/contract/image_contract.py")
 COMMANDS = Path("/inputs/subject/e_control.py")
@@ -126,7 +126,7 @@ def read_pinned(path: Path) -> tuple[bytes, tuple[int, ...]]:
     require(stat.S_ISDIR(parent.lstat().st_mode), "input parent is not a real directory")
   before = path.lstat()
   expected_size = E_BYTES if path == BASE else before.st_size
-  expected_mode = 0o600
+  expected_mode = 0o644 if path == SUBJECT else 0o600
   bound = E_BYTES if path == BASE else 128 * 1024
   require(stat.S_ISREG(before.st_mode) and stat.S_IMODE(before.st_mode) == expected_mode and
           before.st_uid == before.st_gid == 1001 and before.st_nlink == 1 and
@@ -175,7 +175,7 @@ def validate_binding_tree() -> None:
           {path.name for path in inputs.iterdir()} == EXPECTED_TOP,
           "task input membership differs")
   test_info = TEST.lstat()
-  require(stat.S_ISREG(test_info.st_mode) and stat.S_IMODE(test_info.st_mode) == 0o600 and
+  require(stat.S_ISREG(test_info.st_mode) and stat.S_IMODE(test_info.st_mode) == 0o644 and
           test_info.st_uid == test_info.st_gid == 1001 and test_info.st_nlink == 1 and
           0 < test_info.st_size < 128 * 1024, "runner metadata differs")
   for directory, filename in SOURCE_LAYOUT.items():
