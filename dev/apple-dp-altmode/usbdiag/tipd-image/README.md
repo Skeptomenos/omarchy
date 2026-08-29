@@ -10,6 +10,8 @@ The fixture module payloads are labelled ASCII data, not ELF modules. A successf
 
 These tests use the real, pinned newc parser/replacer and file guards. They also use the pinned pure single-gzip validator through its authenticated source chain. No dependency is mocked, and no historical main or import-time inspection workload is called. The existing no-install exception applies: typed stdlib/dataclasses, explicit validation and unittest replace Pydantic/pytest here. No Ruff, mypy or full-suite result is implied.
 
+The current [E-control structural boundary](e-control-operational-red-contract.md) separates the accepted zero-child RED, the rejected first GREEN and the accepted corrected structural GREEN. Structural output is distinct and always states zero control-workload children and no fresh-control proof. The real 424-child workload and `main()` remain unavailable.
+
 ## Focused fixture contract
 
 | Boundary | Required assertion |
