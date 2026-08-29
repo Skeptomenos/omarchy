@@ -80,7 +80,7 @@ If Linux and the internal screen remain responsive, stop collection, keep MagSaf
 
 If Linux or the internal screen is not responsive, do not type blind commands and do not rely on `s2idle`. Keep MagSafe attached. Use a separately reviewed recovery card from another device.
 
-The existing macOS/Recovery restore guide begins after macOS or Recovery Terminal is available. It does not define the physical hung-Linux power-off and visible stock-selection bridge. That missing bridge must be written and independently reviewed before any candidate handoff can pass.
+The existing macOS/Recovery restore guide begins after macOS or Recovery Terminal is available. The [visible recovery card](../plans/dev-147-visible-recovery-card.md) now defines the physical hung-Linux power-off and direct Recovery bridge and has passed offline documentation QA and safety review. It is not an available fallback yet. The exact committed card and pinned guide must be available on a separate device, and normal-shutdown rehearsals must verify stock selection and non-mutating Recovery Terminal/guide access before any candidate handoff can pass.
 
 After stock recovery, collect three accepted samples across 60 seconds and separately verify stock image identity.
 
