@@ -1,23 +1,26 @@
 """Pinned E-control boundary fixtures, not a real-image control.
 
 Only the orchestrator may run this file in the reviewed fresh sandbox.
-The incomplete subject supplies three genuine assertion failures. Setup,
-import, child, and observation defects are errors, not semantic RED.
+The original three-test RED is preserved separately. This unexecuted GREEN
+candidate retains the original 16 methods and adds active kill/reap evidence.
+Setup, import, child and observation defects are errors, not semantic RED.
 """
 
 import hashlib
 import json
 import os
 from pathlib import Path
+import signal
 import stat
 import sys
+import time
 from types import ModuleType
 import unittest
 import zlib
 
 
 SOURCE = Path("/inputs/subject/e_control.py")
-SOURCE_SHA256 = "a91506e45d5d024deb2b389f8a85092faa1685fabdf92b88c7b61b2f51510d7a"
+SOURCE_SHA256 = "abbf59410a05fd5c789820df3d40e59d0a5c33cf1204ab93c7aeef806da7b1df"
 CONTRACT = Path("/inputs/contract/image_contract.py")
 ASSEMBLY = Path("/inputs/assembly/prepare_image.py")
 PINS = {
@@ -423,6 +426,84 @@ class EControlTests(unittest.TestCase):
     with self.assertRaisesRegex(contract.ImageContractError, "^T1_ASSEMBLY_UNAVAILABLE$"):
       contract.require_operational_bindings()
 
+  def test_active_caps_kill_and_reap_long_lived_children(self) -> None:
+    for label, code, stream, expected in (
+      ("long-stdout", "import os, time; os.write(1, b'x' * 9); time.sleep(5)", "stdout", b"x" * 8),
+      ("long-stderr", "import os, time; os.write(2, b'e' * 9); time.sleep(5)", "stderr", b"e" * 8),
+    ):
+      with self.subTest(stream=stream):
+        root = child_root(label)
+        commands = subject.Commands(root)
+        started = time.monotonic()
+        with self.assertRaisesRegex(subject.ControlError, "^CHILD_OUTPUT_LIMIT$"):
+          commands.run(python_child(code), timeout=4.0, stdout_limit=8, stderr_limit=8)
+        elapsed = time.monotonic() - started
+        self.assertLess(elapsed, 2.0, "post-exit truncation or the four-second timeout is not an active cap")
+        self.assertEqual(read_regular(root / f"child-000.{stream}"), expected)
+        report = child_report(root)
+        self.assertEqual((report["status"], report["returncode"]), ("CHILD_OUTPUT_LIMIT", -signal.SIGKILL))
+        self.assertIs(report["killed"], True)
+        self.assertIs(report["reaped"], True)
+        pid = report["pid"]
+        self.assertIs(type(pid), int)
+        if not isinstance(pid, int):
+          self.fail("child pid is not an integer")
+        self.assertGreater(pid, 1)
+        self.assertNotEqual(pid, os.getpid())
+        with self.assertRaises(ChildProcessError):
+          os.waitpid(pid, os.WNOHANG)
+        with self.assertRaises(ProcessLookupError):
+          os.kill(pid, 0)
+        self.assertEqual(commands.count, 1)
+        save_json(WORK / f"long-cap-{stream}.json", {
+          "command": list(python_child(code)), "measured_elapsed_seconds": elapsed,
+          "returncode": report["returncode"], "output_sha256": sha256(expected),
+          "waitpid_after_runner": "ECHILD", "kill_zero_after_runner": "ESRCH",
+          "active_cap_before_four_second_timeout_and_five_second_exit": True,
+        })
+
+  def test_active_deadlines_kill_and_reap_before_normal_exit(self) -> None:
+    command = python_child("import time; time.sleep(1)")
+    for label, budget, timeout, expected in (
+      ("active-child-time", 30.0, 0.2, "CHILD_TIMEOUT"),
+      ("active-total-time", 0.2, 30.0, "CONTROL_DEADLINE"),
+    ):
+      with self.subTest(status=expected):
+        root = child_root(label)
+        commands = subject.Commands(root, budget_seconds=budget)
+        started = time.monotonic()
+        with self.assertRaisesRegex(subject.ControlError, f"^{expected}$"):
+          commands.run(command, timeout=timeout)
+        elapsed = time.monotonic() - started
+        self.assertLess(elapsed, 0.8, "post-exit timeout classification is not an active deadline")
+        report = child_report(root)
+        self.assertEqual((report["status"], report["returncode"]), (expected, -signal.SIGKILL))
+        self.assertIs(report["killed"], True)
+        self.assertIs(report["reaped"], True)
+        pid = report["pid"]
+        self.assertIs(type(pid), int)
+        if not isinstance(pid, int):
+          self.fail("child pid is not an integer")
+        self.assertGreater(pid, 1)
+        self.assertNotEqual(pid, os.getpid())
+        with self.assertRaises(ChildProcessError):
+          os.waitpid(pid, os.WNOHANG)
+        with self.assertRaises(ProcessLookupError):
+          os.kill(pid, 0)
+        self.assertEqual(commands.count, 1)
+        if expected == "CONTROL_DEADLINE":
+          with self.assertRaisesRegex(subject.ControlError, "^CONTROL_DEADLINE$"):
+            commands.run(command)
+          self.assertEqual(commands.count, 1)
+          self.assertFalse((root / "child-001.json").exists())
+        save_json(WORK / f"{label}.json", {
+          "command": list(command), "measured_elapsed_seconds": elapsed,
+          "status": expected, "returncode": report["returncode"],
+          "waitpid_after_runner": "ECHILD", "kill_zero_after_runner": "ESRCH",
+          "active_deadline_before_one_second_exit": True,
+          "cumulative_second_child_refusal_checked": expected == "CONTROL_DEADLINE",
+        })
+
 
 def main() -> int:
   try:
@@ -441,8 +522,11 @@ def main() -> int:
     for path, digest in FIXTURE_PINS.items():
       read_regular(path, digest)
       require(identity(path.lstat()) == FIXTURE_STATES[path], "immutable fixture changed")
-    expected_count = 3 if sys.argv[1:] else 16
+    expected_count = 3 if sys.argv[1:] else 18
     require(result.testsRun == expected_count, "test selection count differs")
+    child_records = sorted(Path("/work").glob("e-control-children-*/child-*.json"))
+    if result.wasSuccessful() and not result.skipped and not sys.argv[1:]:
+      require(len(child_records) == 11, "full fixture child count differs")
     save_json(WORK / "test-result.json", {
       "setup": "PASS", "tests": result.testsRun, "failures": len(result.failures),
       "errors": len(result.errors), "skipped": len(result.skipped),
@@ -450,6 +534,7 @@ def main() -> int:
       "error_tests": [test.id() for test, _ in result.errors],
       "sources_unchanged": True, "immutable_fixtures_unchanged": True,
       "subject_sha256": SOURCE_SHA256, "real_image_or_module_input": False,
+      "fixture_child_records": len(child_records),
       "candidate_image_created": False, "module_loaded": False,
     })
   except (OSError, RuntimeError, ValueError, KeyError, TypeError) as error:
