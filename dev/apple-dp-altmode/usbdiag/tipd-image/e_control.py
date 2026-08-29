@@ -441,7 +441,7 @@ def ordered_lookup(
   require(tuple(insmod) == expected, "LOOKUP_ORDER")
   expected_builtin = ("ecb",) if name == "lrw" else ()
   require(tuple(builtin) == expected_builtin and (name != "lrw" or "ecb" in builtins), "LOOKUP_BUILTIN")
-  canonical = "".join(f"builtin {item}\n" for item in builtin) + "".join(f"insmod {item}\n" for item in insmod)
+  canonical = "".join(f"builtin {item}\n" for item in builtin) + "".join(f"insmod {item} \n" for item in insmod)
   require(raw == canonical.encode("ascii"), "LOOKUP_FORMAT")
   return Lookup(name, filename, expected, expected_builtin)
 

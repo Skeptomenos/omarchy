@@ -20,7 +20,7 @@ import zlib
 
 
 SOURCE = Path("/inputs/subject/e_control.py")
-SOURCE_SHA256 = "16016875e731e88d047eb805c7c6d03045300abdb262361b18010a952adb7b80"
+SOURCE_SHA256 = "686d59e63166df1bef1afad27998a6d58f4c28b6b4439b6ccd607b56471268ca"
 CONTRACT = Path("/inputs/contract/image_contract.py")
 ASSEMBLY = Path("/inputs/assembly/prepare_image.py")
 PINS = {
@@ -159,7 +159,7 @@ def filename(name: str) -> str:
 
 def dependency_bytes(*names: str, builtin: str | None = None) -> bytes:
   prefix = "" if builtin is None else f"builtin {builtin}\n"
-  return (prefix + "".join(f"insmod {filename(name)}\n" for name in names)).encode("ascii")
+  return (prefix + "".join(f"insmod {filename(name)} \n" for name in names)).encode("ascii")
 
 
 def python_child(source: str) -> tuple[str, ...]:
@@ -384,13 +384,21 @@ class EControlTests(unittest.TestCase):
 
   def test_ordered_dependency_result_matches_literal_oracle(self) -> None:
     raw = dependency_bytes("typec", "tps6598x_core", "tps6598x")
-    actual = subject.ordered_lookup(raw, "tps6598x", NAMES, DEPENDENCIES, {"ecb"})
+    try:
+      actual = subject.ordered_lookup(raw, "tps6598x", NAMES, DEPENDENCIES, {"ecb"})
+    except subject.ControlError as error:
+      self.fail(f"actual kmod 34.2 lookup grammar was rejected: {error}")
     self.assertEqual(actual, subject.Lookup(
       "tps6598x", filename("tps6598x"),
       (filename("typec"), filename("tps6598x_core"), filename("tps6598x")), (),
     ))
     lrw = subject.ordered_lookup(dependency_bytes("lrw", builtin="ecb"), "lrw", NAMES, DEPENDENCIES, {"ecb"})
     self.assertEqual(lrw, subject.Lookup("lrw", filename("lrw"), (filename("lrw"),), ("ecb",)))
+    for malformed in (raw.replace(b" \n", b"\n"), raw.replace(b" \n", b"  \n")):
+      with self.subTest(malformed=sha256(malformed)), self.assertRaisesRegex(
+        subject.ControlError, "^LOOKUP_FORMAT$",
+      ):
+        subject.ordered_lookup(malformed, "tps6598x", NAMES, DEPENDENCIES, {"ecb"})
 
   def test_reordered_dependency_is_rejected(self) -> None:
     raw = dependency_bytes("tps6598x_core", "typec", "tps6598x")
@@ -413,6 +421,8 @@ class EControlTests(unittest.TestCase):
       (dependency_bytes("lrw"), "lrw", {"ecb"}),
       (dependency_bytes("lrw", builtin="unexpected"), "lrw", {"ecb", "unexpected"}),
       (dependency_bytes("lrw", builtin="ecb"), "lrw", set()),
+      (dependency_bytes("lrw", builtin="ecb").replace(b"builtin ecb\n", b"builtin ecb \n"),
+       "lrw", {"ecb"}),
     ):
       with self.subTest(name=name), self.assertRaisesRegex(subject.ControlError, "^LOOKUP_"):
         subject.ordered_lookup(raw, name, NAMES, DEPENDENCIES, builtins)

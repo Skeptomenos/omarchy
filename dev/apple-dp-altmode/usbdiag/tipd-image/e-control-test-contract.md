@@ -1,6 +1,6 @@
 # E-only control boundary: tested GREEN
 
-This is the narrow runner, reduced-root and ordered-lookup contract for the [T1 image boundary](README.md). The original three-test RED and old-helper GREEN are preserved below. On 2026-08-29, that historical GREEN passed 18 methods and 11 harmless children. The current helper includes the fixed production implementation, but this direct-helper fixture does not invoke it. The corrected production entry has not run. The existing T1 assembler gate also remains closed.
+This is the narrow runner, reduced-root and ordered-lookup contract for the [T1 image boundary](README.md). The original three-test RED and old-helper GREEN are preserved below. On 2026-08-29, that historical GREEN passed 18 methods and 11 harmless children. The current helper includes the fixed production implementation, but this direct-helper fixture does not invoke it. Two production entries ran and failed closed. The current lookup-grammar correction has zero-production-child SWE evidence, [independent QA PASS](../../../../docs/evidence/dev-147-e-lookup-correction-independent-qa-2026-08-30.md), and final review PASS. The existing T1 assembler gate remains closed.
 
 Only the root task may execute the reviewed files in a fresh verified unprivileged sandbox. These fixtures do not accept real E, a real module, a saved W proof or a candidate identity. The 200 fixture module payloads are labelled ASCII text. The seven index payloads are also synthetic. They cannot prove ELF, index semantics, ABI, hardware behaviour or a usable image.
 
@@ -14,7 +14,7 @@ Only the root task may execute the reviewed files in a fresh verified unprivileg
 | Runner bounds | At most 424 children per runner, 270 seconds cumulatively, 30 seconds per child, 64 MiB stdout and 64 KiB stderr. The outer workload remains limited to 280 seconds, with a 285-second outer timeout. The count-limit fixture seeds the counter at 424; it does not run 424 children. |
 | Fresh roots | Only `/work/control-root` and `/work/lookup-root`. Require exactly 200 unique safe module paths with bytes payloads. The first root receives exactly the three depmod text inputs. The second receives exactly seven binary-image index files, with no text-index fallback. Refuse any existing root; do not overwrite, remove or repair it. |
 | Root proof | Return the real pinned `TreeState` snapshot. Require exact file membership, payload hashes and single-link metadata. A later snapshot must match. Deliberate mutation affects only a disposable fixture output and must be rejected. |
-| Ordered lookup | Parse real bounded dry-run text through the authenticated pure dependency parser. Require the exact reverse of the ordered `modules.dep` closure followed by the target. Reject missing, extra, duplicate, reordered, unsafe or malformed records. Only `lrw` may produce the single builtin `ecb`; no other builtin is permitted. |
+| Ordered lookup | Parse real bounded dry-run text through the authenticated pure dependency parser. Require the exact reverse of the ordered `modules.dep` closure followed by the target. Each `insmod` line has exactly one trailing ASCII space before newline. `builtin ecb` has none. Reject missing, extra, duplicate, reordered, unsafe, no-space, double-space, or otherwise malformed records. Only `lrw` may produce the single builtin `ecb`; no other builtin is permitted. |
 | Operational gate | This fixture suite does not reconstruct E, invoke the fixed production `main()`, or assemble T1. The production entry remains separate and has its own fixed inputs, proof contract, command list, pre-import gate, and publication gate. Do not turn the fixture gate into a configurable bypass. |
 
 The full suite has 18 methods: all 16 original method bodies and two added active-limit methods. The setup first authenticates the source chain, real file guards, a zlib single-gzip roundtrip and the five literal dependency entries. It also checks the intended correct lookup against the pinned parser independently of the new subject. Setup launches no child. No old main, archive/index workload, global rebinding or import-time inspection script is used.
@@ -66,17 +66,47 @@ The retained run is `run-0z8qsjmd`: setup and postchecks pass, 18 methods pass i
 
 Historical runner SHA is `23eb117db32fe651a2a9574782c47afce5ced99c4e0c4267a168a6786d1caa9e`. The private pre-execution contract remains unchanged at SHA `323891076c027b5932924d27b2c2d10c801ba2f44f5599b8e86039210587a7cf`; this public document adds the later result. The original RED, source/test bytes, and outputs are retained. The test runner's pre-execution wording is historical, not a second run.
 
-## Current corrected-helper QA
+## Gzip-correction independent QA (retained)
 
-Independent QA invoked the current direct-helper suite once. This was its first and only invocation against corrected helper SHA `16016875e731e88d047eb805c7c6d03045300abdb262361b18010a952adb7b80` and test SHA `e1d1e39bb0782962a225d1f9f25f29f91025ce3bad59e8c8030fec80f3398045`.
+At that checkpoint, independent QA invoked the direct-helper suite once. This was its first and only invocation against corrected helper SHA `16016875e731e88d047eb805c7c6d03045300abdb262361b18010a952adb7b80` and test SHA `e1d1e39bb0782962a225d1f9f25f29f91025ce3bad59e8c8030fec80f3398045`.
 
 Run `run-kyar_nn2` used 591 read-only mounts. It passed 18/18 methods in 1.199 seconds with zero failures, errors, or skips. It retained exactly 11 bounded fixture child records. Inputs and sources remained unchanged. The run did not time out. It created synthetic ASCII fixture trees at the exact names `/work/control-root` and `/work/lookup-root`. It created no E-derived production tree, production stream, `/work/e-control-children-e1`, header, evidence, pending result, final result, candidate image, module load, stage, or boot output.
 
 The fixture gzip child used exactly `("/usr/bin/gzip", "-n")`. Its ten-byte header was `1f 8b 08 00 00 00 00 00 00 03`, so bytes 5-8, the MTIME field, were zero. `test_unapproved_commands_and_limits_refuse_before_children` rejected bare `("/usr/bin/gzip",)` before a child started. This fixture result does not establish a fresh E-control PASS.
 
+## Current lookup-grammar correction
+
+The 2026-08-29 direct-helper QA above is retained history for the gzip
+correction. The second production attempt later showed that kmod 34.2 writes
+exactly one trailing ASCII space before newline on each `insmod` record. It
+writes `builtin ecb\n` without that space.
+
+The direct-helper fixture changed first. `run-mnmz924l` used 591 read-only
+mounts and recorded one controlled assertion failure across 18 methods. The
+current helper rejected the actual grammar with `LOOKUP_FORMAT`. There were
+zero errors or skips, 11 bounded fixture children, unchanged inputs, and no
+timeout. An earlier command-construction attempt omitted the required v5
+manifest and selected obsolete v4. It stopped before a run directory or test
+result existed. It is not RED, containment, or input evidence.
+
+The minimal helper correction changes only canonical `insmod` output to end in
+one space plus newline. It keeps builtin output unchanged. `run-2f6yexwm`
+passed 18/18 methods in 1.174 seconds with 591 read-only mounts and the same 11
+bounded fixture children. The positive oracle uses the actual grammar. Negative
+oracles reject missing and doubled `insmod` spaces, a spaced builtin, altered
+paths, reordering, duplicates, missing records, and extras.
+
+Current helper SHA-256 is
+`686d59e63166df1bef1afad27998a6d58f4c28b6b4439b6ccd607b56471268ca`.
+Current direct-helper test SHA-256 is
+`4e4638c9579af4c56b46f207d806f3fc2caf3b5ad346683065660b0159f1814c`.
+The [second-attempt evidence](../../../../docs/evidence/dev-147-e-operational-second-attempt-lookup-grammar-2026-08-30.md)
+owns the SWE results. Independent QA repeated 18/18 in `run-i_x5ec4n` and
+the four boundary suites at 25/25. Final review passed with no blockers.
+
 ## Current corrected E control: separate evidence gate
 
-This fixture GREEN covers these boundaries only. The actual E control remains a separate evidence gate. Its sole production attempt, `run-f2yoto48`, completed all 424 children and then failed closed before publication because bare gzip stored a nonzero MTIME. The corrected production entry has not run, so there is no fresh E-control PASS. The gate must independently authenticate the exact E image: SHA `4d4f0557af57eebcc33322f004bcc7968254e644b069a11102375df0b31a52ae`, 19,191,513 bytes. It must retain the original TIPD payload, not the fresh rebuilt control. It must prove the exact early/main archive streams, all 200 module identities, raw no-op reconstruction and byte-exact GNU gzip output. The [image contract](README.md#gates-not-supplied-by-these-fixtures) retains the fixed stream hashes and limitations. The [incident evidence](../../../../docs/evidence/dev-147-e-operational-first-attempt-gzip-determinism-2026-08-29.md) owns the failed attempt and correction.
+This fixture GREEN covers these boundaries only. The actual E control remains a separate evidence gate. Its two production attempts, `run-f2yoto48` and `run-noq24xg7`, completed all 424 children and failed closed before publication. The first exposed gzip MTIME drift. The second proved the gzip correction and exposed lookup-line grammar. There is no fresh E-control PASS. The gate must independently authenticate the exact E image: SHA `4d4f0557af57eebcc33322f004bcc7968254e644b069a11102375df0b31a52ae`, 19,191,513 bytes. It must retain the original TIPD payload, not the fresh rebuilt control. It must prove the exact early/main archive streams, all 200 module identities, raw no-op reconstruction and byte-exact GNU gzip output. The [image contract](README.md#gates-not-supplied-by-these-fixtures) retains the fixed stream hashes and limitations. The [first-attempt evidence](../../../../docs/evidence/dev-147-e-operational-first-attempt-gzip-determinism-2026-08-29.md) and [second-attempt evidence](../../../../docs/evidence/dev-147-e-operational-second-attempt-lookup-grammar-2026-08-30.md) own the fail-closed history and corrections.
 
 The planned real workload has exactly 424 fixed children:
 

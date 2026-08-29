@@ -1,13 +1,17 @@
 # Fixed E execution boundary and operational pre-execution contract
 
-Status: corrected after one fail-closed production attempt. `run-f2yoto48`
-completed all 424 children, then stopped before publication on a gzip header
-timestamp mismatch. The corrected exact gzip command is `/usr/bin/gzip -n`.
-Four fresh toolchain-v5 zero-child sandboxes passed 25/25 focused methods
-against the correction. Independent QA repeated those suites and passed
-25/25. Its first and only direct-helper run also passed 18/18 methods with 11
-bounded fixture children. The corrected `run_e_control.py` SHA-256 is
-`57d35a30de9b351bcbaf0b78a1be186c8c44a2fbfb378d8f0b801e6e9256a7a9`.
+Status: corrected after two fail-closed production attempts. `run-f2yoto48`
+exposed a gzip timestamp mismatch. `run-noq24xg7` proved the exact
+`/usr/bin/gzip -n` bytes and then exposed kmod 34.2's single trailing ASCII
+space on each `insmod` lookup line. Both attempts completed all 424 children
+and stopped before publication. The helper now accepts exactly one trailing
+space on `insmod` lines and no trailing space on `builtin ecb`. Controlled RED
+`run-mnmz924l` and GREEN `run-2f6yexwm` cover that correction. Four fresh
+toolchain-v5 zero-production-child sandboxes then passed 25/25 focused methods.
+The current `run_e_control.py` SHA-256 is
+`1be81904b29c69cb24fae86208c62fb30e830eca46250978a65d8ed19db8de77`.
+The current helper SHA-256 is
+`686d59e63166df1bef1afad27998a6d58f4c28b6b4439b6ccd607b56471268ca`.
 The source remains inside the contained offline A2-A4 gate. All image-build,
 load, stage, boot, sudo, reboot, cable, device, recovery-rehearsal, live-system,
 sysfs, and boot-file holds remain active.
@@ -85,8 +89,9 @@ shape, and direct-finalizer refusal. They do not invoke `main()`,
 `operational_policy()` in a nine-input harness, or any workload child. The
 corrected revision passed 25/25 focused dynamic methods after its static parse,
 compile, source-shape, mutation, and diff checks. The
-[failed-attempt and correction evidence](../../../../docs/evidence/dev-147-e-operational-first-attempt-gzip-determinism-2026-08-29.md)
+[second-attempt and lookup-correction evidence](../../../../docs/evidence/dev-147-e-operational-second-attempt-lookup-grammar-2026-08-30.md)
 owns the current run directories, hashes, results, and containment facts. The
+[first-attempt and gzip-correction evidence](../../../../docs/evidence/dev-147-e-operational-first-attempt-gzip-determinism-2026-08-29.md) and
 [dated round-3 evidence](../../../../docs/evidence/dev-147-e-operational-preexecution-gate-2026-08-29.md)
 remains the pre-attempt history. The correction result is zero-child evidence.
 It is not an operational no-change PASS.
@@ -181,8 +186,58 @@ E-derived production tree, production stream, child-e1, header, evidence,
 pending, or final output. The helper run created synthetic ASCII fixture trees
 at the exact names `/work/control-root` and `/work/lookup-root`. The linked
 correction evidence records the exact pins.
-The corrected production entry has not run. A second production attempt is not
-authorized by these results.
+That corrected production entry ran once as `run-noq24xg7`; its result is the
+second fail-closed checkpoint below. No third production attempt is authorized
+by these results.
+
+## Second production attempt and lookup correction
+
+Fresh probe `run-x65x28u0` passed with the exact eight inputs and 593 read-only
+mounts. The one authorized gzip-corrected production attempt,
+`run-noq24xg7`, then ran the fixed 424-child plan once. It exited 1 without a
+timeout. All inputs stayed unchanged. Exactly 1,272 child triplet files exist.
+Every child reported status `ok`, return code zero, retained bytes equal to
+observed bytes, empty stderr, a positive unique PID, `killed: false`, and
+`reaped: true`.
+
+Child 4 used exact `/usr/bin/gzip -n`. Its SHA-256 is
+`375aa35be0ea57fa8d3f79f20cfa70373742ba6e2afda409462497d0d96ad724`.
+Its MTIME field is zero, and its decompressed SHA-256 is
+`7be7b4b03367b5ce4b356fe35977edba6540af0a7df930dbff990286c9b98e28`.
+Validation advanced to `e_control.ordered_lookup()` and stopped with
+`LOOKUP_FORMAT`, wrapped as `E_CONTROL_OPERATIONAL_INVALID`. Across 212
+dependency, alias, and symbol outputs, kmod 34.2 emitted 347 lines. Exactly 346
+`insmod` lines have one trailing ASCII space before newline. The sole
+`builtin ecb\n` line has none. Child 13, the first module lookup for `842`, was
+the first comparison to expose the difference from the helper's old no-space
+canonical form.
+
+No header, evidence, pending result, final result, or fresh proof exists. The
+retained control root has 214 files and the lookup root has 207 files. Compared
+with `run-f2yoto48`, only child 4's command and stdout differ; the other 423
+stdout files are byte-identical. No production process remains. No retry ran.
+
+The direct-helper oracle first changed to the observed kmod grammar.
+`run-mnmz924l` then recorded the controlled current-helper RED: 18 methods,
+one expected assertion failure, zero errors or skips, 591 read-only mounts, and
+11 bounded fixture children. The minimal helper change adds exactly one space
+to canonical `insmod` lines. `run-2f6yexwm` passed 18/18 in 1.174 seconds. It
+also rejects missing spaces, doubled spaces, a spaced builtin, altered paths,
+reordering, duplicates, missing records, and extras.
+
+Final SWE boundary runs `run-rte0vj2a`, `run-hgr5p8p1`, `run-trmsyl6z`, and
+`run-lsiwy1ye` passed 16/16, 3/3, 3/3, and 3/3. They used 605, 594, 606, and
+594 read-only mounts. They ran zero production children. The semantic aggregate
+stayed exactly
+`5f80a3cf89e2c21e9f694cb8ed47a062aa44003f554ceb18f5de3fc87ea6ebf0`.
+Independent QA repeated the direct-helper suite in `run-i_x5ec4n` and the
+four zero-production-child boundary suites in `run-ks9kn889`,
+`run-81ol5s2v`, `run-_y7n3i3t`, and `run-bam09x3u`. The
+[second-attempt evidence](../../../../docs/evidence/dev-147-e-operational-second-attempt-lookup-grammar-2026-08-30.md)
+owns the production facts. The [independent QA evidence](../../../../docs/evidence/dev-147-e-lookup-correction-independent-qa-2026-08-30.md)
+owns the fresh QA results. Final review passed with no blockers. There is no fresh
+E-control PASS. Any third
+production attempt requires a separate GO and a fresh v5 probe.
 
 ## Retained zero-child boundary history
 
@@ -410,11 +465,12 @@ rename, publish, or accept a partial control.
 The current corrected candidate implements the fixed operational sequence, but
 the zero-child gate does not authorize or prove that sequence. Direct result
 publication remains closed through `E_CONTROL_DIRECT_FINALIZE_UNAVAILABLE`.
-The previous candidate's `main()` ran once and failed closed. The corrected
-candidate's `main()` has not run. All live/manual holds remain active.
-Independent QA is complete. Independent final review must pass before a
-separate GO. A fresh toolchain-v5 containment probe must then pass before any
-separately authorized second exact
+Two previous candidates each ran `main()` once and failed closed. The current
+lookup-corrected candidate's `main()` has not run. All live/manual holds remain
+active.
+Independent QA and final review are complete. A separate GO is still required.
+A fresh toolchain-v5 containment probe must then pass before any
+separately authorized third exact
 eight-input, 593-mount, 424-child offline no-change attempt. Any source, runner,
 launcher, manifest, setup, containment, input, command, child, output, or result
 difference stops the gate. It does not trigger another retry, image build,

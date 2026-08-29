@@ -1,6 +1,6 @@
 # Fixed E-only control: recipe and proof contract
 
-Status: the three-assertion RED, first pure fixture GREEN, raw-observation semantic GREEN, and structural GREEN below are preserved checkpoint history. The current [execution boundary](e-control-execution-red-contract.md) uses corrected recipe SHA `57d35a30de9b351bcbaf0b78a1be186c8c44a2fbfb378d8f0b801e6e9256a7a9` and helper SHA `16016875e731e88d047eb805c7c6d03045300abdb262361b18010a952adb7b80`. One production attempt completed all 424 children and failed closed before publication. The corrected production entry has not run. Independent zero-child and [direct-helper QA](e-control-test-contract.md#current-corrected-helper-qa) are complete, but there is no fresh E-control PASS. T1 assembly remains unavailable.
+Status: the three-assertion RED, first pure fixture GREEN, raw-observation semantic GREEN, and structural GREEN below are preserved checkpoint history. The current [execution boundary](e-control-execution-red-contract.md) uses recipe SHA `1be81904b29c69cb24fae86208c62fb30e830eca46250978a65d8ed19db8de77` and helper SHA `686d59e63166df1bef1afad27998a6d58f4c28b6b4439b6ccd607b56471268ca`. Two production attempts completed all 424 children and failed closed before publication. The second proved gzip determinism and exposed kmod lookup-line grammar. The narrow trailing-space correction passed current SWE zero-production-child checks, [independent QA](../../../../docs/evidence/dev-147-e-lookup-correction-independent-qa-2026-08-30.md), and final review. There is no fresh E-control PASS. T1 assembly remains unavailable.
 
 ## First checkpoint: three genuine assertion REDs (preserved)
 
@@ -54,15 +54,36 @@ Setup independently checks the whole E identity, both parsed stream hashes and r
 
 These historical files are valid test fixtures only. A pure-fixture PASS cannot become a fresh-control proof. Every production invocation must omit all twelve historical fixture mounts.
 
-## Current corrected checkpoint
+## Superseded gzip-correction checkpoint
 
 The current recipe uses exact `/usr/bin/gzip -n` and rejects bare `/usr/bin/gzip`. Independent QA runs `run-wdid9vqb`, `run-qv63ivbi`, `run-3sjaril5`, and `run-r24xtx2w` passed 25/25 focused methods with zero workload children. Direct-helper QA `run-kyar_nn2` passed 18/18 with 591 read-only mounts and 11 bounded fixture children. Its gzip header had zero MTIME. The helper created synthetic ASCII fixture trees at the exact names `/work/control-root` and `/work/lookup-root`. These runs created no E-derived production tree, stream, child-e1, header, evidence, pending result, or final result.
 
-The [failed-attempt and correction evidence](../../../../docs/evidence/dev-147-e-operational-first-attempt-gzip-determinism-2026-08-29.md) records the sole production attempt and the current pins. Independent final review remains open. A second production attempt requires a separate GO and fresh v5 probe.
+The [first-attempt and gzip-correction evidence](../../../../docs/evidence/dev-147-e-operational-first-attempt-gzip-determinism-2026-08-29.md) records that checkpoint and its then-current pins. The later second attempt supersedes its operational-gate wording.
+
+## Current lookup-grammar checkpoint
+
+Fresh probe `run-x65x28u0` passed. Production run `run-noq24xg7` proved exact
+`/usr/bin/gzip -n`, then stopped at `LOOKUP_FORMAT` because actual kmod 34.2
+adds one trailing ASCII space to each `insmod` line. It does not add a space to
+`builtin ecb`. The current helper enforces that exact grammar and refuses
+missing or doubled spaces and a spaced builtin.
+
+Controlled helper RED `run-mnmz924l` had one expected failure across 18
+methods. Helper GREEN `run-2f6yexwm` passed 18/18. Recipe, structural,
+semantic, and execution runs `run-rte0vj2a`, `run-hgr5p8p1`, `run-trmsyl6z`,
+and `run-lsiwy1ye` passed 25/25 total with zero production children. Current
+runner SHA-256 values are `170b27788135ae7d78e0355570ed5ee20ccd33c8ada11912b5cd15ffaf053751`,
+`31ccbb035e6e92fab6328b203b090c77138d1abdd8f76e1cab430367fb8783b9`,
+`bf6f8b271a139b4cff09bb97e02d39cfc82cbd9726efedf4a4dc85bff4785483`,
+and `50ba54c6dcbe8304890908ac976ee0bf07e00e0ba34c5433043a9ee6efa491b3`.
+The [second-attempt evidence](../../../../docs/evidence/dev-147-e-operational-second-attempt-lookup-grammar-2026-08-30.md)
+owns the exact results. Independent QA passed the direct and boundary suites,
+and final review passed with no blockers. Another
+production attempt requires a separate GO and fresh v5 probe.
 
 ## Current corrected real E control: exact no-change case
 
-The fixed operational entry now exists. Its first production invocation used bare gzip and failed closed before publication. The corrected entry has not run. Its eight read-only inputs are the recipe, the five frozen pure/helper sources, the fixed E image, and a directory containing only the three pinned original depmod inputs. No caller-supplied identities, fixture mode, alternate base, old proof, candidate module, or command override is allowed. The recipe's source pin is enforced by the outer launcher and retained in the evidence. No accepted T1 module or image is bound by this contract.
+The fixed operational entry now exists. Its first invocation used bare gzip and failed closed. Its second invocation used exact gzip `-n` and failed closed on lookup grammar. Neither published a result. Its eight read-only inputs are the recipe, the five frozen pure/helper sources, the fixed E image, and a directory containing only the three pinned original depmod inputs. No caller-supplied identities, fixture mode, alternate base, old proof, candidate module, or command override is allowed. The recipe's source pin is enforced by the outer launcher and retained in the evidence. No accepted T1 module or image is bound by this contract.
 
 | Boundary | Required fresh evidence |
 |---|---|

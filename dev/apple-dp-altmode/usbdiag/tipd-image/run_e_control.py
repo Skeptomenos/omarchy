@@ -35,7 +35,7 @@ FIXED_SOURCE_INPUTS = (
   ("verify_control", "/inputs/control/verify_control.py", "10b5afe6cff38df7b6ebe5619fd9a34935932a4b369f3a9ad2a51923c32932d8"),
   ("prepare_image", "/inputs/assembly/prepare_image.py", "00caceb3b7fa236dcc030fb4007d0baa75bfa08fcd1590626f85fcc8c22d5f60"),
   ("t1_image_contract", "/inputs/contract/image_contract.py", "a1eda280aa56967aa06b01a2cca0dfc70c3da6df25066f8a1e815beec719f1bf"),
-  ("e_control", "/inputs/subject/e_control.py", "16016875e731e88d047eb805c7c6d03045300abdb262361b18010a952adb7b80"),
+  ("e_control", "/inputs/subject/e_control.py", "686d59e63166df1bef1afad27998a6d58f4c28b6b4439b6ccd607b56471268ca"),
 )
 
 def _fixed_source_identity(info: os.stat_result) -> tuple[int, ...]:
