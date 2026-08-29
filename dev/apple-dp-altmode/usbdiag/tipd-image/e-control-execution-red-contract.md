@@ -1,8 +1,13 @@
 # Fixed E execution boundary: zero-child RED contract
 
-Status: authored, not yet executed. This checkpoint adds only the next RED
-runner. It does not add a production launch, run the 424-command workload, or
-open `main()`, `operational_policy()`, or `finalize_operational_result()`.
+Status: accepted RED and corrected zero-child GREEN. RED `run-0zk61la1`
+produced the exact three controlled assertion failures. First GREEN
+`run-_l2w9p_k` stopped on the retained Python 3.14 `Path`/`PosixPath` predicate
+defect. Corrected GREEN `run-nr5woop4` passed all three methods. The
+[dated evidence](../../../../docs/evidence/dev-147-e-execution-boundary-2026-08-29.md)
+owns the exact hashes, results, and limits. This checkpoint does not run the
+424-command workload or open `main()`, `operational_policy()`, or
+`finalize_operational_result()`.
 
 ## Scope and holds
 
@@ -12,9 +17,11 @@ and boot-file holds remain active. The runner executes no workload child. It
 does not create either module root, either cpio stream, an empty modprobe
 configuration, or a real E-control result.
 
-The current accepted subject is `run_e_control.py` at SHA-256
+The RED subject was `run_e_control.py` at SHA-256
 `70f369f87942b6ca6826c808536353ae0cc400123204040b9c005995ab43c3e3`.
-It remains unchanged for this RED. Its three operational APIs must continue to
+The corrected GREEN subject is
+`39496435f113c7d9256e5592effd3fece8c52b0e61b774e8283fe96eb84d4add`.
+Its three operational APIs continue to
 raise exactly `E_CONTROL_RECIPE_UNAVAILABLE` before, during, and after the test.
 Each authenticated AST body must contain only its docstring and the unconditional
 one-statement `raise RecipeError("E_CONTROL_RECIPE_UNAVAILABLE")`. No read,
@@ -165,19 +172,22 @@ boundary:
    can reach `snapshot()`, `read_regular()`, an unbounded traversal, a process,
    or a mutation API. The reader, record-path helper, record-root validator, bounded-tree reader, and collector each have a closed explicit call graph. Every call target is a named safe read-only helper or constructor. Unknown helpers, lambdas, process aliases, `read_bytes()`, plain `open()`, and existing unbounded readers are rejected.
 
-The current accepted subject stops each method at its first missing-attribute assertion. Therefore the current RED creates no synthetic loader or collector fixtures. After a future implementation crosses that assertion, the same method first runs static gates and then runs zero-child dynamic probes. Before the collector call, the runner snapshots every path, cap, count, and policy global and requires exact equality with runner-owned literals. Spies replace only the bounded reader, record-root validator, and bounded-tree reader while the authenticated `_collect_operational_outputs()` function runs. They require exactly 1,272 indexed `child-NNN.stdout|stderr|json` reads with runner-owned positional caps, the three runner-owned fixed stream/config reads, one validator call, the exact two runner-owned tree calls, and exact identity-preserving wiring of all eight `RawControlFiles` fields. The policy snapshot must remain exactly unchanged immediately after the call. Only the three mocked helper attributes are restored, and their object identities are rechecked. Expected roots, paths, caps, and returned bytes never derive from mutable subject globals after the collector call. The spies touch no real operational path.
+The retained RED subject stopped each method at its first missing-attribute assertion and created no synthetic loader or collector fixtures. The corrected GREEN crosses those assertions, runs the same static gates, and then runs zero-child dynamic probes. Before the collector call, the runner snapshots every path, cap, count, and policy global and requires exact equality with runner-owned literals. Spies replace only the bounded reader, record-root validator, and bounded-tree reader while the authenticated `_collect_operational_outputs()` function runs. They require exactly 1,272 indexed `child-NNN.stdout|stderr|json` reads with runner-owned positional caps, the three runner-owned fixed stream/config reads, one validator call, the exact two runner-owned tree calls, and exact identity-preserving wiring of all eight `RawControlFiles` fields. The policy snapshot must remain exactly unchanged immediately after the call. Only the three mocked helper attributes are restored, and their object identities are rechecked. Expected roots, paths, caps, and returned bytes never derive from mutable subject globals after the collector call. The spies touch no real operational path.
 
-The future GREEN continuation then creates contained files only below `/work/e-control-execution-red`. It proves the bounded reader returns exact bytes and refuses a relative path, overflow, wrong mode, hard link, symlink, and directory. It proves exact UID/GID 1001 and single-link regular metadata through both the positive files and enforced AST comparisons. It temporarily redirects only `OPERATIONAL_RECORD_ROOT`, restores it in `finally`, and proves the exact 1,272-member record tree plus missing, extra, symlink, index, and suffix refusal. Independent bounded-tree fixtures prove the exact returned `TreeState` and refuse wrong path, extra/missing files, extra/missing directories, excessive depth, per-file overflow, aggregate overflow, symlink, hard link, wrong file mode, and wrong directory mode. Every invalid fixture must raise exactly `E_CONTROL_OPERATIONAL_INVALID`. Operational APIs remain unconditionally closed before and after these probes.
+The corrected GREEN creates contained files only below `/work/e-control-execution-red`. It proves the bounded reader returns exact bytes and refuses a relative path, overflow, wrong mode, hard link, symlink, and directory. It proves exact UID/GID 1001 and single-link regular metadata through both the positive files and enforced AST comparisons. It temporarily redirects only `OPERATIONAL_RECORD_ROOT`, restores it in `finally`, and proves the exact 1,272-member record tree plus missing, extra, symlink, index, and suffix refusal. Independent bounded-tree fixtures prove the exact returned `TreeState` and refuse wrong path, extra/missing files, extra/missing directories, excessive depth, per-file overflow, aggregate overflow, symlink, hard link, wrong file mode, and wrong directory mode. Every invalid fixture raises exactly `E_CONTROL_OPERATIONAL_INVALID`. Operational APIs remain unconditionally closed before and after these probes.
 
 All three methods first recheck the pure setup, exact 8/593 production model,
 closed operational APIs, zero child directories, and absence of every real
-output. With the accepted subject, the intended result is exactly three
-assertion failures, zero errors, zero skips, unchanged inputs, and zero workload
-children.
+output. The retained RED result is exactly three assertion failures, zero
+errors, zero skips, unchanged inputs, and zero workload children. The corrected
+GREEN result is exactly three passes, zero failures, errors, or skips, unchanged
+inputs, and zero workload children.
 
-The runner accepts only the exact three test selectors shown below. Its
-postcheck accepts only three tests, three assertion failures in that same order,
-zero errors, and zero skips. Any other selection or result exits 2, not 1.
+Both retained runner revisions accept only the exact three test selectors shown
+below. The RED revision postcheck accepted only the three ordered assertion
+failures and exited 1. The current GREEN revision accepts only three passes,
+zero failures, errors, or skips, and exits 0. Any other selection or result
+exits 2.
 
 The exact inner command is:
 
@@ -209,8 +219,10 @@ active limit, kill, and reap behavior is already separately accepted. The new
 collector only reads retained outputs. It cannot launch, retry, repair, delete,
 rename, publish, or accept a partial control.
 
-No GREEN implementation or workload execution is authorized by this document.
-After an accepted RED, the next change may implement only these fixed launch
-primitives while the three operational APIs and all live/manual holds remain
-closed. A separate independent review is still required before any real child
-runs.
+The corrected GREEN implements only these fixed launch and collection
+primitives. It does not authorize a workload by itself. The three operational
+APIs and all live/manual holds remain closed. A separate independent review is
+still required before any real child runs. That review must bind the exact
+accepted subject, runner, eight production inputs, 593-mount model, 424-command
+plan, time limits, and result-publication boundary. A failed setup, child,
+containment, input, or result check stops the gate.

@@ -29,7 +29,7 @@ CONTROL = Path("/inputs/control/verify_control.py")
 HELPER = Path("/inputs/helper/cpio_image.py")
 BASE = Path("/inputs/base")
 INDEX_DIRECTORY = Path("/inputs/index-inputs")
-SUBJECT_SHA256 = "70f369f87942b6ca6826c808536353ae0cc400123204040b9c005995ab43c3e3"
+SUBJECT_SHA256 = "39496435f113c7d9256e5592effd3fece8c52b0e61b774e8283fe96eb84d4add"
 E_SHA256 = "4d4f0557af57eebcc33322f004bcc7968254e644b069a11102375df0b31a52ae"
 E_BYTES = 19191513
 SOURCE_INPUTS = (
@@ -704,7 +704,7 @@ def _bounded_operational_tree(
   per_file_limit: int,
   aggregate_limit: int,
 ) -> TreeState:
-  _require(type(root) is Path and root.is_absolute(), "E_CONTROL_OPERATIONAL_INVALID")
+  _require(isinstance(root, Path) and root.is_absolute(), "E_CONTROL_OPERATIONAL_INVALID")
   _require(type(expected_files) is int and 0 <= expected_files <= 4096,
            "E_CONTROL_OPERATIONAL_INVALID")
   _require(type(expected_directories) is int and 1 <= expected_directories <= 512,
@@ -1730,7 +1730,7 @@ def collector_spy_probe() -> None:
   require(frozen_policy == expected_policy, "collector policy differs before the spy")
 
   def read_spy(path: Path, limit: int) -> bytes:
-    require(type(path) is Path and type(limit) is int, "collector changed reader arguments")
+    require(isinstance(path, Path) and type(limit) is int, "collector changed reader arguments")
     read_calls.append((path, limit))
     return f"{path}\0{limit}".encode("ascii")
 
@@ -1937,7 +1937,7 @@ def main() -> int:
     print(f"SETUP FAIL: {type(error).__name__}: {error}", file=sys.stderr)
     return 2
   print(
-    "SETUP PASS: nine-input RED harness proves eight-input/593-mount production plan; "
+    "SETUP PASS: nine-input GREEN harness proves eight-input/593-mount production plan; "
     "zero workload children",
     flush=True,
   )
@@ -1955,14 +1955,12 @@ def main() -> int:
       and file_states == INDEX_FILE_STATES,
       "index input directory changed",
     )
-    failed_tests = [test.id().removeprefix("__main__.") for test, _ in result.failures]
     require(
       result.testsRun == 3
-      and len(result.failures) == 3
+      and not result.failures
       and not result.errors
-      and not result.skipped
-      and failed_tests == list(SELECTED_TESTS),
-      "result is not the exact three controlled assertion REDs",
+      and not result.skipped,
+      "result is not the exact three controlled GREEN passes",
     )
     no_operational_outputs()
     write_json(META / "test-result.json", {
@@ -1992,7 +1990,7 @@ def main() -> int:
   except (OSError, RuntimeError, ValueError, KeyError, TypeError) as error:
     print(f"POSTCHECK FAIL: {type(error).__name__}: {error}", file=sys.stderr)
     return 2
-  return 1
+  return 0
 
 
 if __name__ == "__main__":

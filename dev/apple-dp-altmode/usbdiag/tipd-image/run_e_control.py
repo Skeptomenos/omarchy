@@ -20,6 +20,85 @@ import re
 import stat
 from typing import NoReturn
 
+
+class RecipeError(RuntimeError):
+  """A fixed E-control boundary failed; it is not a hardware verdict."""
+
+
+def _require(condition: bool, code: str) -> None:
+  if not condition:
+    raise RecipeError(code)
+
+
+FIXED_SOURCE_BYTES = 128 * 1024
+FIXED_SOURCE_INPUTS = (
+  ("cpio_image", "/inputs/helper/cpio_image.py", "a32eddd159263d19ff87d7e9caee9d53d17ef5c350fbffe9e7eb142cb43ebf58"),
+  ("verify_control", "/inputs/control/verify_control.py", "10b5afe6cff38df7b6ebe5619fd9a34935932a4b369f3a9ad2a51923c32932d8"),
+  ("prepare_image", "/inputs/assembly/prepare_image.py", "00caceb3b7fa236dcc030fb4007d0baa75bfa08fcd1590626f85fcc8c22d5f60"),
+  ("t1_image_contract", "/inputs/contract/image_contract.py", "a1eda280aa56967aa06b01a2cca0dfc70c3da6df25066f8a1e815beec719f1bf"),
+  ("e_control", "/inputs/subject/e_control.py", "abbf59410a05fd5c789820df3d40e59d0a5c33cf1204ab93c7aeef806da7b1df"),
+)
+
+def _fixed_source_identity(info: os.stat_result) -> tuple[int, ...]:
+  return (
+    info.st_dev, info.st_ino, info.st_mode, info.st_uid, info.st_gid,
+    info.st_nlink, info.st_size, info.st_mtime_ns, info.st_ctime_ns,
+  )
+
+def _load_fixed_source(name: str, path: str, digest: str) -> object:
+  source = Path(path)
+  _require(name not in os.sys.modules, "E_CONTROL_SOURCE_INVALID")
+  before = source.lstat()
+  _require(stat.S_ISREG(before.st_mode), "E_CONTROL_SOURCE_INVALID")
+  _require(stat.S_IMODE(before.st_mode) == 0o600, "E_CONTROL_SOURCE_INVALID")
+  _require(before.st_uid == before.st_gid == 1001, "E_CONTROL_SOURCE_INVALID")
+  _require(before.st_nlink == 1, "E_CONTROL_SOURCE_INVALID")
+  _require(0 < before.st_size <= FIXED_SOURCE_BYTES, "E_CONTROL_SOURCE_INVALID")
+  descriptor = os.open(
+    source, os.O_RDONLY | os.O_NONBLOCK | os.O_NOFOLLOW | os.O_CLOEXEC,
+  )
+  with os.fdopen(descriptor, "rb") as stream:
+    _require(
+      _fixed_source_identity(before) == _fixed_source_identity(os.fstat(descriptor)),
+      "E_CONTROL_SOURCE_INVALID",
+    )
+    raw = stream.read(FIXED_SOURCE_BYTES + 1)
+    _require(
+      _fixed_source_identity(before) == _fixed_source_identity(os.fstat(descriptor))
+      == _fixed_source_identity(source.lstat()),
+      "E_CONTROL_SOURCE_INVALID",
+    )
+  _require(len(raw) == before.st_size <= FIXED_SOURCE_BYTES, "E_CONTROL_SOURCE_INVALID")
+  _require(hashlib.sha256(raw).hexdigest() == digest, "E_CONTROL_SOURCE_INVALID")
+  module = type(os)(name)
+  module.__file__ = str(source)
+  os.sys.modules[name] = module
+  exec(compile(raw, str(source), "exec"), module.__dict__)
+  return module
+
+def _bootstrap_fixed_sources() -> None:
+  saved_path = tuple(os.sys.path)
+  saved_modules = dict(os.sys.modules)
+  try:
+    try:
+      assembly = _load_fixed_source(*FIXED_SOURCE_INPUTS[2])
+      _require(
+        assembly.__file__ == FIXED_SOURCE_INPUTS[2][1]
+        and os.sys.modules["verify_control"].__file__ == FIXED_SOURCE_INPUTS[1][1]
+        and os.sys.modules["cpio_image"].__file__ == FIXED_SOURCE_INPUTS[0][1],
+        "E_CONTROL_SOURCE_INVALID",
+      )
+      _load_fixed_source(*FIXED_SOURCE_INPUTS[3])
+      _load_fixed_source(*FIXED_SOURCE_INPUTS[4])
+    except Exception:
+      os.sys.modules.clear()
+      os.sys.modules.update(saved_modules)
+      raise
+  finally:
+    os.sys.path[:] = saved_path
+
+_bootstrap_fixed_sources()
+
 from cpio_image import Archive, parse_newc, read_regular, write_new
 from prepare_image import (
   ALIASES_HEADER, SYMBOLS_HEADER, WEAKDEP_HEADER, alias_entries,
@@ -180,10 +259,6 @@ RENAME_NOREPLACE = 1
 _AT_FDCWD = -100
 
 
-class RecipeError(RuntimeError):
-  """A fixed E-control boundary failed; it is not a hardware verdict."""
-
-
 @dataclass(frozen=True)
 class ESelection:
   early: Archive
@@ -280,11 +355,6 @@ class SemanticFixtureAcceptance:
   module_loaded: bool
   staged: bool
   booted: bool
-
-
-def _require(condition: bool, code: str) -> None:
-  if not condition:
-    raise RecipeError(code)
 
 
 def _sha256(raw: bytes) -> str:
@@ -1537,6 +1607,306 @@ def publish_semantic_fixture_result() -> SemanticFixtureAcceptance:
   write_new(SEMANTIC_FIXTURE_PENDING, result_raw)
   _rename_noreplace(SEMANTIC_FIXTURE_PENDING, SEMANTIC_FIXTURE_RESULT)
   return acceptance
+
+
+@dataclass(frozen=True)
+class ExecutionPolicy:
+  command: tuple[str, ...]
+  environment: tuple[tuple[str, str], ...]
+  task_bindings: tuple[str, ...]
+  uid: int
+  gid: int
+  cwd: str
+  umask: int
+  runtime_mounts: int
+  fixed_sandbox_mounts: int
+  task_inputs: int
+  read_only_mounts: int
+  planned_children: int
+  control_seconds: float
+  child_seconds: float
+  workload_seconds: int
+  outer_seconds: int
+  mode: str
+
+EXECUTION_COMMAND = ("/usr/bin/python3.14", "-I", "-S", "-B", "/inputs/recipe")
+EXECUTION_ENVIRONMENT = (
+  ("PATH", "/usr/bin:/bin"),
+  ("LC_ALL", "C"),
+  ("TMPDIR", "/tmp"),
+  ("PYTHONDONTWRITEBYTECODE", "1"),
+)
+EXECUTION_TASK_BINDINGS = (
+  "/inputs/recipe", "/inputs/subject", "/inputs/contract", "/inputs/assembly",
+  "/inputs/control", "/inputs/helper", "/inputs/base", "/inputs/index-inputs",
+)
+EXECUTION_UID = 1001
+EXECUTION_GID = 1001
+EXECUTION_CWD = "/work"
+EXECUTION_UMASK = 0o077
+EXECUTION_RUNTIME_MOUNTS = 582
+EXECUTION_FIXED_SANDBOX_MOUNTS = 3
+EXECUTION_TASK_INPUTS = 8
+EXECUTION_READ_ONLY_MOUNTS = 593
+EXECUTION_PLANNED_CHILDREN = 424
+EXECUTION_CONTROL_SECONDS = 270.0
+EXECUTION_CHILD_SECONDS = 30.0
+EXECUTION_WORKLOAD_SECONDS = 280
+EXECUTION_OUTER_SECONDS = 285
+EXECUTION_MODE = "E_NO_CHANGE_OFFLINE"
+OPERATIONAL_RECORD_ROOT = "/work/e-control-children-e1"
+OPERATIONAL_STDOUT_LIMITS = (
+  1024, 1024, 65536, 65536, E_BYTES - 10240,
+  1213760, 12368, 66512, 20312, 1, 128 * 1024, 128 * 1024,
+  *((4096, 65536) * 200),
+  *((65536,) * 12),
+)
+OPERATIONAL_STDERR_LIMIT = 1
+OPERATIONAL_REPORT_LIMIT = 128 * 1024
+OPERATIONAL_EMPTY_CONFIG_LIMIT = 1
+OPERATIONAL_EARLY_STREAM_LIMIT = 10240
+OPERATIONAL_MAIN_STREAM_LIMIT = 61286668
+OPERATIONAL_RECORD_FILES = 1272
+OPERATIONAL_CONTROL_TREE_FILES = 214
+OPERATIONAL_LOOKUP_TREE_FILES = 207
+OPERATIONAL_TREE_DIRECTORIES = 48
+OPERATIONAL_TREE_MAX_DEPTH = 16
+OPERATIONAL_TREE_FILE_LIMIT = 2 * 1024 * 1024
+OPERATIONAL_TREE_AGGREGATE_LIMIT = 64 * 1024 * 1024
+
+def operational_execution_policy() -> ExecutionPolicy:
+  return ExecutionPolicy(
+    command=EXECUTION_COMMAND,
+    environment=EXECUTION_ENVIRONMENT,
+    task_bindings=EXECUTION_TASK_BINDINGS,
+    uid=EXECUTION_UID,
+    gid=EXECUTION_GID,
+    cwd=EXECUTION_CWD,
+    umask=EXECUTION_UMASK,
+    runtime_mounts=EXECUTION_RUNTIME_MOUNTS,
+    fixed_sandbox_mounts=EXECUTION_FIXED_SANDBOX_MOUNTS,
+    task_inputs=EXECUTION_TASK_INPUTS,
+    read_only_mounts=EXECUTION_READ_ONLY_MOUNTS,
+    planned_children=EXECUTION_PLANNED_CHILDREN,
+    control_seconds=EXECUTION_CONTROL_SECONDS,
+    child_seconds=EXECUTION_CHILD_SECONDS,
+    workload_seconds=EXECUTION_WORKLOAD_SECONDS,
+    outer_seconds=EXECUTION_OUTER_SECONDS,
+    mode=EXECUTION_MODE,
+  )
+
+def _read_bounded_operational_file(path: Path, limit: int) -> bytes:
+  _require(path.is_absolute(), "E_CONTROL_OPERATIONAL_INVALID")
+  _require(type(limit) is int, "E_CONTROL_OPERATIONAL_INVALID")
+  _require(0 < limit <= OPERATIONAL_TREE_AGGREGATE_LIMIT, "E_CONTROL_OPERATIONAL_INVALID")
+  before = path.lstat()
+  _require(stat.S_ISREG(before.st_mode), "E_CONTROL_OPERATIONAL_INVALID")
+  _require(stat.S_IMODE(before.st_mode) == 0o600, "E_CONTROL_OPERATIONAL_INVALID")
+  _require(before.st_uid == before.st_gid == 1001, "E_CONTROL_OPERATIONAL_INVALID")
+  _require(before.st_nlink == 1, "E_CONTROL_OPERATIONAL_INVALID")
+  _require(0 <= before.st_size <= limit, "E_CONTROL_OPERATIONAL_INVALID")
+  descriptor = os.open(
+    path, os.O_RDONLY | os.O_NONBLOCK | os.O_NOFOLLOW | os.O_CLOEXEC,
+  )
+  with os.fdopen(descriptor, "rb") as stream:
+    _require(
+      _structural_identity(before) == _structural_identity(os.fstat(descriptor)),
+      "E_CONTROL_OPERATIONAL_INVALID",
+    )
+    raw = stream.read(limit + 1)
+    _require(
+      _structural_identity(before) == _structural_identity(os.fstat(descriptor))
+      == _structural_identity(path.lstat()),
+      "E_CONTROL_OPERATIONAL_INVALID",
+    )
+  _require(len(raw) == before.st_size <= limit, "E_CONTROL_OPERATIONAL_INVALID")
+  return raw
+
+def _operational_record_path(index: int, suffix: str) -> Path:
+  _require(type(index) is int and 0 <= index < SEMANTIC_RECORDS,
+           "E_CONTROL_OPERATIONAL_INVALID")
+  _require(type(suffix) is str and suffix in ("stdout", "stderr", "json"),
+           "E_CONTROL_OPERATIONAL_INVALID")
+  return Path(OPERATIONAL_RECORD_ROOT) / f"child-{index:03d}.{suffix}"
+
+def _validate_operational_record_root() -> TreeState:
+  root = Path(OPERATIONAL_RECORD_ROOT)
+  _require(root.is_absolute(), "E_CONTROL_OPERATIONAL_INVALID")
+  before = root.lstat()
+  _require(stat.S_ISDIR(before.st_mode), "E_CONTROL_OPERATIONAL_INVALID")
+  _require(stat.S_IMODE(before.st_mode) == 0o700, "E_CONTROL_OPERATIONAL_INVALID")
+  _require(before.st_uid == before.st_gid == 1001, "E_CONTROL_OPERATIONAL_INVALID")
+  _require(before.st_nlink == 2, "E_CONTROL_OPERATIONAL_INVALID")
+  expected = {
+    f"child-{index:03d}.{suffix}"
+    for index in range(SEMANTIC_RECORDS)
+    for suffix in ("stdout", "stderr", "json")
+  }
+  observed = {}
+  descriptor = os.open(
+    root, os.O_RDONLY | os.O_DIRECTORY | os.O_NONBLOCK | os.O_NOFOLLOW | os.O_CLOEXEC,
+  )
+  try:
+    _require(_structural_identity(before) == _structural_identity(os.fstat(descriptor)),
+             "E_CONTROL_OPERATIONAL_INVALID")
+    with os.scandir(descriptor) as entries:
+      for entry in entries:
+        info = entry.stat(follow_symlinks=False)
+        _require(stat.S_ISREG(info.st_mode), "E_CONTROL_OPERATIONAL_INVALID")
+        _require(stat.S_IMODE(info.st_mode) == 0o600, "E_CONTROL_OPERATIONAL_INVALID")
+        _require(info.st_uid == info.st_gid == 1001, "E_CONTROL_OPERATIONAL_INVALID")
+        _require(info.st_nlink == 1, "E_CONTROL_OPERATIONAL_INVALID")
+        observed[entry.name] = info
+        _require(len(observed) <= OPERATIONAL_RECORD_FILES,
+                 "E_CONTROL_OPERATIONAL_INVALID")
+    _require(
+      _structural_identity(before) == _structural_identity(os.fstat(descriptor))
+      == _structural_identity(root.lstat()),
+      "E_CONTROL_OPERATIONAL_INVALID",
+    )
+  finally:
+    os.close(descriptor)
+  _require(set(observed) == expected, "E_CONTROL_OPERATIONAL_INVALID")
+  _require(len(observed) == OPERATIONAL_RECORD_FILES, "E_CONTROL_OPERATIONAL_INVALID")
+  files = {}
+  for index in range(SEMANTIC_RECORDS):
+    for suffix, limit in (
+      ("stdout", OPERATIONAL_STDOUT_LIMITS[index]),
+      ("stderr", OPERATIONAL_STDERR_LIMIT),
+      ("json", OPERATIONAL_REPORT_LIMIT),
+    ):
+      path = _operational_record_path(index, suffix)
+      raw = _read_bounded_operational_file(path, limit)
+      _require(_structural_identity(observed[path.name]) == _structural_identity(path.lstat()),
+               "E_CONTROL_OPERATIONAL_INVALID")
+      files[path.name] = FileState(_structural_identity(observed[path.name]), _sha256(raw))
+  _require(_structural_identity(before) == _structural_identity(root.lstat()),
+           "E_CONTROL_OPERATIONAL_INVALID")
+  return TreeState({".": _structural_identity(before)[:5]}, files)
+
+def _bounded_operational_tree(
+  root: Path,
+  *,
+  expected_files: int,
+  expected_directories: int,
+  max_depth: int,
+  per_file_limit: int,
+  aggregate_limit: int,
+) -> TreeState:
+  _require(isinstance(root, Path) and root.is_absolute(), "E_CONTROL_OPERATIONAL_INVALID")
+  _require(type(expected_files) is int and 0 <= expected_files <= 4096,
+           "E_CONTROL_OPERATIONAL_INVALID")
+  _require(type(expected_directories) is int and 1 <= expected_directories <= 512,
+           "E_CONTROL_OPERATIONAL_INVALID")
+  _require(type(max_depth) is int and 0 <= max_depth <= OPERATIONAL_TREE_MAX_DEPTH,
+           "E_CONTROL_OPERATIONAL_INVALID")
+  _require(type(per_file_limit) is int and 0 < per_file_limit <= OPERATIONAL_TREE_FILE_LIMIT,
+           "E_CONTROL_OPERATIONAL_INVALID")
+  _require(type(aggregate_limit) is int and 0 < aggregate_limit <= OPERATIONAL_TREE_AGGREGATE_LIMIT,
+           "E_CONTROL_OPERATIONAL_INVALID")
+  root_before = root.lstat()
+  pending = [(root, 0, _structural_identity(root_before))]
+  directories = {}
+  files = {}
+  aggregate = 0
+  while pending:
+    directory, depth, expected_identity = pending.pop()
+    _require(depth <= max_depth, "E_CONTROL_OPERATIONAL_INVALID")
+    before = directory.lstat()
+    _require(_structural_identity(before) == expected_identity,
+             "E_CONTROL_OPERATIONAL_INVALID")
+    _require(stat.S_ISDIR(before.st_mode), "E_CONTROL_OPERATIONAL_INVALID")
+    _require(stat.S_IMODE(before.st_mode) == 0o700, "E_CONTROL_OPERATIONAL_INVALID")
+    _require(before.st_uid == before.st_gid == 1001, "E_CONTROL_OPERATIONAL_INVALID")
+    relative_directory = "." if directory == root else str(directory.relative_to(root))
+    directories[relative_directory] = _structural_identity(before)[:5]
+    _require(len(directories) <= expected_directories, "E_CONTROL_OPERATIONAL_INVALID")
+    descriptor = os.open(
+      directory,
+      os.O_RDONLY | os.O_DIRECTORY | os.O_NONBLOCK | os.O_NOFOLLOW | os.O_CLOEXEC,
+    )
+    try:
+      _require(_structural_identity(before) == _structural_identity(os.fstat(descriptor)),
+               "E_CONTROL_OPERATIONAL_INVALID")
+      with os.scandir(descriptor) as entries:
+        for entry in entries:
+          info = entry.stat(follow_symlinks=False)
+          path = directory / entry.name
+          if stat.S_ISDIR(info.st_mode):
+            _require(stat.S_IMODE(info.st_mode) == 0o700, "E_CONTROL_OPERATIONAL_INVALID")
+            _require(info.st_uid == info.st_gid == 1001, "E_CONTROL_OPERATIONAL_INVALID")
+            pending.append((path, depth + 1, _structural_identity(info)))
+            _require(len(directories) + len(pending) <= expected_directories,
+                     "E_CONTROL_OPERATIONAL_INVALID")
+          else:
+            _require(stat.S_ISREG(info.st_mode), "E_CONTROL_OPERATIONAL_INVALID")
+            _require(stat.S_IMODE(info.st_mode) == 0o600, "E_CONTROL_OPERATIONAL_INVALID")
+            _require(info.st_uid == info.st_gid == 1001, "E_CONTROL_OPERATIONAL_INVALID")
+            _require(info.st_nlink == 1, "E_CONTROL_OPERATIONAL_INVALID")
+            raw = _read_bounded_operational_file(path, per_file_limit)
+            _require(_structural_identity(info) == _structural_identity(path.lstat()),
+                     "E_CONTROL_OPERATIONAL_INVALID")
+            aggregate += len(raw)
+            _require(aggregate <= aggregate_limit, "E_CONTROL_OPERATIONAL_INVALID")
+            relative_file = str(path.relative_to(root))
+            files[relative_file] = FileState(_structural_identity(info), _sha256(raw))
+            _require(len(files) <= expected_files, "E_CONTROL_OPERATIONAL_INVALID")
+      _require(
+        _structural_identity(before) == _structural_identity(os.fstat(descriptor))
+        == _structural_identity(directory.lstat()),
+        "E_CONTROL_OPERATIONAL_INVALID",
+      )
+    finally:
+      os.close(descriptor)
+  _require(len(files) == expected_files, "E_CONTROL_OPERATIONAL_INVALID")
+  _require(len(directories) == expected_directories, "E_CONTROL_OPERATIONAL_INVALID")
+  return TreeState(directories, files)
+
+def _collect_operational_outputs() -> RawControlFiles:
+  record_state = _validate_operational_record_root()
+  records = []
+  for index in range(SEMANTIC_RECORDS):
+    stdout = _read_bounded_operational_file(
+      _operational_record_path(index, "stdout"), OPERATIONAL_STDOUT_LIMITS[index],
+    )
+    stderr = _read_bounded_operational_file(
+      _operational_record_path(index, "stderr"), OPERATIONAL_STDERR_LIMIT,
+    )
+    report = _read_bounded_operational_file(
+      _operational_record_path(index, "json"), OPERATIONAL_REPORT_LIMIT,
+    )
+    records.append((stdout, stderr, report))
+  control_state = _bounded_operational_tree(
+    Path(CONTROL_ROOT),
+    expected_files=OPERATIONAL_CONTROL_TREE_FILES,
+    expected_directories=OPERATIONAL_TREE_DIRECTORIES,
+    max_depth=OPERATIONAL_TREE_MAX_DEPTH,
+    per_file_limit=OPERATIONAL_TREE_FILE_LIMIT,
+    aggregate_limit=OPERATIONAL_TREE_AGGREGATE_LIMIT,
+  )
+  lookup_state = _bounded_operational_tree(
+    Path(LOOKUP_ROOT),
+    expected_files=OPERATIONAL_LOOKUP_TREE_FILES,
+    expected_directories=OPERATIONAL_TREE_DIRECTORIES,
+    max_depth=OPERATIONAL_TREE_MAX_DEPTH,
+    per_file_limit=OPERATIONAL_TREE_FILE_LIMIT,
+    aggregate_limit=OPERATIONAL_TREE_AGGREGATE_LIMIT,
+  )
+  empty_config_raw = _read_bounded_operational_file(
+    Path(EMPTY_CONFIG), OPERATIONAL_EMPTY_CONFIG_LIMIT,
+  )
+  early_raw = _read_bounded_operational_file(Path(EARLY_PATH), OPERATIONAL_EARLY_STREAM_LIMIT)
+  main_raw = _read_bounded_operational_file(Path(MAIN_PATH), OPERATIONAL_MAIN_STREAM_LIMIT)
+  return RawControlFiles(
+    paths=SEMANTIC_OPERATIONAL_PATHS,
+    record_state=record_state,
+    records=tuple(records),
+    control_state=control_state,
+    lookup_state=lookup_state,
+    empty_config_raw=empty_config_raw,
+    early_raw=early_raw,
+    main_raw=main_raw,
+  )
 
 
 def operational_policy() -> NoReturn:
