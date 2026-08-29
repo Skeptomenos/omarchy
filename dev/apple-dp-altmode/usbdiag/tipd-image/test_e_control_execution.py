@@ -29,7 +29,7 @@ CONTROL = Path("/inputs/control/verify_control.py")
 HELPER = Path("/inputs/helper/cpio_image.py")
 BASE = Path("/inputs/base")
 INDEX_DIRECTORY = Path("/inputs/index-inputs")
-SUBJECT_SHA256 = "39496435f113c7d9256e5592effd3fece8c52b0e61b774e8283fe96eb84d4add"
+SUBJECT_SHA256 = "57d35a30de9b351bcbaf0b78a1be186c8c44a2fbfb378d8f0b801e6e9256a7a9"
 E_SHA256 = "4d4f0557af57eebcc33322f004bcc7968254e644b069a11102375df0b31a52ae"
 E_BYTES = 19191513
 SOURCE_INPUTS = (
@@ -42,7 +42,7 @@ SOURCE_INPUTS = (
   ("t1_image_contract", CONTRACT,
    "a1eda280aa56967aa06b01a2cca0dfc70c3da6df25066f8a1e815beec719f1bf"),
   ("e_control", COMMANDS,
-   "abbf59410a05fd5c789820df3d40e59d0a5c33cf1204ab93c7aeef806da7b1df"),
+   "16016875e731e88d047eb805c7c6d03045300abdb262361b18010a952adb7b80"),
 )
 PINS = {
   SUBJECT: SUBJECT_SHA256,
@@ -147,6 +147,7 @@ FORBIDDEN_OUTPUTS = (
   Path("/work/e-main.cpio"),
   Path("/work/e-control-header.json"),
   Path("/work/e-control-evidence.json"),
+  Path("/work/e-control-result.pending"),
   Path("/work/e-control-result.json"),
 )
 KERNEL = "7.1.6-1-1-ARCH"
@@ -377,7 +378,7 @@ BASELINE_TOP_LEVEL_MANIFEST = (
   ("function:select_e", "be3a4fff7981ef794d757694286eeb66789053830f6b9aca8d668901757e6ba3"),
   ("function:validate_regeneration", "4758bd16562b2cf3a59b607f4d431e06c627d18ed899ead3a275734a39ce24fe"),
   ("function:_probe", "17a7ad1bc0abec25c286c61dbd17b9781657133fe5953d0de61e6e22c6ecf29a"),
-  ("function:command_plan", "7a8a7afbefec73373aeeb6e178c777ba0f05ed0f20dcef17643e031b9919c688"),
+  ("function:command_plan", "0b94861ea2bb609101a45e5f8f4951d494fd8f9b55b60cf8b569004b0fdfe5c9"),
   ("function:_structural_identity", "7ca98213cb6787d1aa093a43fa2f51a9e873bda68d0f67f9baedd6db7d167fb4"),
   ("function:_structural_read", "7bccef667a69cb992d94bd0f02c6c528944cb9f5f109820e1afcbd409988fd35"),
   ("function:_structural_json", "e8ac82d719311cd2defa0029e07cd4f1ed644130bb8eb5fd49c6ec5e5376c3e0"),
@@ -402,7 +403,7 @@ BASELINE_TOP_LEVEL_MANIFEST = (
   ("function:_semantic_tree_identity_records", "71cf7060623e0cebe53319393878a8b49116b504ae79b48bd23d7d0bcdfa579a"),
   ("function:_semantic_expected_provenance", "bda312f6e25f355c55f94397961657fb6b466e7dd9444af26f12fb67a51f39a0"),
   ("function:_semantic_provenance", "5690fe985b2a722cbbbaaba88662def5aa2ecf55d559499474e7ac0dcecbdc0e"),
-  ("function:_semantic_command_plan", "685423efce6cb280c5df2219cb64819896b6f1e49b56a4624d09d57f5e7e6ea6"),
+  ("function:_semantic_command_plan", "a84fce839316e43f5e8578dc62311d54ef0a1c649c71f5ee73ccf20a24105e54"),
   ("function:_semantic_command_observation", "b6e315c79f55c619581814507bc08799eb4afc8036743e90bbd1847f6419f387"),
   ("function:_semantic_identity_records", "fd125fbf978e706f8db088c5020f104e80bdab36ebf2e4f234b4207c64a89627"),
   ("function:_semantic_bound_observation", "9714413167510e0cfe8607247c66e76dc5c1e0622157491cdb7c9cdff110d830"),
@@ -410,7 +411,7 @@ BASELINE_TOP_LEVEL_MANIFEST = (
   ("function:_semantic_aggregate", "5b6ff7819d4119034ed6daea4ea5afe1bd0846efbcdb53cbeeb91c71957f5dde"),
   ("function:_validate_file_metadata", "9d36cd1ff10327e9e8855e262d898edff5eee27baadeffccacbc23b6078ced67"),
   ("function:_validate_file_content", "9505e713f4625b185e30d100d8199d049db609bc25a70a2f16aa686359baae29"),
-  ("function:_validate_command_shape", "fdeadd417ab56d391f2e4c1fad50909d70b51eb30318396d7a7c447e4d3f89ec"),
+  ("function:_validate_command_shape", "0859adc261782c7978b48b04c07e2de29a5cce3ca5615ca565558c5f538afc7b"),
   ("function:_validate_archive_observation", "01f9b670880cfcef009f63559f073dc04265c3ab3bbd3a51a3955bd1808fd829"),
   ("function:_validate_payload_observation", "2e183fc75c0a9af25af7f6a6a888ddac548d2eb0bd639dd6f691689c0db481c4"),
   ("function:_validate_tree_observation", "a7633a0ef55ff45ceb9435e8f8a1d1c89d79e3653b3d7c10655bf4116c949764"),
@@ -443,7 +444,7 @@ BASELINE_TOP_LEVEL_MANIFEST = (
   ("function:publish_semantic_fixture_result", "a2bfb6e5b2e8133c2d7f318a6860cde99a465a490296ee344a5fff1ca30d0d73"),
   ("function:operational_policy", "b6e7c293abcf0a790f80b4b5a271321199c4f008c71bcefd89e0fcd054073854"),
   ("function:finalize_operational_result", "95f93cd8a8ccd67b418dcb03b1701ec686f08e06f805dcd7da1e1dcc2db2468d"),
-  ("function:finalize_structural_result", "67a4ba2ab536e08615b16e41ef6e1d4a472202162272191330386dbd5c6a6ff5"),
+  ("function:finalize_structural_result", "b9134fb21410042da05a0f1193980a4d7871cecd56ab80e75de8328baf7f57d0"),
   ("function:main", "b598e4e99d0978fe413f32fa3b4f241a40dc3ec6b4d7627fcf6fb9b9d2cf549d"),
   ("guard:main", "3340fd16ba41ba1ddf3989cd136a498b72a97f7796e0f7fad6e815585dbc1c52"),
 )
@@ -455,7 +456,7 @@ FIXED_SOURCE_INPUTS = (
   ("verify_control", "/inputs/control/verify_control.py", "10b5afe6cff38df7b6ebe5619fd9a34935932a4b369f3a9ad2a51923c32932d8"),
   ("prepare_image", "/inputs/assembly/prepare_image.py", "00caceb3b7fa236dcc030fb4007d0baa75bfa08fcd1590626f85fcc8c22d5f60"),
   ("t1_image_contract", "/inputs/contract/image_contract.py", "a1eda280aa56967aa06b01a2cca0dfc70c3da6df25066f8a1e815beec719f1bf"),
-  ("e_control", "/inputs/subject/e_control.py", "abbf59410a05fd5c789820df3d40e59d0a5c33cf1204ab93c7aeef806da7b1df"),
+  ("e_control", "/inputs/subject/e_control.py", "16016875e731e88d047eb805c7c6d03045300abdb262361b18010a952adb7b80"),
 )
 
 def _fixed_source_identity(info: os.stat_result) -> tuple[int, ...]:
@@ -884,11 +885,407 @@ FUTURE_REFERENCE_DUMPS = {
 }
 
 
+OPERATIONAL_FULL_TOP_LEVEL_LABELS = (
+  "expr:docstring", "importfrom:dataclasses", "import:ctypes", "import:errno",
+  "importfrom:fnmatch", "import:hashlib", "import:json", "import:math", "import:os",
+  "importfrom:pathlib", "import:re", "import:stat", "importfrom:typing",
+  "class:RecipeError", "function:_require", "assign:FIXED_SOURCE_BYTES",
+  "assign:FIXED_SOURCE_INPUTS", "function:_fixed_source_identity",
+  "function:_load_fixed_source", "function:_bootstrap_fixed_sources",
+  "call:_bootstrap_fixed_sources", "importfrom:cpio_image", "importfrom:prepare_image",
+  "importfrom:verify_control", "importfrom:e_control", "assign:KERNEL", "assign:PREFIX",
+  "assign:E_SHA256", "assign:E_BYTES", "assign:EARLY_SHA256", "assign:MAIN_SHA256",
+  "assign:EARLY_BYTES", "assign:MAIN_BYTES", "assign:PAYLOAD_SHA256",
+  "assign:PAYLOAD_BYTES", "assign:INDEX_SHA256", "assign:GENERATED_SHA256",
+  "assign:HISTORICAL_BYTES", "assign:DUMP_SHA256", "assign:DUMP_BYTES",
+  "assign:INDEX_INPUT_SHA256", "assign:ALIASES", "assign:EXPORTS",
+  "assign:CONTROL_ROOT", "assign:LOOKUP_ROOT", "assign:EMPTY_CONFIG",
+  "assign:EARLY_PATH", "assign:MAIN_PATH", "assign:MAX_INDEX_BYTES",
+  "assign:MODULE_MODEL_SHA256", "assign:STRUCTURAL_BINDINGS",
+  "assign:STRUCTURAL_RECORD_ROOT", "assign:STRUCTURAL_ARTIFACTS",
+  "assign:REAL_OPERATIONAL_ARTIFACTS", "assign:STDOUT_BYTES", "assign:STDERR_BYTES",
+  "assign:REPORT_BYTES", "assign:SEMANTIC_RECORDS", "assign:SEMANTIC_FIXTURE_PATHS",
+  "assign:SEMANTIC_OPERATIONAL_PATHS", "assign:SEMANTIC_FIXTURE_PENDING",
+  "assign:SEMANTIC_FIXTURE_RESULT", "assign:SEMANTIC_FIXTURE_WORK_MEMBERS",
+  "assign:ARCHIVE_OBSERVATIONS", "assign:SEMANTIC_REPORT_KEYS",
+  "assign:SEMANTIC_FILE_KEYS", "assign:SEMANTIC_DIRECTORY_KEYS",
+  "assign:SEMANTIC_TREE_FILE_KEYS", "assign:RENAME_NOREPLACE", "assign:_AT_FDCWD",
+  "class:ESelection", "class:Regeneration", "class:StructuralPolicy",
+  "class:StructuralAcceptance", "class:RawControlFiles", "class:MappedControlOutputs",
+  "class:SemanticFixtureEvaluation", "class:SemanticFixtureAcceptance",
+  "function:_sha256", "function:_validated_names", "function:select_e",
+  "function:validate_regeneration", "function:_probe", "function:command_plan",
+  "function:_structural_identity", "function:_structural_read",
+  "function:_structural_json", "function:_structural_record",
+  "function:_structural_commands", "function:structural_policy",
+  "function:_collect_fixed_raw_files", "function:_map_raw_control_outputs",
+  "function:_read_fixed_semantic_fixture_outputs",
+  "function:_read_fixed_operational_outputs", "function:_semantic_json",
+  "function:_semantic_json_bytes", "function:_semantic_module_names",
+  "function:_semantic_generated_relative", "function:_semantic_control_before",
+  "function:_semantic_dependencies", "function:_semantic_expected_module",
+  "function:_semantic_lookup_target", "function:_semantic_file_observation",
+  "function:_semantic_stable_file", "function:_semantic_stable_tree",
+  "function:_semantic_tree_identity_records", "function:_semantic_expected_provenance",
+  "function:_semantic_provenance", "function:_semantic_command_plan",
+  "function:_semantic_command_observation", "function:_semantic_identity_records",
+  "function:_semantic_bound_observation", "function:_semantic_archive_records",
+  "function:_semantic_aggregate", "function:_validate_file_metadata",
+  "function:_validate_file_content", "function:_validate_command_shape",
+  "function:_validate_archive_observation", "function:_validate_payload_observation",
+  "function:_validate_tree_observation", "function:_validate_index_observation",
+  "function:_validate_module_observation", "function:_validate_alias_observation",
+  "function:_validate_symbol_observation", "function:_validate_command_observation",
+  "function:_validate_identity_observation", "function:_validate_provenance_observation",
+  "function:_validate_archive_family", "function:_validate_payload_family",
+  "function:_validate_tree_family", "function:_validate_index_family",
+  "function:_validate_module_family", "function:_validate_alias_family",
+  "function:_validate_symbol_family", "function:_validate_command_family",
+  "function:_validate_identity_family", "function:_validate_provenance_family",
+  "function:_evaluate_control_semantics", "function:_rename_noreplace_errcheck",
+  "assign:_SEMANTIC_LIBC", "assign:_SEMANTIC_LIBC.renameat2.argtypes",
+  "assign:_SEMANTIC_LIBC.renameat2.restype", "assign:_SEMANTIC_LIBC.renameat2.errcheck",
+  "function:_rename_noreplace", "function:_semantic_fixture_work_membership",
+  "function:_semantic_fixture_result_bytes", "function:publish_semantic_fixture_result",
+  "class:ExecutionPolicy", "class:OperationalPolicy", "class:OperationalAcceptance",
+  "class:OperationalInputSnapshot", "class:OperationalContext",
+  "class:OperationalEvaluation", "assign:EXECUTION_COMMAND",
+  "assign:EXECUTION_ENVIRONMENT", "assign:EXECUTION_TASK_BINDINGS",
+  "assign:EXECUTION_UID", "assign:EXECUTION_GID", "assign:EXECUTION_CWD",
+  "assign:EXECUTION_UMASK", "assign:EXECUTION_RUNTIME_MOUNTS",
+  "assign:EXECUTION_FIXED_SANDBOX_MOUNTS", "assign:EXECUTION_TASK_INPUTS",
+  "assign:EXECUTION_READ_ONLY_MOUNTS", "assign:EXECUTION_PLANNED_CHILDREN",
+  "assign:EXECUTION_CONTROL_SECONDS", "assign:EXECUTION_CHILD_SECONDS",
+  "assign:EXECUTION_WORKLOAD_SECONDS", "assign:EXECUTION_OUTER_SECONDS",
+  "assign:EXECUTION_MODE", "assign:OPERATIONAL_RECORD_ROOT",
+  "assign:OPERATIONAL_ARTIFACTS", "assign:OPERATIONAL_RESULT_PENDING",
+  "assign:OPERATIONAL_PROOF_PATH", "assign:OPERATIONAL_PROOF_SHA256",
+  "assign:OPERATIONAL_RECIPE_LIMIT", "assign:OPERATIONAL_HEADER_LIMIT",
+  "assign:OPERATIONAL_EVIDENCE_LIMIT", "assign:OPERATIONAL_INDEX_INPUTS",
+  "assign:OPERATIONAL_INPUT_MEMBERS", "assign:OPERATIONAL_INITIAL_WORK_MEMBERS",
+  "assign:OPERATIONAL_REPORT_KEYS", "assign:OPERATIONAL_STDOUT_LIMITS",
+  "assign:OPERATIONAL_STDERR_LIMIT", "assign:OPERATIONAL_REPORT_LIMIT",
+  "assign:OPERATIONAL_EMPTY_CONFIG_LIMIT", "assign:OPERATIONAL_EARLY_STREAM_LIMIT",
+  "assign:OPERATIONAL_MAIN_STREAM_LIMIT", "assign:OPERATIONAL_RECORD_FILES",
+  "assign:OPERATIONAL_CONTROL_TREE_FILES", "assign:OPERATIONAL_LOOKUP_TREE_FILES",
+  "assign:OPERATIONAL_TREE_DIRECTORIES", "assign:OPERATIONAL_TREE_MAX_DEPTH",
+  "assign:OPERATIONAL_TREE_FILE_LIMIT", "assign:OPERATIONAL_TREE_AGGREGATE_LIMIT",
+  "function:operational_execution_policy", "function:_read_bounded_operational_file",
+  "function:_operational_record_path", "function:_validate_operational_record_root",
+  "function:_bounded_operational_tree", "function:_collect_operational_outputs",
+  "function:_read_exact_operational_input", "function:_capture_operational_input_directory",
+  "function:_capture_operational_inputs", "function:_operational_input_bytes",
+  "function:_operational_builtins", "function:_operational_policy_from_inputs",
+  "function:_operational_work_membership", "function:_capture_operational_materialized_file",
+  "function:_materialize_operational_context", "function:_run_operational_commands",
+  "function:_operational_json", "function:_operational_tree_file_record",
+  "function:_validate_operational_records", "function:_read_operational_generated_indexes",
+  "function:_validate_operational_roots", "function:_operational_lookup_target",
+  "function:_validate_operational_semantics", "function:_operational_input_records",
+  "function:_operational_full_tree_identities", "function:_operational_header_bytes",
+  "function:_operational_evidence_bytes", "function:_operational_result_bytes",
+  "function:_finalize_executed_operational_result", "function:_run_operational_control",
+  "function:operational_policy", "function:finalize_operational_result",
+  "function:finalize_structural_result", "function:main", "guard:main",
+)
+
+
+OPERATIONAL_FIXED_NODES = (
+  ("import:math", "f329650e2c61a07a1bab85b32296a6d93760e313e108904819fa27d09cf3954d"),
+  ("importfrom:e_control", "5d19599a4594c6de548e06861a6f6416e073d08d6d5792b3cb28ca5e34900eec"),
+  ("assign:REAL_OPERATIONAL_ARTIFACTS", "dfcaa10dfa1a823031928b92e66f6f8b0fe2fbc5b900a278c82ae236facd2ba1"),
+)
+OPERATIONAL_BLOCK_MANIFEST = (
+  ("class:ExecutionPolicy", "ddebb0c0b6db064f7497c60632656b42667b12ce453bdbf1c2ba6ffa5a6ee680"),
+  ("class:OperationalPolicy", "2502d2178686ca55f42fff73e2d6e92f4d03359b40789fbf4dac9af60b3325ed"),
+  ("class:OperationalAcceptance", "5513d08d8681a37b65974f51335a7c3469385cdc1a899a17bca346ce92d0a64a"),
+  ("class:OperationalInputSnapshot", "33c5c84af40a88a822a8a6fd135ae31ea381c519e3e19a39656a439f6b2b35d9"),
+  ("class:OperationalContext", "bd516555df29980ce8c498326336c05b274302ded4596c683c029a3aac294c80"),
+  ("class:OperationalEvaluation", "3bbec743b4484105784d34f84e8b40f9ae6d7b3c9a8ada6fbb288ab5576d6937"),
+  ("assign:EXECUTION_COMMAND", "1a5018aa31ebdb8358a3a8badaec4f4e6ed452b45949e5a3679ef7eb88e3d995"),
+  ("assign:EXECUTION_ENVIRONMENT", "f40f4d8201d5bdec2c89ccf45d6f9e70b469788397d9b02b2d14e3693ee3dc9c"),
+  ("assign:EXECUTION_TASK_BINDINGS", "344fd4ecf2be39590dbe4bd21d462277c45690ff2ed6a1c8ec11e81a8aa92171"),
+  ("assign:EXECUTION_UID", "eb433e1f346c7efc0fd3a8019ae63edc79848bfa2c2807f8fc1a38c53ffac483"),
+  ("assign:EXECUTION_GID", "fdc6f4cddf9342019df7dd786f67d53aaf6fa0154e25b39280318062c44b9ee1"),
+  ("assign:EXECUTION_CWD", "d6befb9b236cf3cd8ee1fd427047d9b313403b711179fc754dbe5c58b349792d"),
+  ("assign:EXECUTION_UMASK", "52d4ee5b6ab02fb38a3cb0be584dabe9170d496621a49713062ee7f52436eb7c"),
+  ("assign:EXECUTION_RUNTIME_MOUNTS", "08c3874043b833c4c1f6e302514c1d75a3887567873243a27a5c37fddea7aa0f"),
+  ("assign:EXECUTION_FIXED_SANDBOX_MOUNTS", "3d88bd1940e49e05849247b7805a97645f4febc6ee50c1c0542d91103227127f"),
+  ("assign:EXECUTION_TASK_INPUTS", "4facfcd3bdc89356cd2a3df43fb15a9a46433a60d0eb376b68aa7b0590b2aacb"),
+  ("assign:EXECUTION_READ_ONLY_MOUNTS", "2688f9f1dfcaaa3e03a5fefe40a483399bd2f840f83bf456cc1c76d8a3bdb810"),
+  ("assign:EXECUTION_PLANNED_CHILDREN", "a79d98a5c0205c746ad87ccf61070ba6c4bef5624e2a7467842034a381c98ac9"),
+  ("assign:EXECUTION_CONTROL_SECONDS", "df5dceca287915d53bd5269152f7d34f0576d0461c788da07687571e71d23930"),
+  ("assign:EXECUTION_CHILD_SECONDS", "7db7a52dcc3783134df73092d3dcb0c590b06909dae123b3a3fa928035c27f8f"),
+  ("assign:EXECUTION_WORKLOAD_SECONDS", "16bee1ac407b19032da80e7ec96a4060044ec7b1eaf3ab7a31ecec0ea0c47122"),
+  ("assign:EXECUTION_OUTER_SECONDS", "87f462b46ea095cf7241cb45e13260d088df3f316a32add890330e30feae95bc"),
+  ("assign:EXECUTION_MODE", "b9903d654e25291fbe91c79b526591889f44c6901a8c1b340adc8924b1da1f62"),
+  ("assign:OPERATIONAL_RECORD_ROOT", "21dba0709d81ede44b06a8d2dc917c128ad99251b04033dec452f86902855ca1"),
+  ("assign:OPERATIONAL_ARTIFACTS", "e9f855509362a454d0139da913c09f45f3d6b7cfdd31c5b707d9375e3e2394b3"),
+  ("assign:OPERATIONAL_RESULT_PENDING", "d3848a37d9acebbbd6731e197a2acf0843738201a15de25b9e56a3d0e0554179"),
+  ("assign:OPERATIONAL_PROOF_PATH", "0ff684cda75fc829abf339763d34ea60c5dd41b489e3dd981506a9bdcdd6de66"),
+  ("assign:OPERATIONAL_PROOF_SHA256", "5dc7cbd8c6e93ce5e1eb42436a14f4df77d18cdd14e582c1c1da52c319a57294"),
+  ("assign:OPERATIONAL_RECIPE_LIMIT", "03611864f360d6cb5eb64111045a288c7d93b447dddc07ecfec4c50c8ef7a5b5"),
+  ("assign:OPERATIONAL_HEADER_LIMIT", "5fa0089cd85c3c7efa30a3a96ecc08d3d259b3f8216ee82433c8a7e859ed1588"),
+  ("assign:OPERATIONAL_EVIDENCE_LIMIT", "9b75595769e52b01144d35f35eabde037b0c6d4199ded0aa3dd0b7d5b7fdcc53"),
+  ("assign:OPERATIONAL_INDEX_INPUTS", "ae9b5a636c3ec030e37782968cfe81c6fcd0e52d85e735e73d25c52df20a8dff"),
+  ("assign:OPERATIONAL_INPUT_MEMBERS", "8d93483e7f1eeef034d043b8e558ab2fd72729f9ad75ec5d92b286eae29afbf7"),
+  ("assign:OPERATIONAL_INITIAL_WORK_MEMBERS", "e3e50812cd9c93b7e86d7929d144737274efce8d23d0ebd3e3395931f707b3cc"),
+  ("assign:OPERATIONAL_REPORT_KEYS", "02ae986ee9e4fa3352c1f4bb9488a9ceca1743bb83d6f0d2804683fd1d62c9fd"),
+  ("assign:OPERATIONAL_STDOUT_LIMITS", "dde0edeb9ba3dba2d4b7b63d7be5e7ad0bf4e849538062ba6bcdbdf97f0c6b19"),
+  ("assign:OPERATIONAL_STDERR_LIMIT", "7ee739aada236807765f5442de26deb58c78a85d29b0b07f7afc8f195aab8ff0"),
+  ("assign:OPERATIONAL_REPORT_LIMIT", "d7b20c432165ac161669568c98b2ce8133c9d52bc8d7aa8c09e8745dfd824ae9"),
+  ("assign:OPERATIONAL_EMPTY_CONFIG_LIMIT", "1a65d071595c13672f22a91875b4159f8a3a8db9122bf1609920121be9ac68ba"),
+  ("assign:OPERATIONAL_EARLY_STREAM_LIMIT", "5564cc75cf896ef2d6e6a7a48737b948d4f9666f8a6906c78bc97a21b4213842"),
+  ("assign:OPERATIONAL_MAIN_STREAM_LIMIT", "81d4eae5e1f11faa14e62cf304e4f18ecd78563cdaa5e5057e34eaba17f3f857"),
+  ("assign:OPERATIONAL_RECORD_FILES", "de872e1707a8acdbf95a8678f656828cf817a900a55b76c085570ee7b01210ce"),
+  ("assign:OPERATIONAL_CONTROL_TREE_FILES", "86ffd32863eaca78aad9318d271e98675bbf8f7ceac8fafbf5f169f73341509c"),
+  ("assign:OPERATIONAL_LOOKUP_TREE_FILES", "d3d3c23a112100d50550f969a64f34aef2cca8254c74817318d0c6f14b8ee635"),
+  ("assign:OPERATIONAL_TREE_DIRECTORIES", "9430df4f22533bd84b3e1687816a9e9c8a8ab056e46152c5d64a90a304d479f1"),
+  ("assign:OPERATIONAL_TREE_MAX_DEPTH", "73bfac371b2fa69988cf3b399f50a10eaf225e6e39b3a1966ddd2ae382619455"),
+  ("assign:OPERATIONAL_TREE_FILE_LIMIT", "d7c9e4f2710aea60fcfebea986f1176a6ffd50982cf785bfd53fb4f21c0b2d82"),
+  ("assign:OPERATIONAL_TREE_AGGREGATE_LIMIT", "fd988110656cdb0eb137f3139405f9f2ecab3a46d142aa650c3b40bb972f8ba4"),
+  ("function:operational_execution_policy", "eb52d9c172e11c26d3234c113b1ab2f457bcdaaeead34d8bd07d6c6c0667ab96"),
+  ("function:_read_bounded_operational_file", "c6de89fb4352285519fd126957655b3971f2f5330d8388d039a30c992f1fd376"),
+  ("function:_operational_record_path", "9d8b90d82d6dd3e31747293a10c2289ce3089c44a598b6d12ec41922260557a7"),
+  ("function:_validate_operational_record_root", "cad843147a3a32b6cbb5aac72b2d36ec30f20c219f62896b0e888b10e9ec50a9"),
+  ("function:_bounded_operational_tree", "341f88371870002e0579fb31aae2dff7faf1fd524c78733acc7fffcde8164545"),
+  ("function:_collect_operational_outputs", "ada730fc7dbf1e1ee105afb55451952c3e4e1fb13bef27b4220706b61b3e0327"),
+  ("function:_read_exact_operational_input", "4bb672105c76ee25ed996d8db7d87b683b5aaa880bbde79bfa43e8f871a3c405"),
+  ("function:_capture_operational_input_directory", "a511635e4c3661ac015354c635384ac6435d94c079ffc9790af9391886719a1c"),
+  ("function:_capture_operational_inputs", "b3e844757589ddc654135a28b45d1efecfc64043abe700ab93f02130385f75c2"),
+  ("function:_operational_input_bytes", "4d85a91a87268e76a32645827b5c48137fd128c4cb0b7a04d0ab658fca1fddf7"),
+  ("function:_operational_builtins", "bec99f1ffd1563333377ea728f459ec4b2e9d72b898592a52b3de9029dd10672"),
+  ("function:_operational_policy_from_inputs", "00aef061150731ba902767fa49300d12b7b68c5c673df762f47e33f0f47a8c4b"),
+  ("function:_operational_work_membership", "5094c50d5c88b9ed388ad6566251e149295bc25d89d4dba9de0d97e9c762a0fb"),
+  ("function:_capture_operational_materialized_file", "5d3007ef5f99696a588582d7c7e693c593210e920e613c9b4512c6d926219a20"),
+  ("function:_materialize_operational_context", "e243c8c8156ddab2055ce2b899cf2dbd97fa04999362fd4d36c0fd413b7adb32"),
+  ("function:_run_operational_commands", "8dbb5a974157cb07feea15209709400f1900475d6e7e64e19f2619aa6b00bd6f"),
+  ("function:_operational_json", "ba67d651f83b4fe5364f603c8ead45a8c16c4c0f1490048fa4552d5e0ccdac2a"),
+  ("function:_operational_tree_file_record", "b99cd7c30e39387880e5c7e391ea39ee0f45d9c5eb031f8403b82a052fad2477"),
+  ("function:_validate_operational_records", "e1bbc711e6708c14c1b3b4e3733feaacd25eb784e113dbc9cd1ed03f90338e13"),
+  ("function:_read_operational_generated_indexes", "29426c53e221a0a6c630ff6a248825d7622f9cf5b04ecc236373718b2661487f"),
+  ("function:_validate_operational_roots", "3832c2b29e0db09effd2b88863838efdef9651c07097da8a25da4c45ae4fa685"),
+  ("function:_operational_lookup_target", "da248544acff8518e4b3c5731e08ff20451340ca3fe7ddd770847d48c41d0274"),
+  ("function:_validate_operational_semantics", "1b40b3ae7ed2d052e48abc55f01e5c6f4603e9aa828e020133b455d30cbc5217"),
+  ("function:_operational_input_records", "490adfe26f48e7db9d74a4672a4719092510196e138a28253817757f8df152f2"),
+  ("function:_operational_full_tree_identities", "a0e8926202aab88f9d3e26ab4a2d336a18fe7e8ed725eb7a0003b9fad7f70648"),
+  ("function:_operational_header_bytes", "8f8834ad368b29632c731af083a96ad13f97ddebc59f8274947d69bf0d9e77eb"),
+  ("function:_operational_evidence_bytes", "a0b56be3e4acc74da8ff49717b1eef9919ddda944785c51f3edfbf3a2055f66d"),
+  ("function:_operational_result_bytes", "10e3bc0782fa379e524e8e2b7898aa320ac9a3aebbf9ec2639518e2c41a9323c"),
+  ("function:_finalize_executed_operational_result", "9d5cce2401180221338445d2b71d1ff160fc26729aa763a4970f5a0732a4807a"),
+  ("function:_run_operational_control", "cd58764fbcd7281febc5d3934513bfbc775f1bf1176adfcd946863907ff2ddf8"),
+  ("function:operational_policy", "98bca2b5ac333292d85fb3e9ee5e882a808e5e9d42b08934dcb8593b3e286c1c"),
+  ("function:finalize_operational_result", "7a672e89b4e6f0ae3c02efe76c9863b1296e9352938c82c4b4603ccd9fe0e2dc"),
+  ("function:finalize_structural_result", "b9134fb21410042da05a0f1193980a4d7871cecd56ab80e75de8328baf7f57d0"),
+  ("function:main", "b0a5243a116d754e33f65d55fd2a4b9d6fcdde0c9916c301795c9b860ddcfe94"),
+  ("guard:main", "3340fd16ba41ba1ddf3989cd136a498b72a97f7796e0f7fad6e815585dbc1c52"),
+)
+
+
+def require_operational_recipe_contract(tree: ast.Module) -> None:
+  manifest = node_manifest(tree.body)
+  labels = tuple(label for label, _ in manifest)
+  require(
+    len(labels) == len(OPERATIONAL_FULL_TOP_LEVEL_LABELS) == 230
+    and len(set(labels)) == len(labels)
+    and labels == OPERATIONAL_FULL_TOP_LEVEL_LABELS,
+    "fixed full top-level membership, count, or order differs",
+  )
+  by_label: dict[str, list[tuple[ast.stmt, str]]] = {}
+  for node, (label, digest) in zip(tree.body, manifest, strict=True):
+    by_label.setdefault(label, []).append((node, digest))
+  for label, digest in OPERATIONAL_FIXED_NODES:
+    require(by_label.get(label) is not None and len(by_label[label]) == 1
+            and by_label[label][0][1] == digest,
+            f"fixed operational import or artifact node differs: {label}")
+  block_labels = tuple(label for label, _ in OPERATIONAL_BLOCK_MANIFEST)
+  start = next((index for index, item in enumerate(manifest)
+                if item[0] == "class:ExecutionPolicy"), -1)
+  require(start >= 0 and manifest[start:] == OPERATIONAL_BLOCK_MANIFEST,
+          "fixed operational block AST or ordering differs")
+  require(tuple(label for label, _ in manifest[start:]) == block_labels,
+          "fixed operational block labels differ")
+
+  baseline_exceptions = {
+    "expr:docstring", "assign:REAL_OPERATIONAL_ARTIFACTS",
+    "function:operational_policy", "function:finalize_operational_result",
+    "function:main",
+  }
+  for label, digest in BASELINE_TOP_LEVEL_MANIFEST:
+    if label not in baseline_exceptions:
+      require(by_label.get(label) is not None and len(by_label[label]) == 1
+              and by_label[label][0][1] == digest,
+              f"accepted baseline node differs: {label}")
+  for label, expected in FUTURE_REFERENCE_DUMPS.items():
+    require(by_label.get(label) is not None and len(by_label[label]) == 1
+            and normalized_node_dump(by_label[label][0][0]) == expected,
+            f"accepted fixed execution boundary differs: {label}")
+
+  functions = {
+    node.name: node for node in tree.body if isinstance(node, ast.FunctionDef)
+  }
+  operational_names = {
+    label.removeprefix("function:") for label in block_labels
+    if label.startswith("function:") and label not in {
+      "function:finalize_structural_result", "function:main",
+    }
+  }
+  graph: dict[str, frozenset[str]] = {}
+  for name in operational_names:
+    graph[name] = frozenset(
+      call.func.id for call in ast.walk(functions[name])
+      if isinstance(call, ast.Call) and isinstance(call.func, ast.Name)
+      and call.func.id in operational_names
+    )
+  expected_graph = {
+    "_validate_operational_record_root": frozenset((
+      "_operational_record_path", "_read_bounded_operational_file",
+    )),
+    "_bounded_operational_tree": frozenset(("_read_bounded_operational_file",)),
+    "_collect_operational_outputs": frozenset((
+      "_validate_operational_record_root", "_bounded_operational_tree",
+      "_read_bounded_operational_file", "_operational_record_path",
+    )),
+    "_capture_operational_inputs": frozenset((
+      "_read_exact_operational_input", "_capture_operational_input_directory",
+    )),
+    "_operational_policy_from_inputs": frozenset((
+      "_operational_builtins", "_operational_input_bytes",
+      "operational_execution_policy",
+    )),
+    "_capture_operational_materialized_file": frozenset((
+      "_read_bounded_operational_file",
+    )),
+    "_materialize_operational_context": frozenset((
+      "_capture_operational_inputs", "_operational_policy_from_inputs",
+      "_operational_input_bytes", "_capture_operational_materialized_file",
+      "_operational_work_membership",
+    )),
+    "_run_operational_commands": frozenset(("_collect_operational_outputs",)),
+    "_validate_operational_records": frozenset((
+      "_operational_json", "_operational_tree_file_record",
+    )),
+    "_read_operational_generated_indexes": frozenset((
+      "_read_bounded_operational_file",
+    )),
+    "_validate_operational_semantics": frozenset((
+      "_validate_operational_roots", "_read_operational_generated_indexes",
+      "_operational_lookup_target",
+    )),
+    "_operational_evidence_bytes": frozenset((
+      "_operational_input_bytes", "_operational_input_records",
+    )),
+    "_finalize_executed_operational_result": frozenset((
+      "_operational_header_bytes", "_operational_evidence_bytes",
+      "_capture_operational_materialized_file", "_collect_operational_outputs",
+      "_operational_result_bytes", "_operational_full_tree_identities",
+      "_capture_operational_inputs", "_operational_work_membership",
+    )),
+    "_run_operational_control": frozenset((
+      "_materialize_operational_context", "_run_operational_commands",
+      "_validate_operational_records", "_validate_operational_semantics",
+      "_finalize_executed_operational_result",
+    )),
+    "operational_policy": frozenset((
+      "_capture_operational_inputs", "_operational_policy_from_inputs",
+    )),
+  }
+  require(all(graph[name] == expected_graph.get(name, frozenset())
+              for name in graph), "fixed operational internal call graph differs")
+  reachable = {"_run_operational_control"}
+  pending = ["_run_operational_control"]
+  while pending:
+    for name in graph[pending.pop()] - reachable:
+      reachable.add(name)
+      pending.append(name)
+  require(operational_names - {"operational_policy", "finalize_operational_result"}
+          <= reachable, "fixed operational call graph is not closed from main")
+
+  constructors = [
+    (name, call) for name in operational_names for call in ast.walk(functions[name])
+    if isinstance(call, ast.Call) and isinstance(call.func, ast.Name)
+    and call.func.id == "Commands"
+  ]
+  runner_calls = [
+    (name, call) for name in operational_names for call in ast.walk(functions[name])
+    if isinstance(call, ast.Call) and isinstance(call.func, ast.Attribute)
+    and isinstance(call.func.value, ast.Name) and call.func.value.id == "runner"
+    and call.func.attr == "run"
+  ]
+  require(len(constructors) == 1 and constructors[0][0] == "_run_operational_commands"
+          and len(runner_calls) == 2
+          and all(name == "_run_operational_commands" for name, _ in runner_calls),
+          "Commands is not the sole fixed workload launch site")
+  forbidden = {"fork", "forkpty", "posix_spawn", "posix_spawnp", "system", "popen"}
+  require(not any(
+    isinstance(call, ast.Call) and isinstance(call.func, ast.Attribute)
+    and isinstance(call.func.value, ast.Name) and call.func.value.id == "os"
+    and call.func.attr in forbidden
+    for name in operational_names for call in ast.walk(functions[name])
+  ), "operational path reaches an alternate process API")
+
+  sequence = functions["_run_operational_control"].body
+  require(
+    len(sequence) == 5
+    and [statement.targets[0].id for statement in sequence[:4]
+         if isinstance(statement, ast.Assign)]
+    == ["context", "raw_files", "records", "evaluation"]
+    and isinstance(sequence[-1], ast.Return)
+    and isinstance(sequence[-1].value, ast.Call)
+    and isinstance(sequence[-1].value.func, ast.Name)
+    and sequence[-1].value.func.id == "_finalize_executed_operational_result",
+    "fixed execute, collect, validate, finalize order differs",
+  )
+  finalizer = functions["_finalize_executed_operational_result"]
+  finalizer_calls = [
+    call for call in ast.walk(finalizer) if isinstance(call, ast.Call)
+  ]
+  write_targets = [
+    call.args[0].id for call in finalizer_calls
+    if isinstance(call.func, ast.Name) and call.func.id == "write_new"
+    and len(call.args) == 2 and isinstance(call.args[0], ast.Name)
+  ]
+  named_calls = [
+    call.func.id for call in finalizer_calls if isinstance(call.func, ast.Name)
+  ]
+  require(
+    write_targets == ["header_path", "evidence_path", "pending_path"]
+    and named_calls.count("_rename_noreplace") == 1
+    and named_calls.count("_capture_operational_inputs") == 1
+    and named_calls.count("_collect_operational_outputs") == 1
+    and named_calls.count("_operational_full_tree_identities") == 6
+    and isinstance(finalizer.body[-4], ast.Expr)
+    and isinstance(finalizer.body[-4].value, ast.Call)
+    and isinstance(finalizer.body[-4].value.func, ast.Name)
+    and finalizer.body[-4].value.func.id == "write_new"
+    and isinstance(finalizer.body[-4].value.args[0], ast.Name)
+    and finalizer.body[-4].value.args[0].id == "pending_path"
+    and isinstance(finalizer.body[-3], ast.Expr)
+    and isinstance(finalizer.body[-3].value, ast.Call)
+    and isinstance(finalizer.body[-3].value.func, ast.Name)
+    and finalizer.body[-3].value.func.id == "_require"
+    and isinstance(finalizer.body[-2], ast.Expr)
+    and isinstance(finalizer.body[-2].value, ast.Call)
+    and isinstance(finalizer.body[-2].value.func, ast.Name)
+    and finalizer.body[-2].value.func.id == "_rename_noreplace"
+    and all(isinstance(argument, ast.Name) for argument in finalizer.body[-2].value.args)
+    and [argument.id for argument in finalizer.body[-2].value.args]
+    == ["pending_path", "result_path"]
+    and isinstance(finalizer.body[-1], ast.Return)
+    and isinstance(finalizer.body[-1].value, ast.Name)
+    and finalizer.body[-1].value.id == "acceptance",
+    "pending verification or result-last no-replace publication differs",
+  )
+
+
 def pre_vet_subject(raw: bytes) -> tuple[ast.Module, bool]:
   tree = ast.parse(raw, filename=str(SUBJECT), mode="exec")
   actual = node_manifest(tree.body)
   if actual == BASELINE_TOP_LEVEL_MANIFEST:
     return tree, False
+  if any(label == "class:OperationalPolicy" for label, _ in actual):
+    require_operational_recipe_contract(tree)
+    return tree, True
   future_subject = actual == FUTURE_TOP_LEVEL_MANIFEST
   require(future_subject,
           "subject top-level manifest or fixed future ordering differs")
@@ -905,6 +1302,53 @@ def pre_vet_subject(raw: bytes) -> tuple[ast.Module, bool]:
     "exact guarded main call is not sole and last",
   )
   return tree, future_subject
+
+
+def operational_contract_mutation_probe() -> None:
+  source = INPUT_BYTES[SUBJECT].decode("utf-8")
+  mutations = (
+    (
+      "@dataclass(frozen=True)\nclass ExecutionPolicy:",
+      "_semantic_fixture_work_membership()\n\n"
+      "@dataclass(frozen=True)\nclass ExecutionPolicy:",
+    ),
+    (
+      "@dataclass(frozen=True)\nclass ExecutionPolicy:",
+      "Commands = None\n\n@dataclass(frozen=True)\nclass ExecutionPolicy:",
+    ),
+    ("OPERATIONAL_STDERR_LIMIT = 1", "OPERATIONAL_STDERR_LIMIT = 2"),
+    ("runner = Commands(", "runner = CommandsDecoy("),
+    (
+      "records = _validate_operational_records(context, raw_files)\n"
+      "  evaluation = _validate_operational_semantics(context, raw_files, records)",
+      "evaluation = _validate_operational_semantics(context, raw_files, records)\n"
+      "  records = _validate_operational_records(context, raw_files)",
+    ),
+    ("write_new(pending_path, result_raw)", "write_new(result_path, result_raw)"),
+    (
+      "_capture_operational_materialized_file(pending_path, result_raw)",
+      "_capture_operational_materialized_file(header_path, result_raw)",
+    ),
+    (
+      "_capture_operational_inputs() == context.inputs",
+      "context.inputs == context.inputs",
+    ),
+    (
+      "_rename_noreplace(pending_path, result_path)\n  return acceptance",
+      "_rename_noreplace(pending_path, result_path)\n"
+      "  _sha256(result_raw)\n  return acceptance",
+    ),
+  )
+  for old, new in mutations:
+    require(source.count(old) == 1, "operational mutation source is not unique")
+    changed = source.replace(old, new, 1)
+    try:
+      require_operational_recipe_contract(
+        ast.parse(changed, filename=str(SUBJECT), mode="exec"),
+      )
+    except RuntimeError:
+      continue
+    raise RuntimeError("operational contract accepted a cap, launch, order, or publication mutation")
 
 
 def bootstrap() -> tuple[
@@ -1003,14 +1447,24 @@ def no_operational_outputs() -> None:
 
 
 def closed_operational_apis(module: ModuleType) -> None:
-  for name in ("operational_policy", "finalize_operational_result", "main"):
-    function = runtime_function(module, name)
-    try:
-      function()
-    except module.RecipeError as error:
-      require(str(error) == "E_CONTROL_RECIPE_UNAVAILABLE", f"{name} refusal differs")
-    else:
-      raise RuntimeError(f"{name} is not closed")
+  execution = runtime_function(module, "operational_execution_policy")()
+  require(
+    len(execution.task_bindings) == 8
+    and execution.read_only_mounts == 593
+    and execution.planned_children == 424,
+    "fixed operational execution policy differs",
+  )
+  try:
+    runtime_function(module, "finalize_operational_result")()
+  except module.RecipeError as error:
+    require(str(error) == "E_CONTROL_DIRECT_FINALIZE_UNAVAILABLE",
+            "direct operational finalizer refusal differs")
+  else:
+    raise RuntimeError("direct operational finalizer is not closed")
+  require(
+    "_run_operational_control" in runtime_function(module, "main").__code__.co_names,
+    "main does not use the fixed private operational sequence",
+  )
 
 
 def probe_command(root: str, target: str) -> tuple[str, ...]:
@@ -1027,7 +1481,7 @@ def expected_plan(names: dict[str, str]) -> tuple[tuple[str, ...], ...]:
       ("/usr/bin/cpio", "--list", "--quiet", "--file", path),
       ("/usr/bin/bsdtar", "--list", "--file", path),
     ))
-  plan.append(("/usr/bin/gzip",))
+  plan.append(("/usr/bin/gzip", "-n"))
   for path in PAYLOADS:
     plan.append((
       "/usr/bin/bsdtar", "--extract", "--to-stdout", "--file",
@@ -1052,25 +1506,33 @@ def expected_plan(names: dict[str, str]) -> tuple[tuple[str, ...], ...]:
 
 
 def require_unconditional_operational_holds() -> None:
-  for name in ("operational_policy", "finalize_operational_result", "main"):
-    node = function_node(name)
-    require(len(node.body) == 2 and isinstance(node.body[0], ast.Expr)
-            and isinstance(node.body[0].value, ast.Constant)
-            and isinstance(node.body[0].value.value, str),
-            f"{name} must contain only its docstring and refusal")
-    refusal = node.body[1]
-    require(
-      isinstance(refusal, ast.Raise)
-      and refusal.cause is None
-      and isinstance(refusal.exc, ast.Call)
-      and isinstance(refusal.exc.func, ast.Name)
-      and refusal.exc.func.id == "RecipeError"
-      and len(refusal.exc.args) == 1
-      and isinstance(refusal.exc.args[0], ast.Constant)
-      and refusal.exc.args[0].value == "E_CONTROL_RECIPE_UNAVAILABLE"
-      and not refusal.exc.keywords,
-      f"{name} is not an unconditional one-statement refusal",
-    )
+  finalizer = function_node("finalize_operational_result")
+  require(
+    len(finalizer.body) == 2 and isinstance(finalizer.body[0], ast.Expr)
+    and isinstance(finalizer.body[0].value, ast.Constant)
+    and isinstance(finalizer.body[0].value.value, str)
+    and isinstance(finalizer.body[1], ast.Raise)
+    and finalizer.body[1].cause is None
+    and isinstance(finalizer.body[1].exc, ast.Call)
+    and isinstance(finalizer.body[1].exc.func, ast.Name)
+    and finalizer.body[1].exc.func.id == "RecipeError"
+    and len(finalizer.body[1].exc.args) == 1
+    and isinstance(finalizer.body[1].exc.args[0], ast.Constant)
+    and finalizer.body[1].exc.args[0].value == "E_CONTROL_DIRECT_FINALIZE_UNAVAILABLE"
+    and not finalizer.body[1].exc.keywords,
+    "direct operational finalizer is not an unconditional refusal",
+  )
+  main_node = function_node("main")
+  main_body = main_node.body[1:] if ast.get_docstring(main_node, clean=False) is not None \
+    else main_node.body
+  require(
+    len(main_body) == 1 and isinstance(main_body[0], ast.Expr)
+    and isinstance(main_body[0].value, ast.Call)
+    and isinstance(main_body[0].value.func, ast.Name)
+    and main_body[0].value.func.id == "_run_operational_control"
+    and not main_body[0].value.args and not main_body[0].value.keywords,
+    "main is not the exact fixed private operational entry",
+  )
 
 
 def pure_setup_checks() -> None:
@@ -1096,6 +1558,7 @@ def pure_setup_checks() -> None:
     and len(plan) == PLANNED_CHILDREN
     and plan == independent_plan
     and all(commands.approved_command(command) for command in plan)
+    and not commands.approved_command(("/usr/bin/gzip",))
     and not any(command[0] == "/usr/bin/python3.14" for command in plan),
     "authenticated pure E command plan differs",
   )
@@ -1125,6 +1588,36 @@ def runtime_function(module: ModuleType, name: str) -> Callable[..., object]:
     f"runtime {name} is not the authenticated function definition",
   )
   return value
+
+
+def operational_publication_fault_shape_probe() -> None:
+  finalizer = function_node("_finalize_executed_operational_result")
+  require(not any(isinstance(node, ast.Try) for node in ast.walk(finalizer)),
+          "operational publisher can catch or continue after a publication fault")
+  pending_write, verification, publication, returned = finalizer.body[-4:]
+  require(
+    isinstance(pending_write, ast.Expr) and isinstance(pending_write.value, ast.Call)
+    and isinstance(pending_write.value.func, ast.Name)
+    and pending_write.value.func.id == "write_new"
+    and isinstance(pending_write.value.args[0], ast.Name)
+    and pending_write.value.args[0].id == "pending_path"
+    and isinstance(verification, ast.Expr) and isinstance(verification.value, ast.Call)
+    and isinstance(verification.value.func, ast.Name)
+    and verification.value.func.id == "_require"
+    and isinstance(publication, ast.Expr) and isinstance(publication.value, ast.Call)
+    and isinstance(publication.value.func, ast.Name)
+    and publication.value.func.id == "_rename_noreplace"
+    and isinstance(returned, ast.Return),
+    "operational publication fault boundary differs",
+  )
+  final_writes = [
+    call for call in ast.walk(finalizer)
+    if isinstance(call, ast.Call) and isinstance(call.func, ast.Name)
+    and call.func.id == "write_new" and call.args
+    and isinstance(call.args[0], ast.Name) and call.args[0].id == "result_path"
+  ]
+  require(not final_writes,
+          "a pending-write or verification fault could leave a final result")
 
 
 def require_fixed_self_bootstrap() -> None:
@@ -1859,6 +2352,8 @@ class EExecutionRedTests(unittest.TestCase):
 
   def test_b_exact_execution_policy_is_missing(self) -> None:
     pure_setup_checks()
+    operational_contract_mutation_probe()
+    operational_publication_fault_shape_probe()
     self.assertTrue(
       hasattr(subject, "ExecutionPolicy")
       and hasattr(subject, "operational_execution_policy"),

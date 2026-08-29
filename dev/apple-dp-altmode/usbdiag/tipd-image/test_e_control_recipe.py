@@ -18,7 +18,7 @@ import unittest
 
 
 SUBJECT = Path("/inputs/recipe")
-SUBJECT_SHA256 = "70f369f87942b6ca6826c808536353ae0cc400123204040b9c005995ab43c3e3"
+SUBJECT_SHA256 = "57d35a30de9b351bcbaf0b78a1be186c8c44a2fbfb378d8f0b801e6e9256a7a9"
 ASSEMBLY = Path("/inputs/assembly/prepare_image.py")
 CONTRACT = Path("/inputs/contract/image_contract.py")
 COMMANDS = Path("/inputs/subject/e_control.py")
@@ -29,7 +29,7 @@ SOURCE_PINS = {
   SUBJECT: SUBJECT_SHA256,
   ASSEMBLY: "00caceb3b7fa236dcc030fb4007d0baa75bfa08fcd1590626f85fcc8c22d5f60",
   CONTRACT: "a1eda280aa56967aa06b01a2cca0dfc70c3da6df25066f8a1e815beec719f1bf",
-  COMMANDS: "abbf59410a05fd5c789820df3d40e59d0a5c33cf1204ab93c7aeef806da7b1df",
+  COMMANDS: "16016875e731e88d047eb805c7c6d03045300abdb262361b18010a952adb7b80",
   Path("/inputs/control/verify_control.py"):
     "10b5afe6cff38df7b6ebe5619fd9a34935932a4b369f3a9ad2a51923c32932d8",
   Path("/inputs/helper/cpio_image.py"):
@@ -92,7 +92,8 @@ PAYLOAD_SHA256 = {
 OPERATIONAL_OUTPUTS = (
   "/work/control-root", "/work/lookup-root", "/work/empty-modprobe.conf",
   "/work/e-early.cpio", "/work/e-main.cpio", "/work/e-control-result.json",
-  "/work/e-control-header.json",
+  "/work/e-control-header.json", "/work/e-control-evidence.json",
+  "/work/e-control-result.pending",
 )
 
 
@@ -153,10 +154,13 @@ def bootstrap() -> tuple[ModuleType, ModuleType, ModuleType, ModuleType,
     "cpio_image", "verify_control", "prepare_image", "t1_image_contract", "e_control", "e_recipe",
   )), "dependency already imported")
   data = {path: read_pinned(path) for path in PINS}
-  assembly = load_source("prepare_image", ASSEMBLY, data[ASSEMBLY][0])
-  contract = load_source("t1_image_contract", CONTRACT, data[CONTRACT][0])
-  commands = load_source("e_control", COMMANDS, data[COMMANDS][0])
   subject = load_source("e_recipe", SUBJECT, data[SUBJECT][0])
+  assembly = sys.modules["prepare_image"]
+  contract = sys.modules["t1_image_contract"]
+  commands = sys.modules["e_control"]
+  require(all(isinstance(value, ModuleType) for value in (
+    assembly, contract, commands,
+  )), "self-bootstrap dependency module differs")
   return (subject, contract, commands, assembly, {path: pair[0] for path, pair in data.items()},
           {path: pair[1] for path, pair in data.items()})
 
@@ -183,7 +187,7 @@ def expected_plan(names: dict[str, str]) -> tuple[tuple[str, ...], ...]:
   for path in ("/work/e-early.cpio", "/work/e-main.cpio"):
     plan.extend((("/usr/bin/cpio", "--list", "--quiet", "--file", path),
                  ("/usr/bin/bsdtar", "--list", "--file", path)))
-  plan.append(("/usr/bin/gzip",))
+  plan.append(("/usr/bin/gzip", "-n"))
   for path in PAYLOAD_SHA256:
     plan.append(("/usr/bin/bsdtar", "--extract", "--to-stdout", "--file", "/work/e-main.cpio", path))
   plan.append(("/usr/bin/depmod", "-b", "/work/control-root", KERNEL))
@@ -269,6 +273,7 @@ def setup_fixtures() -> None:
           "full mapping multiplicity oracle differs")
   EXPECTED_PLAN = expected_plan(NAMES)
   require(len(EXPECTED_PLAN) == 424 and all(commands.approved_command(argv) for argv in EXPECTED_PLAN)
+          and not commands.approved_command(("/usr/bin/gzip",))
           and not any(argv[0] == "/usr/bin/python3.14" for argv in EXPECTED_PLAN),
           "literal control plan is not within the reviewed command boundary")
   save_json(WORK / "setup.json", {
@@ -395,8 +400,19 @@ class ERecipeTests(unittest.TestCase):
         subject.command_plan(names)
 
   def test_operational_and_assembly_gates_stay_closed(self) -> None:
-    with self.assertRaisesRegex(subject.RecipeError, "^E_CONTROL_RECIPE_UNAVAILABLE$"):
-      subject.main()
+    execution = subject.operational_execution_policy()
+    self.assertIsInstance(execution, subject.ExecutionPolicy)
+    self.assertEqual(execution.task_bindings, (
+      "/inputs/recipe", "/inputs/subject", "/inputs/contract", "/inputs/assembly",
+      "/inputs/control", "/inputs/helper", "/inputs/base", "/inputs/index-inputs",
+    ))
+    self.assertEqual(execution.read_only_mounts, 593)
+    self.assertEqual(execution.planned_children, 424)
+    self.assertIn("_run_operational_control", subject.main.__code__.co_names)
+    with self.assertRaisesRegex(
+      subject.RecipeError, "^E_CONTROL_DIRECT_FINALIZE_UNAVAILABLE$",
+    ):
+      subject.finalize_operational_result()
     with self.assertRaisesRegex(commands.ControlError, "^E_CONTROL_UNAVAILABLE$"):
       commands.main()
     with self.assertRaisesRegex(contract.ImageContractError, "^T1_ASSEMBLY_UNAVAILABLE$"):

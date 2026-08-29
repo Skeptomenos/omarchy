@@ -22,7 +22,23 @@ import unittest
 
 TEST = Path("/inputs/test")
 SUBJECT = Path("/inputs/recipe")
-SUBJECT_SHA256 = "70f369f87942b6ca6826c808536353ae0cc400123204040b9c005995ab43c3e3"
+SUBJECT_SHA256 = "57d35a30de9b351bcbaf0b78a1be186c8c44a2fbfb378d8f0b801e6e9256a7a9"
+OPERATIONAL_SUFFIX_NODES = 83
+OPERATIONAL_SUFFIX_AST_SHA256 = "597131f931549deb081af6de5850d7f6e81d962ea9fac0dd3f6673686fd72418"
+PREEXEC_FIXED_FUNCTIONS = {
+  "_fixed_source_identity": "01240d44f2ede531f75fdce10a920805bbcce06d46e2290775aef7932613ecd2",
+  "_load_fixed_source": "8e0f30701dd24eca9c34a033cf1fcf14c518bb80e911f677e64463b0dc88e0e7",
+  "_bootstrap_fixed_sources": "108f90d8b76474848385bf9d74b09cef1590a30889839aef4eebe509cd4d1199",
+}
+PREEXEC_CTYPES_ASSIGNMENTS = {
+  "_SEMANTIC_LIBC": "7428666797d2cb5b97661440f4c11bf97189f7e18f8783401a851a4af82e9ef0",
+  "_SEMANTIC_LIBC.renameat2.argtypes":
+    "96162c6bd7154053244bb1667cba13bfcadd86713d5aa95cb122679162a76a96",
+  "_SEMANTIC_LIBC.renameat2.restype":
+    "4c3f37aed312fb2c30e4ebc2a57afb241b28fa342fb618cb984f70a11c55407a",
+  "_SEMANTIC_LIBC.renameat2.errcheck":
+    "4df426cb6c947ce2d5628880c71bc58f49decd790f7ba44d96b26320a412a29e",
+}
 ASSEMBLY = Path("/inputs/assembly/prepare_image.py")
 CONTRACT = Path("/inputs/contract/image_contract.py")
 COMMANDS = Path("/inputs/subject/e_control.py")
@@ -37,7 +53,7 @@ SOURCE_PINS = {
   SUBJECT: SUBJECT_SHA256,
   ASSEMBLY: "00caceb3b7fa236dcc030fb4007d0baa75bfa08fcd1590626f85fcc8c22d5f60",
   CONTRACT: "a1eda280aa56967aa06b01a2cca0dfc70c3da6df25066f8a1e815beec719f1bf",
-  COMMANDS: "abbf59410a05fd5c789820df3d40e59d0a5c33cf1204ab93c7aeef806da7b1df",
+  COMMANDS: "16016875e731e88d047eb805c7c6d03045300abdb262361b18010a952adb7b80",
   CONTROL: "10b5afe6cff38df7b6ebe5619fd9a34935932a4b369f3a9ad2a51923c32932d8",
   HELPER: "a32eddd159263d19ff87d7e9caee9d53d17ef5c350fbffe9e7eb142cb43ebf58",
 }
@@ -157,7 +173,8 @@ REAL_OUTPUTS = (
   Path("/work/control-root"), Path("/work/lookup-root"), Path("/work/empty-modprobe.conf"),
   Path("/work/e-early.cpio"), Path("/work/e-main.cpio"),
   Path("/work/e-control-children-e1"), Path("/work/e-control-header.json"),
-  Path("/work/e-control-evidence.json"), Path("/work/e-control-result.json"),
+  Path("/work/e-control-evidence.json"), Path("/work/e-control-result.pending"),
+  Path("/work/e-control-result.json"),
   Path("/work/e-control-structural-records-e1"),
   Path("/work/e-control-structural-header.json"),
   Path("/work/e-control-structural-evidence.json"),
@@ -176,7 +193,7 @@ EARLY_LIST_BYTES = 47
 EARLY_LIST_SHA256 = "62d818f030037bc3bbfc080899def7a67770961cc81d821ab750dcd06ea974cd"
 MAIN_LIST_BYTES = 42863
 MAIN_LIST_SHA256 = "90e515cd5008382d737295497faf85f8fe530a19eca8bad4097cf0eb78e36633"
-EXPECTED_AGGREGATE_SHA256: str | None = "68dd45eeeb9239b873c293b81cbbb5b7403d4ff0d5d1b5a32f3e27c14c92d44e"
+EXPECTED_AGGREGATE_SHA256: str | None = "5f80a3cf89e2c21e9f694cb8ed47a062aa44003f554ceb18f5de3fc87ea6ebf0"
 INITIAL_WORK_MEMBERS = frozenset((
   "descriptor-sentinel", "probe-write", "stdout.log", "stderr.log",
 ))
@@ -223,7 +240,9 @@ SUBJECT_EXACT_IMPORTS = {
   "fnmatchcase": ("fnmatch", "fnmatchcase"),
   "hashlib": (None, "hashlib"),
   "json": (None, "json"),
+  "math": (None, "math"),
   "module_name": ("verify_control", "module_name"),
+  "NoReturn": ("typing", "NoReturn"),
   "os": (None, "os"),
   "parse_newc": ("cpio_image", "parse_newc"),
   "read_regular": ("cpio_image", "read_regular"),
@@ -235,10 +254,15 @@ SUBJECT_EXACT_IMPORTS = {
   "stat": (None, "stat"),
   "validate_binary_dump": ("prepare_image", "validate_binary_dump"),
   "write_new": ("cpio_image", "write_new"),
+  "Commands": ("e_control", "Commands"),
+  "ControlError": ("e_control", "ControlError"),
+  "build_root": ("e_control", "build_root"),
+  "ordered_lookup": ("e_control", "ordered_lookup"),
 }
 SUBJECT_REQUIRED_IMPORTS = frozenset((
   "Archive", "Module", "Path", "alias_entries", "dataclass", "dependency_entries",
-  "hashlib", "json", "module_name", "os", "parse_newc", "re", "regular_member",
+  "hashlib", "json", "math", "module_name", "NoReturn", "os", "parse_newc", "re",
+  "regular_member", "Commands", "ControlError", "build_root", "ordered_lookup",
   "select_indexes", "single_gzip", "stat", "validate_binary_dump", "write_new",
 ))
 SUBJECT_CRITICAL_BUILTINS = frozenset((
@@ -368,6 +392,7 @@ def preexec_subject_source_shape(raw: bytes) -> None:
   allowed_imports = {
     "ctypes", "dataclasses", "errno", "fnmatch", "hashlib", "json", "os", "pathlib",
     "re", "stat", "typing", "cpio_image", "prepare_image", "verify_control",
+    "e_control", "math",
   }
   allowed_assignment_calls = {"Path", "ctypes.CDLL", "frozenset"}
   allowed_attribute_targets = {
@@ -395,6 +420,38 @@ def preexec_subject_source_shape(raw: bytes) -> None:
     }
 
   top_level_ids = {id(node) for node in tree.body}
+  exact_top_level_imports = (
+    ("from", "dataclasses", ("dataclass",)),
+    ("import", None, ("ctypes",)),
+    ("import", None, ("errno",)),
+    ("from", "fnmatch", ("fnmatchcase",)),
+    ("import", None, ("hashlib",)),
+    ("import", None, ("json",)),
+    ("import", None, ("math",)),
+    ("import", None, ("os",)),
+    ("from", "pathlib", ("Path",)),
+    ("import", None, ("re",)),
+    ("import", None, ("stat",)),
+    ("from", "typing", ("NoReturn",)),
+    ("from", "cpio_image", ("Archive", "parse_newc", "read_regular", "write_new")),
+    ("from", "prepare_image", (
+      "ALIASES_HEADER", "SYMBOLS_HEADER", "WEAKDEP_HEADER", "alias_entries",
+      "dependency_entries", "single_gzip", "validate_binary_dump",
+    )),
+    ("from", "verify_control", (
+      "FileState", "Module", "TreeState", "module_name", "regular_member",
+      "select_indexes", "snapshot",
+    )),
+    ("from", "e_control", ("Commands", "ControlError", "build_root", "ordered_lookup")),
+  )
+  observed_top_level_imports = tuple(
+    ("import", None, tuple(alias.name for alias in node.names))
+    if isinstance(node, ast.Import) else
+    ("from", node.module, tuple(alias.name for alias in node.names))
+    for node in tree.body if isinstance(node, (ast.Import, ast.ImportFrom))
+  )
+  require(observed_top_level_imports == exact_top_level_imports,
+          "subject exact top-level imports or order differ")
   imports: list[tuple[str, str | None, str, str | None, bool]] = []
   for node in ast.walk(tree):
     if isinstance(node, ast.Import):
@@ -482,16 +539,21 @@ def preexec_subject_source_shape(raw: bytes) -> None:
       require(not node.decorator_list and all(not calls(value) for value in signature_nodes),
               "subject function signature would execute a call during import")
     elif isinstance(node, ast.ClassDef):
-      require(not node.keywords and
-              all(isinstance(base, ast.Name) and base.id == "RuntimeError"
-                  for base in node.bases) and
-              all(isinstance(decorator, ast.Call) and dotted(decorator.func) == "dataclass" and
-                  not decorator.args and len(decorator.keywords) == 1 and
-                  decorator.keywords[0].arg == "frozen" and
-                  isinstance(decorator.keywords[0].value, ast.Constant) and
-                  decorator.keywords[0].value.value is True
-                  for decorator in node.decorator_list),
-              "subject class definition differs")
+      dataclass_decorator = bool(
+        len(node.decorator_list) == 1 and
+        isinstance(node.decorator_list[0], ast.Call) and
+        dotted(node.decorator_list[0].func) == "dataclass" and
+        not node.decorator_list[0].args and len(node.decorator_list[0].keywords) == 1 and
+        node.decorator_list[0].keywords[0].arg == "frozen" and
+        isinstance(node.decorator_list[0].keywords[0].value, ast.Constant) and
+        node.decorator_list[0].keywords[0].value.value is True
+      )
+      recipe_error = bool(
+        node.name == "RecipeError" and not node.decorator_list and len(node.bases) == 1 and
+        isinstance(node.bases[0], ast.Name) and node.bases[0].id == "RuntimeError"
+      )
+      require(not node.keywords and ((not node.bases and dataclass_decorator) or recipe_error),
+              "subject class definition or exact dataclass decorator differs")
       require(all(
         (isinstance(item, ast.Expr) and isinstance(item.value, ast.Constant) and
          type(item.value.value) is str) or
@@ -547,10 +609,124 @@ def preexec_subject_source_shape(raw: bytes) -> None:
         "subject import-time branch differs",
       )
     elif isinstance(node, ast.Expr):
-      require(isinstance(node.value, ast.Constant) and type(node.value.value) is str,
-              "subject has an executable top-level expression")
+      docstring = isinstance(node.value, ast.Constant) and type(node.value.value) is str
+      bootstrap_call = bool(
+        isinstance(node.value, ast.Call) and dotted(node.value.func) == "_bootstrap_fixed_sources"
+        and not node.value.args and not node.value.keywords
+      )
+      require(docstring or bootstrap_call,
+              "subject has an unapproved executable top-level expression")
     else:
       raise RuntimeError("subject has an unapproved import-time statement")
+
+  functions = {
+    node.name: node for node in tree.body if isinstance(node, ast.FunctionDef)
+  }
+  for name, digest in PREEXEC_FIXED_FUNCTIONS.items():
+    definitions = [
+      node for node in ast.walk(tree)
+      if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))
+      and node.name == name
+    ]
+    require(len(definitions) == 1 and isinstance(definitions[0], ast.FunctionDef) and
+            id(definitions[0]) in top_level_ids and
+            sha256(ast.dump(definitions[0], include_attributes=False).encode("utf-8")) == digest,
+            f"subject fixed pre-import function differs: {name}")
+  bootstrap_calls = [
+    node for node in ast.walk(tree)
+    if isinstance(node, ast.Call) and dotted(node.func) == "_bootstrap_fixed_sources"
+  ]
+  top_bootstrap = [
+    index for index, node in enumerate(tree.body)
+    if isinstance(node, ast.Expr) and node.value in bootstrap_calls
+  ]
+  fixed_definition = tree.body.index(functions["_bootstrap_fixed_sources"])
+  dependency_imports = [
+    index for index, node in enumerate(tree.body)
+    if isinstance(node, ast.ImportFrom) and node.module in {
+      "cpio_image", "prepare_image", "verify_control", "e_control",
+    }
+  ]
+  require(len(bootstrap_calls) == len(top_bootstrap) == 1 and dependency_imports
+          and fixed_definition < top_bootstrap[0] < min(dependency_imports),
+          "subject fixed bootstrap call position differs")
+  ctypes_paths = frozenset(PREEXEC_CTYPES_ASSIGNMENTS)
+  for name, digest in PREEXEC_CTYPES_ASSIGNMENTS.items():
+    assignments = [
+      node for node in tree.body
+      if isinstance(node, ast.Assign) and len(node.targets) == 1 and
+      dotted(node.targets[0]) == name
+    ]
+    stores = [
+      node for node in ast.walk(tree)
+      if isinstance(node, (ast.Name, ast.Attribute)) and isinstance(node.ctx, ast.Store)
+      and dotted(node) == name
+    ]
+    require(len(assignments) == len(stores) == 1 and stores[0] is assignments[0].targets[0] and
+            sha256(ast.dump(assignments[0], include_attributes=False).encode("utf-8")) == digest,
+            f"subject exact ctypes binding assignment differs: {name}")
+  require(not any(
+    (isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)) and
+     node.name == "_SEMANTIC_LIBC") or
+    (isinstance(node, (ast.ExceptHandler, ast.MatchAs, ast.MatchStar)) and
+     node.name == "_SEMANTIC_LIBC") or
+    (isinstance(node, ast.MatchMapping) and node.rest == "_SEMANTIC_LIBC") or
+    (isinstance(node, ast.arg) and node.arg == "_SEMANTIC_LIBC") or
+    (isinstance(node, (ast.Global, ast.Nonlocal)) and "_SEMANTIC_LIBC" in node.names) or
+    (isinstance(node, ast.Delete) and any(dotted(target) in ctypes_paths
+                                         for target in node.targets))
+    for node in ast.walk(tree)
+  ), "subject exact ctypes binding is shadowed, captured, or deleted")
+  main_guards = [
+    node for node in ast.walk(tree)
+    if isinstance(node, ast.If) and any(
+      isinstance(item, ast.Name) and isinstance(item.ctx, ast.Load) and item.id == "__name__"
+      for item in ast.walk(node.test)
+    )
+  ]
+  require(len(main_guards) == 1 and tree.body[-1] is main_guards[0],
+          "subject exact __main__ guard is not sole and last")
+
+
+def preexec_loader_order_shape(raw: bytes) -> None:
+  try:
+    tree = ast.parse(raw.decode("utf-8"), filename=str(TEST))
+  except (SyntaxError, UnicodeError):
+    raise RuntimeError("semantic runner is not parseable UTF-8 Python") from None
+  bootstraps = [
+    node for node in tree.body
+    if isinstance(node, ast.FunctionDef) and node.name == "bootstrap"
+  ]
+  require(len(bootstraps) == 1, "semantic runner bootstrap definition differs")
+  body = bootstraps[0].body
+
+  def exact_subject_raw(value: ast.expr) -> bool:
+    return bool(
+      isinstance(value, ast.Subscript) and isinstance(value.value, ast.Subscript) and
+      isinstance(value.value.value, ast.Name) and value.value.value.id == "data" and
+      isinstance(value.value.slice, ast.Name) and value.value.slice.id == "SUBJECT" and
+      isinstance(value.slice, ast.Constant) and value.slice.value == 0
+    )
+
+  gates = [
+    index for index, node in enumerate(body)
+    if isinstance(node, ast.Expr) and isinstance(node.value, ast.Call) and
+    isinstance(node.value.func, ast.Name) and
+    node.value.func.id == "preexec_subject_source_shape" and len(node.value.args) == 1 and
+    not node.value.keywords and exact_subject_raw(node.value.args[0])
+  ]
+  loads = [
+    index for index, node in enumerate(body)
+    if isinstance(node, ast.Assign) and len(node.targets) == 1 and
+    isinstance(node.targets[0], ast.Name) and node.targets[0].id == "subject" and
+    isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Name) and
+    node.value.func.id == "load_source" and len(node.value.args) == 3 and
+    not node.value.keywords and isinstance(node.value.args[0], ast.Constant) and
+    node.value.args[0].value == "e_recipe" and isinstance(node.value.args[1], ast.Name) and
+    node.value.args[1].id == "SUBJECT" and exact_subject_raw(node.value.args[2])
+  ]
+  require(len(gates) == len(loads) == 1 and loads[0] == gates[0] + 1,
+          "pre-import subject gate is not immediately before the sole subject load")
 
 
 def bootstrap() -> tuple[ModuleType, ModuleType, ModuleType, ModuleType, ModuleType,
@@ -570,16 +746,24 @@ def bootstrap() -> tuple[ModuleType, ModuleType, ModuleType, ModuleType, ModuleT
     "cpio_image", "verify_control", "prepare_image", "t1_image_contract", "e_control", "e_recipe",
   )), "dependency already imported")
   test_raw, test_state = validate_binding_tree()
+  preexec_loader_order_shape(test_raw)
   data = {path: read_pinned(path) for path in PINS}
   indexes, index_state, index_file_states = read_index_directory()
-  assembly = load_source("prepare_image", ASSEMBLY, data[ASSEMBLY][0])
-  control = sys.modules.get("verify_control")
-  require(isinstance(control, ModuleType) and control.__file__ == str(CONTROL),
-          "frozen control helper was not imported")
-  contract = load_source("t1_image_contract", CONTRACT, data[CONTRACT][0])
-  commands = load_source("e_control", COMMANDS, data[COMMANDS][0])
   preexec_subject_source_shape(data[SUBJECT][0])
   subject = load_source("e_recipe", SUBJECT, data[SUBJECT][0])
+  assembly = sys.modules.get("prepare_image")
+  control = sys.modules.get("verify_control")
+  contract = sys.modules.get("t1_image_contract")
+  commands = sys.modules.get("e_control")
+  require(
+    isinstance(assembly, ModuleType) and assembly.__file__ == str(ASSEMBLY) and
+    isinstance(control, ModuleType) and control.__file__ == str(CONTROL) and
+    isinstance(contract, ModuleType) and contract.__file__ == str(CONTRACT) and
+    isinstance(commands, ModuleType) and commands.__file__ == str(COMMANDS) and
+    isinstance(sys.modules.get("cpio_image"), ModuleType) and
+    sys.modules["cpio_image"].__file__ == str(HELPER),
+    "authenticated subject bootstrap source files differ",
+  )
   return (
     subject, contract, commands, assembly, control,
     {path: pair[0] for path, pair in data.items()},
@@ -658,7 +842,7 @@ def expected_plan(names: dict[str, str], *, fixture: bool) -> tuple[tuple[str, .
   for path in (early_path, main_path):
     plan.extend((("/usr/bin/cpio", "--list", "--quiet", "--file", path),
                  ("/usr/bin/bsdtar", "--list", "--file", path)))
-  plan.append(("/usr/bin/gzip",))
+  plan.append(("/usr/bin/gzip", "-n"))
   for path in PAYLOAD_SHA256:
     plan.append(("/usr/bin/bsdtar", "--extract", "--to-stdout", "--file", main_path, path))
   plan.append(("/usr/bin/depmod", "-b", control_root, KERNEL))
@@ -1066,7 +1250,7 @@ def exact_reader(function: ast.FunctionDef, policy: str) -> bool:
 
 
 def critical_callable_load_source_shape(tree: ast.Module) -> tuple[bool, str]:
-  module_bindings = {"ctypes", "errno", "hashlib", "json", "os", "re", "stat"}
+  module_bindings = {"ctypes", "errno", "hashlib", "json", "math", "os", "re", "stat"}
   guarded = (
     (set(SUBJECT_EXACT_IMPORTS) - module_bindings) | set(SUBJECT_CRITICAL_BUILTINS) |
     set(SUBJECT_REQUIRED_LOCAL_FUNCTIONS) | set(SUBJECT_FUTURE_LOCAL_FUNCTIONS) |
@@ -1270,7 +1454,7 @@ def aggregate_source_shape() -> tuple[bool, str]:
     if not binding_ok:
       return False, binding_message
     functions = {node.name: node for node in tree.body if isinstance(node, ast.FunctionDef)}
-    for name in ("operational_policy", "finalize_operational_result", "main"):
+    for name in ("finalize_operational_result",):
       function = functions[name]
       top_level_rebound = any(
         isinstance(node, (ast.Assign, ast.AnnAssign, ast.AugAssign)) and any(
@@ -1297,9 +1481,18 @@ def aggregate_source_shape() -> tuple[bool, str]:
           not isinstance(error, ast.Call) or call_name(error) != "RecipeError" or
           len(error.args) != 1 or error.keywords or
           not isinstance(error.args[0], ast.Constant) or
-          error.args[0].value != "E_CONTROL_RECIPE_UNAVAILABLE" or
+          error.args[0].value != "E_CONTROL_DIRECT_FINALIZE_UNAVAILABLE" or
           raised.cause is not None):
         return False, f"closed operational function differs: {name}"
+    main = functions["main"]
+    main_body = function_statements(main)
+    if not (
+      len(main_body) == 1 and isinstance(main_body[0], ast.Expr) and
+      isinstance(main_body[0].value, ast.Call) and
+      call_name(main_body[0].value) == "_run_operational_control" and
+      not main_body[0].value.args and not main_body[0].value.keywords
+    ):
+      return False, "fixed operational main entry differs"
     semantic_functions = {
       "_map_raw_control_outputs", "_collect_fixed_raw_files",
       "_read_fixed_semantic_fixture_outputs", "_read_fixed_operational_outputs",
@@ -1516,13 +1709,55 @@ def aggregate_source_shape() -> tuple[bool, str]:
     return False, f"aggregate source inspection failed: {type(error).__name__}"
 
 
-def publication_source_shape() -> tuple[bool, str]:
+def publication_source_shape(
+  raw: bytes | None = None,
+  *,
+  authenticate_source: bool = True,
+) -> tuple[bool, str]:
   try:
-    tree = ast.parse(INPUT_BYTES[SUBJECT].decode("utf-8"), filename=str(SUBJECT))
+    source_raw = INPUT_BYTES[SUBJECT] if raw is None else raw
+    if authenticate_source and sha256(source_raw) != SUBJECT_SHA256:
+      return False, "publication source pin differs"
+    tree = ast.parse(source_raw.decode("utf-8"), filename=str(SUBJECT))
+    boundaries = [
+      index for index, node in enumerate(tree.body)
+      if isinstance(node, ast.ClassDef) and node.name == "ExecutionPolicy"
+    ]
+    if len(boundaries) != 1:
+      return False, "authenticated operational suffix boundary differs"
+    boundary = boundaries[0]
+    semantic_starts = [
+      index for index, node in enumerate(tree.body)
+      if isinstance(node, ast.Assign) and len(node.targets) == 1
+      and isinstance(node.targets[0], ast.Name) and node.targets[0].id == "KERNEL"
+    ]
+    if (
+      len(semantic_starts) != 1 or semantic_starts[0] >= boundary or
+      not isinstance(tree.body[semantic_starts[0] - 1], ast.ImportFrom) or
+      tree.body[semantic_starts[0] - 1].module != "e_control"
+    ):
+      return False, "authenticated semantic prefix boundary differs"
+    source_safety_tree = ast.Module(body=tree.body[:boundary], type_ignores=[])
+    semantic_tree = ast.Module(
+      body=tree.body[semantic_starts[0]:boundary], type_ignores=[],
+    )
+    operational_tree = ast.Module(body=tree.body[boundary:], type_ignores=[])
+    if (
+      len(operational_tree.body) != OPERATIONAL_SUFFIX_NODES or
+      sha256(ast.dump(operational_tree, include_attributes=False).encode("utf-8"))
+      != OPERATIONAL_SUFFIX_AST_SHA256
+    ):
+      return False, "authenticated operational suffix AST differs"
     binding_ok, binding_message = critical_callable_load_source_shape(tree)
     if not binding_ok:
       return False, binding_message
     functions = {node.name: node for node in tree.body if isinstance(node, ast.FunctionDef)}
+    if any(
+      name not in functions or
+      sha256(ast.dump(functions[name], include_attributes=False).encode("utf-8")) != digest
+      for name, digest in PREEXEC_FIXED_FUNCTIONS.items()
+    ):
+      return False, "authenticated fixed bootstrap function differs"
     required_functions = {
       "_rename_noreplace_errcheck", "_rename_noreplace",
       "_semantic_fixture_work_membership", "_semantic_fixture_result_bytes",
@@ -1704,38 +1939,10 @@ def publication_source_shape() -> tuple[bool, str]:
         "_SEMANTIC_LIBC.renameat2.errcheck",
       } and (value_path in protected or value_tail in unsafe_tails | {"renameat2"}):
         return False, "module aliases a protected or unsafe callable"
-    whole_allowed_exact = {
-      "FileState", "Module", "Path", "RecipeError", "RuntimeError", "TreeState",
-      "ValueError", "alias_entries", "all", "any", "bool", "bytes", "dataclass",
-      "dependency_entries", "dict", "enumerate", "float", "fnmatchcase", "frozenset",
-      "hashlib.sha256", "int", "isinstance", "json.dumps", "json.loads", "len", "list",
-      "map", "max", "min", "module_name", "object", "os.close", "os.fsencode",
-      "os.fstat", "os.open", "os.read", "parse_newc", "range", "read_regular",
-      "re.fullmatch", "re.search", "regular_member", "select_indexes", "set", "single_gzip",
-      "snapshot", "sorted", "stat.S_IMODE", "stat.S_ISDIR", "stat.S_ISREG", "str", "sum",
-      "tuple", "type", "validate_binary_dump", "write_new", "zip", "ctypes.CDLL",
-      "ctypes.get_errno", "_SEMANTIC_LIBC.renameat2",
-    } | {
-      node.name for node in ast.walk(tree)
-      if isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef))
-    }
-    whole_allowed_tails = {
-      "add", "append", "copy", "decode", "encode", "endswith", "exists", "extend", "get",
-      "hexdigest", "hex", "is_absolute", "is_symlink", "isspace", "items", "iterdir",
-      "join", "keys", "lstat", "relative_to", "removeprefix", "split", "splitlines",
-      "startswith", "update", "values",
-    }
-    rename_calls_whole = []
-    for node in ast.walk(tree):
-      if not isinstance(node, ast.Call):
-        continue
-      called = target_path(node.func)
-      tail = node.func.attr if isinstance(node.func, ast.Attribute) else called
-      if called in {"getattr", "setattr", "delattr"} or tail in unsafe_tails or \
-         (called not in whole_allowed_exact and tail not in whole_allowed_tails):
-        return False, "module contains unresolved, dynamic, overwrite, unlink, or subprocess call"
-      if tail == "renameat2":
-        rename_calls_whole.append(node)
+    rename_calls_whole = [
+      node for node in ast.walk(semantic_tree)
+      if isinstance(node, ast.Call) and target_path(node.func) == "_SEMANTIC_LIBC.renameat2"
+    ]
 
     err_body = function_statements(errcheck)
     if ([argument.arg for argument in (*errcheck.args.posonlyargs, *errcheck.args.args)] !=
@@ -1924,8 +2131,93 @@ def publication_source_shape() -> tuple[bool, str]:
             not hash_calls[0].keywords and exact_name(hash_calls[0].args[0], "result_raw")):
       return False, "publisher does not precompute the result hash from result_raw"
 
+    def exact_nofollow_open(call: ast.Call, path_name: str) -> bool:
+      flags = ast.parse(
+        "os.O_RDONLY | os.O_NONBLOCK | os.O_NOFOLLOW | os.O_CLOEXEC", mode="eval",
+      ).body
+      return bool(
+        target_path(call.func) == "os.open" and len(call.args) == 2 and not call.keywords and
+        exact_name(call.args[0], path_name) and
+        ast.dump(call.args[1], include_attributes=False) ==
+        ast.dump(flags, include_attributes=False)
+      )
+
+    loader = functions["_load_fixed_source"]
+    bootstrap_loader = functions["_bootstrap_fixed_sources"]
+    structural_reader = functions["_structural_read"]
+    loader_opens = [
+      node for node in ast.walk(loader)
+      if isinstance(node, ast.Call) and target_path(node.func) == "os.open"
+    ]
+    structural_opens = [
+      node for node in ast.walk(structural_reader)
+      if isinstance(node, ast.Call) and target_path(node.func) == "os.open"
+    ]
+    rollback_updates = [
+      node for node in ast.walk(bootstrap_loader)
+      if isinstance(node, ast.Call) and target_path(node.func) == "os.sys.modules.update"
+    ]
+    prefix_opens = [
+      node for node in ast.walk(source_safety_tree)
+      if isinstance(node, ast.Call) and target_path(node.func) == "os.open"
+    ]
+    prefix_updates = [
+      node for node in ast.walk(source_safety_tree)
+      if isinstance(node, ast.Call) and target_path(node.func) == "os.sys.modules.update"
+    ]
+    prefix_writes = [
+      node for node in ast.walk(source_safety_tree)
+      if isinstance(node, ast.Call) and target_path(node.func) == "write_new"
+    ]
+    if not (
+      len(loader_opens) == len(structural_opens) == len(rollback_updates) == 1 and
+      exact_nofollow_open(loader_opens[0], "source") and
+      exact_nofollow_open(structural_opens[0], "path") and
+      len(rollback_updates[0].args) == 1 and not rollback_updates[0].keywords and
+      exact_name(rollback_updates[0].args[0], "saved_modules") and
+      len(prefix_opens) == 2 and {id(node) for node in prefix_opens} == {
+        id(loader_opens[0]), id(structural_opens[0]),
+      } and prefix_updates == rollback_updates and prefix_writes == [write_call]
+    ):
+      return False, "fixed write, no-follow read, or bootstrap rollback site differs"
+    reviewed_call_ids = {
+      id(node)
+      for name in PREEXEC_FIXED_FUNCTIONS
+      for node in ast.walk(functions[name])
+      if isinstance(node, ast.Call)
+    } | {id(structural_opens[0]), id(write_call)}
+    whole_allowed_exact = {
+      "FileState", "Module", "Path", "RecipeError", "RuntimeError", "TreeState",
+      "ValueError", "alias_entries", "all", "any", "bool", "bytes", "dataclass",
+      "dependency_entries", "dict", "enumerate", "float", "fnmatchcase", "frozenset",
+      "hashlib.sha256", "int", "isinstance", "json.dumps", "json.loads", "len", "list",
+      "map", "max", "min", "module_name", "object", "os.close", "os.fsencode",
+      "os.fstat", "os.read", "parse_newc", "range", "read_regular", "re.fullmatch",
+      "re.search", "regular_member", "select_indexes", "set", "single_gzip", "snapshot",
+      "sorted", "stat.S_IMODE", "stat.S_ISDIR", "stat.S_ISREG", "str", "sum", "tuple",
+      "type", "validate_binary_dump", "zip", "ctypes.CDLL", "ctypes.get_errno",
+      "_require", "_SEMANTIC_LIBC.renameat2",
+    } | {
+      node.name for node in ast.walk(source_safety_tree)
+      if isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef))
+    }
+    whole_allowed_tails = {
+      "add", "append", "copy", "decode", "encode", "endswith", "exists", "extend", "get",
+      "hexdigest", "hex", "is_absolute", "is_symlink", "isspace", "items", "iterdir",
+      "join", "keys", "lstat", "relative_to", "removeprefix", "split", "splitlines",
+      "startswith", "values",
+    }
+    for node in ast.walk(source_safety_tree):
+      if not isinstance(node, ast.Call) or id(node) in reviewed_call_ids:
+        continue
+      called = target_path(node.func)
+      tail = node.func.attr if isinstance(node.func, ast.Attribute) else called
+      if called in {"getattr", "setattr", "delattr"} or tail in unsafe_tails or \
+         (called not in whole_allowed_exact and tail not in whole_allowed_tails):
+        return False, "module contains unresolved, dynamic, overwrite, unlink, or subprocess call"
+
     abi_targets = [
-      node for node in ast.walk(tree) if isinstance(node, ast.Attribute) and
+      node for node in ast.walk(semantic_tree) if isinstance(node, ast.Attribute) and
       isinstance(node.ctx, ast.Store) and target_path(node) in {
         "_SEMANTIC_LIBC.renameat2.argtypes", "_SEMANTIC_LIBC.renameat2.restype",
         "_SEMANTIC_LIBC.renameat2.errcheck",
@@ -1957,10 +2249,6 @@ def publication_source_shape() -> tuple[bool, str]:
       if isinstance(call, ast.Call) and isinstance(call.func, ast.Name) and
       call.func.id in guarded_callables
     } | {
-      id(call.func) for call in ast.walk(tree)
-      if isinstance(call, ast.Call) and isinstance(call.func, ast.Name) and
-      call.func.id == "write_new"
-    } | {
       id(call.func) for name in semantic_functions for call in ast.walk(functions[name])
       if isinstance(call, ast.Call) and isinstance(call.func, ast.Name) and
       call.func.id in semantic_functions
@@ -1972,7 +2260,7 @@ def publication_source_shape() -> tuple[bool, str]:
       "_SEMANTIC_LIBC.renameat2", "_SEMANTIC_LIBC.renameat2.argtypes",
       "_SEMANTIC_LIBC.renameat2.restype", "_SEMANTIC_LIBC.renameat2.errcheck",
     }
-    for node in ast.walk(tree):
+    for node in ast.walk(semantic_tree):
       if isinstance(node, ast.Attribute) and isinstance(node.ctx, ast.Load):
         path = target_path(node)
         if (path in protected_attributes or node.attr in unsafe_tails) and \
@@ -1983,7 +2271,7 @@ def publication_source_shape() -> tuple[bool, str]:
          id(node) not in allowed_protected_nodes:
         return False, "protected callable is aliased, captured, or invoked outside its fixed site"
 
-    readonly_ok, readonly_message = semantic_readonly_source_shape(tree, functions)
+    readonly_ok, readonly_message = semantic_readonly_source_shape(semantic_tree, functions)
     if not readonly_ok:
       return False, readonly_message
     publication_terminals = {
@@ -2025,6 +2313,31 @@ def publication_source_shape() -> tuple[bool, str]:
     return True, "publication source shape is fixed"
   except (KeyError, SyntaxError, UnicodeError, TypeError, ValueError) as error:
     return False, f"publication source inspection failed: {type(error).__name__}"
+
+
+def publication_prefix_mutation_probe() -> tuple[bool, str]:
+  source = INPUT_BYTES[SUBJECT]
+  marker = b"@dataclass(frozen=True)\nclass ExecutionPolicy:"
+  require(source.count(marker) == 1, "semantic/operational boundary marker differs")
+  mutations = (
+    ("runner.run", b"runner.run(())\n\n"),
+    ("os.environ.update", b"os.environ.update({})\n\n"),
+    ("write_new", b"write_new(Path('/work/decoy'), b'x')\n\n"),
+  )
+  messages: list[str] = []
+  for label, statement in mutations:
+    mutated = source.replace(marker, statement + marker, 1)
+    try:
+      preexec_subject_source_shape(mutated)
+    except RuntimeError as error:
+      messages.append(f"preexec {label}: {error}")
+    else:
+      return False, f"pre-import gate accepted inserted unsafe {label} call"
+    accepted, message = publication_source_shape(mutated, authenticate_source=False)
+    if accepted:
+      return False, f"publication gate accepted inserted unsafe {label} call"
+    messages.append(f"publication {label}: {message}")
+  return True, "; ".join(messages)
 
 
 def setup_fixtures() -> None:
@@ -2104,6 +2417,7 @@ def setup_fixtures() -> None:
   EXPECTED_FIXTURE_PLAN = expected_plan(NAMES, fixture=True)
   require(len(EXPECTED_OPERATIONAL_PLAN) == len(EXPECTED_FIXTURE_PLAN) == 424 and
           all(commands.approved_command(argv) for argv in EXPECTED_OPERATIONAL_PLAN) and
+          not commands.approved_command(("/usr/bin/gzip",)) and
           not any(argv[0] == "/usr/bin/python3.14" for argv in EXPECTED_OPERATIONAL_PLAN) and
           EXPECTED_OPERATIONAL_PLAN != EXPECTED_FIXTURE_PLAN,
           "independent operational and fixture plans differ")
@@ -2238,9 +2552,15 @@ class EControlSemanticRedTests(unittest.TestCase):
       fresh_control_proved=False, image_created=False, module_loaded=False,
       staged=False, booted=False,
     ))
-    for name in ("operational_policy", "finalize_operational_result", "main"):
-      with self.assertRaisesRegex(subject.RecipeError, "^E_CONTROL_RECIPE_UNAVAILABLE$"):
-        getattr(subject, name)()
+    execution = subject.operational_execution_policy()
+    self.assertEqual(len(execution.task_bindings), 8)
+    self.assertEqual(execution.read_only_mounts, 593)
+    self.assertEqual(execution.planned_children, 424)
+    self.assertIn("_run_operational_control", subject.main.__code__.co_names)
+    with self.assertRaisesRegex(
+      subject.RecipeError, "^E_CONTROL_DIRECT_FINALIZE_UNAVAILABLE$",
+    ):
+      subject.finalize_operational_result()
     no_publication()
     self.assertEqual(work_members(), expected_fixture_members())
 
@@ -2438,6 +2758,8 @@ class EControlSemanticRedTests(unittest.TestCase):
     self.assertEqual(subject.SEMANTIC_FIXTURE_WORK_MEMBERS, expected_fixture_members())
     self.assertIs(subject._SEMANTIC_LIBC.renameat2.errcheck,
                   subject._rename_noreplace_errcheck)
+    mutation_ok, mutation_message = publication_prefix_mutation_probe()
+    self.assertTrue(mutation_ok, mutation_message)
     shape_ok, shape_message = publication_source_shape()
     self.assertTrue(shape_ok, shape_message)
 

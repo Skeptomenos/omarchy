@@ -20,7 +20,7 @@ import zlib
 
 
 SOURCE = Path("/inputs/subject/e_control.py")
-SOURCE_SHA256 = "abbf59410a05fd5c789820df3d40e59d0a5c33cf1204ab93c7aeef806da7b1df"
+SOURCE_SHA256 = "16016875e731e88d047eb805c7c6d03045300abdb262361b18010a952adb7b80"
 CONTRACT = Path("/inputs/contract/image_contract.py")
 ASSEMBLY = Path("/inputs/assembly/prepare_image.py")
 PINS = {
@@ -218,7 +218,7 @@ class EControlTests(unittest.TestCase):
   def test_runner_gzip_regular_stdin_roundtrip(self) -> None:
     root = child_root("gzip")
     commands = subject.Commands(root)
-    raw = commands.run(("/usr/bin/gzip",), stdin=WORK / "stdin.fixture",
+    raw = commands.run(("/usr/bin/gzip", "-n"), stdin=WORK / "stdin.fixture",
                        stdin_sha256=sha256(STDIN_BYTES), stdout_limit=65536)
     self.assertIsInstance(raw, bytes, "missing actively bounded child result")
     self.assertEqual(assembly.single_gzip(raw, len(STDIN_BYTES)), STDIN_BYTES)
@@ -226,7 +226,7 @@ class EControlTests(unittest.TestCase):
     self.assertEqual(read_regular(root / "child-000.stderr"), b"")
     report = child_report(root)
     self.assertEqual((report["status"], report["returncode"]), ("ok", 0))
-    self.assertEqual(report["command"], ["/usr/bin/gzip"])
+    self.assertEqual(report["command"], ["/usr/bin/gzip", "-n"])
     self.assertEqual(report["stdin_sha256"], sha256(STDIN_BYTES))
     self.assertEqual(commands.count, 1)
     self.assertEqual(identity((WORK / "stdin.fixture").lstat()), FIXTURE_STATES[WORK / "stdin.fixture"])
@@ -280,7 +280,7 @@ class EControlTests(unittest.TestCase):
   def test_unapproved_commands_and_limits_refuse_before_children(self) -> None:
     commands = subject.Commands(child_root("arguments"))
     for command in (
-      ("/usr/bin/bash", "-c", "true"), ("/usr/bin/gzip", "-f"),
+      ("/usr/bin/bash", "-c", "true"), ("/usr/bin/gzip",), ("/usr/bin/gzip", "-f"),
       ("/usr/bin/python3.14", "-c", "print(1)"),
       python_child("print('not a whitelisted fixture')"),
       ("/usr/bin/modprobe", "tps6598x_core"),
@@ -326,7 +326,7 @@ class EControlTests(unittest.TestCase):
       (WORK / "absent.fixture", "0" * 64),
     ):
       with self.subTest(path=path.name), self.assertRaisesRegex(subject.ControlError, "^CHILD_INPUT$"):
-        commands.run(("/usr/bin/gzip",), stdin=path, stdin_sha256=digest)
+        commands.run(("/usr/bin/gzip", "-n"), stdin=path, stdin_sha256=digest)
     self.assertEqual(commands.count, 0)
 
   def test_child_outputs_are_never_replaced(self) -> None:

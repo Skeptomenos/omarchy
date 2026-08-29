@@ -1,6 +1,6 @@
 # Fixed E-only structural boundary before operational control
 
-Status: corrected zero-child structural GREEN accepted and regressed. Retained run `run-elj0pbjn` is the original acceptance. Current run `run-f0tjlamv` passed all three selected checks with 594 unchanged read-only inputs and zero of the 424 control-workload commands executed. The accepted RED, rejected first GREEN, corrected candidate, two repository-mode setup stops, and current regression remain separate. Nothing in this checkpoint runs the 424-command control, creates a real control result, constructs an image, stages, boots or changes hardware.
+Status: the corrected zero-child structural GREEN and its original pins below are retained history. The current corrected recipe SHA is `57d35a30de9b351bcbaf0b78a1be186c8c44a2fbfb378d8f0b801e6e9256a7a9`, the helper SHA is `16016875e731e88d047eb805c7c6d03045300abdb262361b18010a952adb7b80`, and the structural runner SHA is `f4419eeab9d713f9f42c2467aecb8c2eb582e5f4271669c9833aab5e997ca72c`. Independent QA `run-qv63ivbi` passed 3/3 with 594 unchanged read-only mounts and zero workload children. One later production attempt failed closed. The corrected production entry has not run, so there is no fresh E-control PASS. Nothing in this structural checkpoint creates a real control result, constructs an image, stages, boots, or changes hardware.
 
 ## Provenance history
 
@@ -43,9 +43,9 @@ This document is not self-pinned. Record its final hash in external evidence aft
 
 Retained run `run-elj0pbjn` passed 3/3 with no timeout. Its complete 424-record and 1,272-file structural graph stayed structural-only. Test B created and exact-verified the positive structural result. Test C then removed it before both negative cases and intentionally left it absent. No real control path or result existed. The containment probe runs its own version and standard-library smoke subprocesses, so zero children means zero of the 424 control-workload commands.
 
-## Corrected zero-child boundary
+## Corrected zero-child boundary (historical)
 
-[run_e_control.py](run_e_control.py) keeps `operational_policy()`, `finalize_operational_result()` and `main()` closed with `E_CONTROL_RECIPE_UNAVAILABLE`. Real status `PASS`, `fresh_control_proved=true`, real child evidence and `/work/e-control-result.json` stay reserved for the later executed 424-command workload.
+At this checkpoint, [run_e_control.py](run_e_control.py) kept `operational_policy()`, `finalize_operational_result()` and `main()` closed with `E_CONTROL_RECIPE_UNAVAILABLE`. Real status `PASS`, `fresh_control_proved=true`, real child evidence and `/work/e-control-result.json` stayed reserved for the later executed 424-command workload.
 
 The corrected candidate exposes only:
 
@@ -84,8 +84,8 @@ The corrected test has nine task bindings: the future eight operational inputs p
 
 | Sandbox target | Frozen input and guard |
 |---|---|
-| `/inputs/test` | Current tracked runner; exact mode `0644`, UID/GID 1001, single-link and under 128 KiB. |
-| `/inputs/recipe` | Current tracked subject; exact mode `0644`, UID/GID 1001 and single-link. |
+| `/inputs/test` | Historical tracked runner; exact mode `0644`, UID/GID 1001, single-link and under 128 KiB. |
+| `/inputs/recipe` | Historical tracked subject; exact mode `0644`, UID/GID 1001 and single-link. |
 | `/inputs/subject/e_control.py` | SHA `abbf59410a05fd5c789820df3d40e59d0a5c33cf1204ab93c7aeef806da7b1df`; sole file in a private source directory. |
 | `/inputs/contract/image_contract.py` | SHA `a1eda280aa56967aa06b01a2cca0dfc70c3da6df25066f8a1e815beec719f1bf`; sole file in a private source directory. |
 | `/inputs/assembly/prepare_image.py` | SHA `00caceb3b7fa236dcc030fb4007d0baa75bfa08fcd1590626f85fcc8c22d5f60`; sole file in a private source directory. |
@@ -104,9 +104,9 @@ The retained index input directory contains only:
 
 The runner requires exact `/inputs` membership and fixed `/inputs/proof` SHA `9133cb64040f9df0daf9aa0caaab913c90fe7ce5c9bf59a19c71ce3e36fb0c94`. It records full input identities before import, uses `O_NOFOLLOW` reads and rechecks every input after the assertions.
 
-## Retained limits and next gate
+## Retained limits and next gate (historical)
 
-This checkpoint does not implement direct self-authentication in `main()`, root construction, `Commands.run()`, archive-tool execution, gzip, depmod, lookup execution, real evidence production or real result finalization. The next implementation must preserve the reviewed 424-command order, active child caps and reaping, 270-second internal budget, 280/285-second outer limits, exclusive outputs, complete input/root readback, all 200 lookups, exact alias/symbol checks, the known `modules.symbols.bin` exception and all seven retained E indexes.
+This checkpoint did not implement direct self-authentication in `main()`, root construction, `Commands.run()`, archive-tool execution, gzip, depmod, lookup execution, real evidence production, or real result finalization. Its next implementation had to preserve the reviewed 424-command order, active child caps and reaping, 270-second internal budget, 280/285-second outer limits, exclusive outputs, complete input/root readback, all 200 lookups, exact alias/symbol checks, the known `modules.symbols.bin` exception, and all seven retained E indexes. The superseding current status is at the top of this document.
 
 The first current-source rerun, `run-urf729h4`, stopped before setup because the runner still expected its old private-snapshot mode. `run-b_gwjn23` stopped next because the subject still expected its old private-snapshot mode. Both retained unchanged inputs, passed isolation, ran no tests or workload children, and created no control artifact. The two corrections are exact: only the test and `/inputs/recipe` modes changed to `0644`; all other pinned private inputs remain `0600`. `run-f0tjlamv` then passed 3/3. Independent QA and safety review passed.
 

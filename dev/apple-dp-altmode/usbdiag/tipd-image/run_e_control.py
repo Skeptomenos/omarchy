@@ -1,11 +1,9 @@
-"""Pure boundaries for a new, fixed E-only no-change control.
+"""Fixed E-only no-change control for the reviewed offline sandbox.
 
-The runner authenticates the pure dependency chain before importing this
-module. Historical C2 index bytes are test inputs only, never a completed
-fresh-control proof. These functions read no file and launch no command.
-
-The operational entry point and T1 assembly remain unavailable. Two fixed-path
-functions expose only a distinct zero-child structural policy and result.
+The module authenticates its five-source dependency chain. The public policy
+functions remain read-only. Only ``main`` can materialize the fixed roots,
+execute the 424-command plan, validate the fresh evidence, and publish the
+no-change result. This recipe cannot build, load, stage, or boot an image.
 """
 
 from dataclasses import dataclass
@@ -14,6 +12,7 @@ import errno
 from fnmatch import fnmatchcase
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import re
@@ -36,7 +35,7 @@ FIXED_SOURCE_INPUTS = (
   ("verify_control", "/inputs/control/verify_control.py", "10b5afe6cff38df7b6ebe5619fd9a34935932a4b369f3a9ad2a51923c32932d8"),
   ("prepare_image", "/inputs/assembly/prepare_image.py", "00caceb3b7fa236dcc030fb4007d0baa75bfa08fcd1590626f85fcc8c22d5f60"),
   ("t1_image_contract", "/inputs/contract/image_contract.py", "a1eda280aa56967aa06b01a2cca0dfc70c3da6df25066f8a1e815beec719f1bf"),
-  ("e_control", "/inputs/subject/e_control.py", "abbf59410a05fd5c789820df3d40e59d0a5c33cf1204ab93c7aeef806da7b1df"),
+  ("e_control", "/inputs/subject/e_control.py", "16016875e731e88d047eb805c7c6d03045300abdb262361b18010a952adb7b80"),
 )
 
 def _fixed_source_identity(info: os.stat_result) -> tuple[int, ...]:
@@ -107,6 +106,7 @@ from prepare_image import (
 from verify_control import (
   FileState, Module, TreeState, module_name, regular_member, select_indexes, snapshot,
 )
+from e_control import Commands, ControlError, build_root, ordered_lookup
 
 
 KERNEL = "7.1.6-1-1-ARCH"
@@ -197,6 +197,7 @@ STRUCTURAL_ARTIFACTS = (
 )
 REAL_OPERATIONAL_ARTIFACTS = (
   "/work/e-control-header.json", "/work/e-control-evidence.json", "/work/e-control-result.json",
+  "/work/e-control-result.pending",
 )
 STDOUT_BYTES = 64 * 1024 * 1024
 STDERR_BYTES = 65536
@@ -506,7 +507,7 @@ def command_plan(names: dict[str, str]) -> tuple[tuple[str, ...], ...]:
       ("/usr/bin/cpio", "--list", "--quiet", "--file", path),
       ("/usr/bin/bsdtar", "--list", "--file", path),
     ))
-  result.append(("/usr/bin/gzip",))
+  result.append(("/usr/bin/gzip", "-n"))
   for path in PAYLOAD_SHA256:
     result.append((
       "/usr/bin/bsdtar", "--extract", "--to-stdout", "--file", MAIN_PATH, path,
@@ -888,7 +889,7 @@ def _semantic_command_plan(
       ("/usr/bin/cpio", "--list", "--quiet", "--file", path),
       ("/usr/bin/bsdtar", "--list", "--file", path),
     ))
-  result.append(("/usr/bin/gzip",))
+  result.append(("/usr/bin/gzip", "-n"))
   for path in PAYLOAD_SHA256:
     result.append((
       "/usr/bin/bsdtar", "--extract", "--to-stdout", "--file", main_path, path,
@@ -1122,7 +1123,8 @@ def _validate_command_shape(
       "/usr/bin/bsdtar", "--list", "--file", SEMANTIC_OPERATIONAL_PATHS[5],
     ], "E_CONTROL_SEMANTIC_INVALID")
   elif index == 4:
-    _require(command == ["/usr/bin/gzip"] and operational_command == ["/usr/bin/gzip"],
+    _require(command == ["/usr/bin/gzip", "-n"] and
+             operational_command == ["/usr/bin/gzip", "-n"],
              "E_CONTROL_SEMANTIC_INVALID")
   elif 5 <= index <= 8:
     payload = tuple(PAYLOAD_SHA256)[index - 5]
@@ -1629,6 +1631,64 @@ class ExecutionPolicy:
   outer_seconds: int
   mode: str
 
+
+@dataclass(frozen=True)
+class OperationalPolicy:
+  execution: ExecutionPolicy
+  commands: tuple[tuple[str, ...], ...]
+  record_root: str
+  control_root: str
+  lookup_root: str
+  empty_config: str
+  early_stream: str
+  main_stream: str
+  artifacts: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class OperationalAcceptance:
+  status: str
+  mode: str
+  header_sha256: str
+  evidence_sha256: str
+  result_sha256: str
+  planned_children: int
+  children_executed: int
+  operational_control_proved: bool
+  fresh_control_proved: bool
+  image_created: bool
+  module_loaded: bool
+  staged: bool
+  booted: bool
+
+
+@dataclass(frozen=True)
+class OperationalInputSnapshot:
+  files: tuple[tuple[str, bytes, tuple[int, ...]], ...]
+  directories: tuple[tuple[str, tuple[int, ...], tuple[str, ...]], ...]
+
+
+@dataclass(frozen=True)
+class OperationalContext:
+  policy: OperationalPolicy
+  inputs: OperationalInputSnapshot
+  selection: ESelection
+  names: dict[str, str]
+  builtins: set[str]
+  control_before: TreeState
+  lookup_before: TreeState
+  materialized_files: tuple[tuple[str, bytes, tuple[int, ...]], ...]
+
+
+@dataclass(frozen=True)
+class OperationalEvaluation:
+  records: tuple[dict[str, object], ...]
+  generated: dict[str, bytes]
+  regeneration: Regeneration
+  module_lookups: tuple[dict[str, object], ...]
+  alias_lookups: tuple[dict[str, object], ...]
+  symbol_lookups: tuple[dict[str, object], ...]
+
 EXECUTION_COMMAND = ("/usr/bin/python3.14", "-I", "-S", "-B", "/inputs/recipe")
 EXECUTION_ENVIRONMENT = (
   ("PATH", "/usr/bin:/bin"),
@@ -1655,6 +1715,34 @@ EXECUTION_WORKLOAD_SECONDS = 280
 EXECUTION_OUTER_SECONDS = 285
 EXECUTION_MODE = "E_NO_CHANGE_OFFLINE"
 OPERATIONAL_RECORD_ROOT = "/work/e-control-children-e1"
+OPERATIONAL_ARTIFACTS = (
+  "/work/e-control-header.json",
+  "/work/e-control-evidence.json",
+  "/work/e-control-result.json",
+)
+OPERATIONAL_RESULT_PENDING = "/work/e-control-result.pending"
+OPERATIONAL_PROOF_PATH = "/inputs/proof"
+OPERATIONAL_PROOF_SHA256 = "9133cb64040f9df0daf9aa0caaab913c90fe7ce5c9bf59a19c71ce3e36fb0c94"
+OPERATIONAL_RECIPE_LIMIT = 128 * 1024
+OPERATIONAL_HEADER_LIMIT = 2 * 1024 * 1024
+OPERATIONAL_EVIDENCE_LIMIT = 16 * 1024 * 1024
+OPERATIONAL_INDEX_INPUTS = {
+  "modules.order": (73113, "497c8546d3131d01191f7a66b68047abce5e5235ae982890180007f55c51a927"),
+  "modules.builtin": (10592, "74de5bab05fe70496f7702d83974adf8816ea826f1d8579f3b3f4b28a3890d2b"),
+  "modules.builtin.modinfo": (106640, "702d4cabaa9bdc1b282d0e419ba091f64dc06ba737fe7319928bb3003adeea4b"),
+}
+OPERATIONAL_INPUT_MEMBERS = frozenset((
+  "recipe", "subject", "contract", "assembly", "control", "helper",
+  "base", "index-inputs", "proof",
+))
+OPERATIONAL_INITIAL_WORK_MEMBERS = frozenset((
+  "descriptor-sentinel", "probe-write", "stdout.log", "stderr.log",
+))
+OPERATIONAL_REPORT_KEYS = frozenset((
+  "command", "status", "returncode", "stdout", "stderr", "retained_bytes",
+  "observed_bytes", "stdin_sha256", "stdin_bytes", "elapsed_seconds", "pid",
+  "killed", "reaped",
+))
 OPERATIONAL_STDOUT_LIMITS = (
   1024, 1024, 65536, 65536, E_BYTES - 10240,
   1213760, 12368, 66512, 20312, 1, 128 * 1024, 128 * 1024,
@@ -1909,14 +1997,779 @@ def _collect_operational_outputs() -> RawControlFiles:
   )
 
 
-def operational_policy() -> NoReturn:
-  """Reserve the real executed-control policy for the later semantic workload."""
-  raise RecipeError("E_CONTROL_RECIPE_UNAVAILABLE")
+def _read_exact_operational_input(
+  path: Path,
+  *,
+  maximum: int,
+  mode: int,
+  size: int | None,
+  digest: str | None,
+) -> tuple[bytes, tuple[int, ...]]:
+  _require(path.is_absolute() and path.is_relative_to("/inputs"), "E_CONTROL_INPUT_INVALID")
+  _require(type(maximum) is int and 0 < maximum <= E_BYTES, "E_CONTROL_INPUT_INVALID")
+  _require(type(mode) is int and mode in (0o600, 0o644), "E_CONTROL_INPUT_INVALID")
+  _require(size is None or type(size) is int and 0 <= size <= maximum,
+           "E_CONTROL_INPUT_INVALID")
+  _require(digest is None or type(digest) is str
+           and re.fullmatch(r"[0-9a-f]{64}", digest) is not None,
+           "E_CONTROL_INPUT_INVALID")
+  try:
+    before = path.lstat()
+    _require(stat.S_ISREG(before.st_mode), "E_CONTROL_INPUT_INVALID")
+    _require(stat.S_IMODE(before.st_mode) == mode, "E_CONTROL_INPUT_INVALID")
+    _require(before.st_uid == before.st_gid == 1001, "E_CONTROL_INPUT_INVALID")
+    _require(before.st_nlink == 1, "E_CONTROL_INPUT_INVALID")
+    _require(0 < before.st_size <= maximum, "E_CONTROL_INPUT_INVALID")
+    _require(size is None or before.st_size == size, "E_CONTROL_INPUT_INVALID")
+    descriptor = os.open(
+      path, os.O_RDONLY | os.O_NONBLOCK | os.O_NOFOLLOW | os.O_CLOEXEC,
+    )
+    with os.fdopen(descriptor, "rb") as stream:
+      _require(_structural_identity(before) == _structural_identity(os.fstat(descriptor)),
+               "E_CONTROL_INPUT_INVALID")
+      raw = stream.read(maximum + 1)
+      _require(
+        _structural_identity(before) == _structural_identity(os.fstat(descriptor))
+        == _structural_identity(path.lstat()),
+        "E_CONTROL_INPUT_INVALID",
+      )
+    _require(len(raw) == before.st_size <= maximum, "E_CONTROL_INPUT_INVALID")
+    _require(digest is None or _sha256(raw) == digest, "E_CONTROL_INPUT_INVALID")
+    return raw, _structural_identity(before)
+  except RecipeError:
+    raise
+  except (OSError, RuntimeError, ValueError, TypeError, OverflowError):
+    raise RecipeError("E_CONTROL_INPUT_INVALID") from None
+
+
+def _capture_operational_input_directory(
+  path: Path,
+  members: frozenset[str],
+) -> tuple[str, tuple[int, ...], tuple[str, ...]]:
+  try:
+    before = path.lstat()
+    _require(stat.S_ISDIR(before.st_mode), "E_CONTROL_INPUT_INVALID")
+    _require(stat.S_IMODE(before.st_mode) == 0o700, "E_CONTROL_INPUT_INVALID")
+    _require(before.st_uid == before.st_gid == 1001, "E_CONTROL_INPUT_INVALID")
+    _require(before.st_nlink == 2, "E_CONTROL_INPUT_INVALID")
+    observed = tuple(sorted(item.name for item in path.iterdir()))
+    _require(frozenset(observed) == members and len(observed) == len(members),
+             "E_CONTROL_INPUT_INVALID")
+    _require(_structural_identity(path.lstat()) == _structural_identity(before),
+             "E_CONTROL_INPUT_INVALID")
+    return str(path), _structural_identity(before), observed
+  except RecipeError:
+    raise
+  except (OSError, RuntimeError, ValueError, TypeError):
+    raise RecipeError("E_CONTROL_INPUT_INVALID") from None
+
+
+def _capture_operational_inputs() -> OperationalInputSnapshot:
+  inputs = Path("/inputs")
+  try:
+    _require(stat.S_ISDIR(inputs.lstat().st_mode), "E_CONTROL_INPUT_INVALID")
+    _require(frozenset(path.name for path in inputs.iterdir()) == OPERATIONAL_INPUT_MEMBERS,
+             "E_CONTROL_INPUT_INVALID")
+  except RecipeError:
+    raise
+  except OSError:
+    raise RecipeError("E_CONTROL_INPUT_INVALID") from None
+
+  files: list[tuple[str, bytes, tuple[int, ...]]] = []
+
+  def capture(
+    path: Path,
+    *,
+    maximum: int,
+    mode: int,
+    size: int | None,
+    digest: str | None,
+  ) -> None:
+    raw, identity = _read_exact_operational_input(
+      path, maximum=maximum, mode=mode, size=size, digest=digest,
+    )
+    files.append((str(path), raw, identity))
+
+  capture(
+    Path("/inputs/recipe"), maximum=OPERATIONAL_RECIPE_LIMIT, mode=0o644,
+    size=None, digest=None,
+  )
+  capture(
+    Path(OPERATIONAL_PROOF_PATH), maximum=128 * 1024, mode=0o600,
+    size=None, digest=OPERATIONAL_PROOF_SHA256,
+  )
+  for _name, path, digest in FIXED_SOURCE_INPUTS:
+    capture(
+      Path(path), maximum=FIXED_SOURCE_BYTES, mode=0o600, size=None, digest=digest,
+    )
+  capture(
+    Path("/inputs/base"), maximum=E_BYTES, mode=0o600, size=E_BYTES,
+    digest=E_SHA256,
+  )
+  for name, (size, digest) in sorted(OPERATIONAL_INDEX_INPUTS.items()):
+    capture(
+      Path("/inputs/index-inputs") / name, maximum=size, mode=0o644,
+      size=size, digest=digest,
+    )
+
+  source_members = tuple(
+    (Path(path).parent, frozenset((Path(path).name,)))
+    for _name, path, _digest in FIXED_SOURCE_INPUTS
+  )
+  directories = tuple(
+    _capture_operational_input_directory(path, members)
+    for path, members in (*source_members, (
+      Path("/inputs/index-inputs"), frozenset(OPERATIONAL_INDEX_INPUTS),
+    ))
+  )
+  return OperationalInputSnapshot(tuple(files), directories)
+
+
+def _operational_input_bytes(
+  snapshot_value: OperationalInputSnapshot,
+  path: str,
+) -> bytes:
+  matches = tuple(raw for name, raw, _identity in snapshot_value.files if name == path)
+  _require(len(matches) == 1, "E_CONTROL_INPUT_INVALID")
+  return matches[0]
+
+
+def _operational_builtins(raw: bytes) -> set[str]:
+  try:
+    lines = raw.decode("ascii").splitlines()
+    values = {
+      module_name(Path(line).name)
+      for line in lines
+      if line
+    }
+  except (UnicodeError, RuntimeError, ValueError, TypeError):
+    raise RecipeError("E_CONTROL_INPUT_INVALID") from None
+  _require(len(values) == len(lines) and 0 < len(values) <= 8192
+           and "ecb" in values, "E_CONTROL_INPUT_INVALID")
+  return values
+
+
+def _operational_policy_from_inputs(
+  inputs: OperationalInputSnapshot,
+) -> tuple[OperationalPolicy, ESelection, dict[str, str], set[str]]:
+  selection = select_e(_operational_input_bytes(inputs, "/inputs/base"))
+  names = {module.name: str(module.relative) for module in selection.modules}
+  commands = command_plan(names)
+  _require(len(commands) == EXECUTION_PLANNED_CHILDREN, "E_COMMAND_PLAN")
+  policy = OperationalPolicy(
+    execution=operational_execution_policy(),
+    commands=commands,
+    record_root=OPERATIONAL_RECORD_ROOT,
+    control_root=CONTROL_ROOT,
+    lookup_root=LOOKUP_ROOT,
+    empty_config=EMPTY_CONFIG,
+    early_stream=EARLY_PATH,
+    main_stream=MAIN_PATH,
+    artifacts=OPERATIONAL_ARTIFACTS,
+  )
+  builtins = _operational_builtins(
+    _operational_input_bytes(inputs, "/inputs/index-inputs/modules.builtin"),
+  )
+  return policy, selection, names, builtins
+
+
+def _operational_work_membership() -> frozenset[str]:
+  try:
+    return frozenset(path.name for path in Path("/work").iterdir())
+  except OSError:
+    raise RecipeError("E_CONTROL_WORK_INVALID") from None
+
+
+def _capture_operational_materialized_file(
+  path: Path,
+  expected: bytes,
+) -> tuple[str, bytes, tuple[int, ...]]:
+  before = path.lstat()
+  raw = _read_bounded_operational_file(path, max(1, len(expected)))
+  _require(raw == expected and _structural_identity(path.lstat()) == _structural_identity(before),
+           "E_CONTROL_WORK_INVALID")
+  return str(path), raw, _structural_identity(before)
+
+
+def _materialize_operational_context() -> OperationalContext:
+  _require(_operational_work_membership() == OPERATIONAL_INITIAL_WORK_MEMBERS,
+           "E_CONTROL_WORK_INVALID")
+  inputs = _capture_operational_inputs()
+  policy, selection, names, builtins = _operational_policy_from_inputs(inputs)
+  _require(not any(Path(path).exists() or Path(path).is_symlink() for path in (
+    OPERATIONAL_RECORD_ROOT, CONTROL_ROOT, LOOKUP_ROOT, EMPTY_CONFIG,
+    EARLY_PATH, MAIN_PATH, OPERATIONAL_RESULT_PENDING, *OPERATIONAL_ARTIFACTS,
+  )), "E_CONTROL_OUTPUT_EXISTS")
+
+  write_new(Path(EARLY_PATH), selection.early.raw)
+  write_new(Path(MAIN_PATH), selection.main.raw)
+  write_new(Path(EMPTY_CONFIG), b"")
+  modules = {str(module.relative): module.member.payload for module in selection.modules}
+  index_inputs = {
+    name: _operational_input_bytes(inputs, f"/inputs/index-inputs/{name}")
+    for name in OPERATIONAL_INDEX_INPUTS
+  }
+  try:
+    control_before = build_root(Path(CONTROL_ROOT), modules, index_inputs)
+    lookup_before = build_root(Path(LOOKUP_ROOT), modules, selection.indexes)
+  except ControlError as error:
+    raise RecipeError("E_CONTROL_ROOT_INVALID") from error
+  _require(len(control_before.directories) == len(lookup_before.directories) == 48
+           and len(control_before.files) == 203 and len(lookup_before.files) == 207,
+           "E_CONTROL_ROOT_INVALID")
+  materialized_files = (
+    _capture_operational_materialized_file(Path(EARLY_PATH), selection.early.raw),
+    _capture_operational_materialized_file(Path(MAIN_PATH), selection.main.raw),
+    _capture_operational_materialized_file(Path(EMPTY_CONFIG), b""),
+  )
+  expected = OPERATIONAL_INITIAL_WORK_MEMBERS | frozenset((
+    Path(EARLY_PATH).name, Path(MAIN_PATH).name, Path(EMPTY_CONFIG).name,
+    Path(CONTROL_ROOT).name, Path(LOOKUP_ROOT).name,
+  ))
+  _require(_operational_work_membership() == expected, "E_CONTROL_WORK_INVALID")
+  return OperationalContext(
+    policy, inputs, selection, names, builtins, control_before, lookup_before,
+    materialized_files,
+  )
+
+
+def _run_operational_commands(context: OperationalContext) -> RawControlFiles:
+  try:
+    runner = Commands(
+      Path(context.policy.record_root),
+      budget_seconds=context.policy.execution.control_seconds,
+    )
+    for index, command in enumerate(context.policy.commands):
+      if index == 4:
+        runner.run(
+          command,
+          stdin=Path(MAIN_PATH),
+          stdin_sha256=MAIN_SHA256,
+          timeout=context.policy.execution.child_seconds,
+          stdout_limit=OPERATIONAL_STDOUT_LIMITS[index],
+          stderr_limit=OPERATIONAL_STDERR_LIMIT,
+        )
+      else:
+        runner.run(
+          command,
+          timeout=context.policy.execution.child_seconds,
+          stdout_limit=OPERATIONAL_STDOUT_LIMITS[index],
+          stderr_limit=OPERATIONAL_STDERR_LIMIT,
+        )
+    _require(runner.count == EXECUTION_PLANNED_CHILDREN, "E_CONTROL_EXECUTION_INVALID")
+  except RecipeError:
+    raise
+  except ControlError as error:
+    raise RecipeError("E_CONTROL_EXECUTION_INVALID") from error
+  return _collect_operational_outputs()
+
+
+def _operational_json(raw: bytes) -> object:
+  def unique_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    value: dict[str, object] = {}
+    for name, item in pairs:
+      if type(name) is not str or name in value:
+        raise ValueError("duplicate or invalid JSON key")
+      value[name] = item
+    return value
+
+  def reject_constant(_: str) -> NoReturn:
+    raise ValueError("non-finite JSON number")
+
+  try:
+    value = json.loads(
+      raw.decode("ascii"), object_pairs_hook=unique_object,
+      parse_constant=reject_constant,
+    )
+    canonical = (json.dumps(value, sort_keys=True, allow_nan=False) + "\n").encode("ascii")
+  except (UnicodeError, ValueError, TypeError, RecursionError):
+    raise RecipeError("E_CONTROL_OPERATIONAL_INVALID") from None
+  _require(raw == canonical, "E_CONTROL_OPERATIONAL_INVALID")
+  return value
+
+
+def _operational_tree_file_record(
+  root: Path,
+  name: str,
+  state: TreeState,
+  raw: bytes,
+) -> dict[str, object]:
+  _require(type(name) is str and name in state.files, "E_CONTROL_OPERATIONAL_INVALID")
+  value = state.files[name]
+  _require(isinstance(value, FileState), "E_CONTROL_OPERATIONAL_INVALID")
+  path = root / name
+  _require(len(raw) == value.identity[6] and _sha256(raw) == value.sha256
+           and _structural_identity(path.lstat()) == value.identity,
+           "E_CONTROL_OPERATIONAL_INVALID")
+  return {
+    "path": str(path), "bytes": len(raw), "sha256": value.sha256,
+    "identity": list(value.identity), "mode": stat.S_IMODE(value.identity[2]),
+    "uid": value.identity[3], "gid": value.identity[4], "nlink": value.identity[5],
+  }
+
+
+def _validate_operational_records(
+  context: OperationalContext,
+  raw_files: RawControlFiles,
+) -> tuple[dict[str, object], ...]:
+  _require(raw_files.paths == SEMANTIC_OPERATIONAL_PATHS
+           and len(raw_files.records) == EXECUTION_PLANNED_CHILDREN,
+           "E_CONTROL_OPERATIONAL_INVALID")
+  root = Path(OPERATIONAL_RECORD_ROOT)
+  records: list[dict[str, object]] = []
+  for index, command in enumerate(context.policy.commands):
+    stdout, stderr, report_raw = raw_files.records[index]
+    report = _operational_json(report_raw)
+    _require(type(report) is dict and set(report) == OPERATIONAL_REPORT_KEYS,
+             "E_CONTROL_OPERATIONAL_INVALID")
+    retained = report["retained_bytes"]
+    observed = report["observed_bytes"]
+    _require(type(report["command"]) is list and report["command"] == list(command)
+             and type(report["status"]) is str and report["status"] == "ok"
+             and type(report["returncode"]) is int and report["returncode"] == 0
+             and type(report["stdout"]) is str
+             and report["stdout"] == f"child-{index:03d}.stdout"
+             and type(report["stderr"]) is str
+             and report["stderr"] == f"child-{index:03d}.stderr"
+             and type(retained) is list and len(retained) == 2
+             and all(type(value) is int and value >= 0 for value in retained)
+             and type(observed) is list and observed == retained
+             and retained == [len(stdout), len(stderr)]
+             and len(stdout) <= OPERATIONAL_STDOUT_LIMITS[index]
+             and len(stderr) == 0 and stderr == b""
+             and type(report["elapsed_seconds"]) is float
+             and math.isfinite(report["elapsed_seconds"])
+             and 0 <= report["elapsed_seconds"] <= EXECUTION_CHILD_SECONDS
+             and type(report["pid"]) is int and report["pid"] > 0
+             and type(report["killed"]) is bool and report["killed"] is False
+             and type(report["reaped"]) is bool and report["reaped"] is True,
+             "E_CONTROL_OPERATIONAL_INVALID")
+    if index == 4:
+      _require(report["stdin_sha256"] == MAIN_SHA256
+               and type(report["stdin_sha256"]) is str
+               and type(report["stdin_bytes"]) is int
+               and report["stdin_bytes"] == MAIN_BYTES,
+               "E_CONTROL_OPERATIONAL_INVALID")
+    else:
+      _require(report["stdin_sha256"] is None
+               and type(report["stdin_bytes"]) is int
+               and report["stdin_bytes"] == 0,
+               "E_CONTROL_OPERATIONAL_INVALID")
+    stdout_name = f"child-{index:03d}.stdout"
+    stderr_name = f"child-{index:03d}.stderr"
+    report_name = f"child-{index:03d}.json"
+    records.append({
+      "index": index,
+      "command": list(command),
+      "report": report,
+      "stdout": _operational_tree_file_record(
+        root, stdout_name, raw_files.record_state, stdout,
+      ),
+      "stderr": _operational_tree_file_record(
+        root, stderr_name, raw_files.record_state, stderr,
+      ),
+      "record": _operational_tree_file_record(
+        root, report_name, raw_files.record_state, report_raw,
+      ),
+    })
+  _require(len(records) == EXECUTION_PLANNED_CHILDREN,
+           "E_CONTROL_OPERATIONAL_INVALID")
+  return tuple(records)
+
+
+def _read_operational_generated_indexes(raw_files: RawControlFiles) -> dict[str, bytes]:
+  root = Path(CONTROL_ROOT) / "lib/modules" / KERNEL
+  generated: dict[str, bytes] = {}
+  for name in sorted(GENERATED_SHA256):
+    path = root / name
+    expected_size = HISTORICAL_BYTES[name]
+    raw = _read_bounded_operational_file(path, max(1, expected_size))
+    _require(len(raw) == expected_size and _sha256(raw) == GENERATED_SHA256[name]
+             and raw_files.control_state.files[str(path.relative_to(CONTROL_ROOT))].sha256
+             == GENERATED_SHA256[name], "E_CONTROL_OPERATIONAL_INVALID")
+    generated[name] = raw
+  return generated
+
+
+def _validate_operational_roots(
+  context: OperationalContext,
+  raw_files: RawControlFiles,
+) -> None:
+  generated_names = {
+    f"lib/modules/{KERNEL}/{name}" for name in GENERATED_SHA256
+  }
+  _require(context.control_before.directories == raw_files.control_state.directories
+           and len(context.control_before.files) == 203
+           and len(raw_files.control_state.files) == OPERATIONAL_CONTROL_TREE_FILES
+           and set(raw_files.control_state.files)
+           == set(context.control_before.files) | generated_names
+           and all(raw_files.control_state.files.get(name) == value
+                   for name, value in context.control_before.files.items()),
+           "E_CONTROL_OPERATIONAL_INVALID")
+  _require(raw_files.lookup_state == context.lookup_before
+           and len(raw_files.lookup_state.files) == OPERATIONAL_LOOKUP_TREE_FILES,
+           "E_CONTROL_OPERATIONAL_INVALID")
+
+
+def _operational_lookup_target(raw: bytes, query: str) -> str:
+  try:
+    lines = raw.decode("ascii").splitlines()
+  except UnicodeError:
+    raise RecipeError("E_CONTROL_OPERATIONAL_INVALID") from None
+  _require(bool(lines) and lines[0].startswith("# "), "E_CONTROL_OPERATIONAL_INVALID")
+  matches: list[str] = []
+  for line in lines[1:]:
+    parts = line.split(" ")
+    _require(len(parts) == 3 and parts[0] == "alias"
+             and re.fullmatch(r"[A-Za-z0-9_]{1,128}", parts[2]) is not None,
+             "E_CONTROL_OPERATIONAL_INVALID")
+    if fnmatchcase(query, parts[1]):
+      matches.append(parts[2])
+  _require(len(matches) == 1, "E_CONTROL_OPERATIONAL_INVALID")
+  return matches[0]
+
+
+def _validate_operational_semantics(
+  context: OperationalContext,
+  raw_files: RawControlFiles,
+  records: tuple[dict[str, object], ...],
+) -> OperationalEvaluation:
+  _validate_operational_roots(context, raw_files)
+  for label, index in (
+    ("early-cpio", 0), ("early-bsdtar", 1),
+    ("main-cpio", 2), ("main-bsdtar", 3), ("gzip", 4),
+  ):
+    _validate_archive_observation(label, raw_files.records[index][0])
+  _require(len(raw_files.early_raw + raw_files.records[4][0]) == E_BYTES
+           and _sha256(raw_files.early_raw + raw_files.records[4][0]) == E_SHA256,
+           "E_CONTROL_OPERATIONAL_INVALID")
+  for index, name in enumerate(PAYLOAD_SHA256, start=5):
+    _validate_payload_observation(name, raw_files.records[index][0])
+  _require(raw_files.records[9][0] == b""
+           and all(len(raw_files.records[index][1]) == 0 for index in range(424)),
+           "E_CONTROL_OPERATIONAL_INVALID")
+
+  generated = _read_operational_generated_indexes(raw_files)
+  regeneration = validate_regeneration(
+    context.selection.indexes, generated, raw_files.records[10][0], context.names,
+  )
+  _require(len(raw_files.records[10][0]) == len(raw_files.records[11][0]) == DUMP_BYTES
+           and _sha256(raw_files.records[10][0]) == DUMP_SHA256
+           and _sha256(raw_files.records[11][0]) == DUMP_SHA256,
+           "E_CONTROL_OPERATIONAL_INVALID")
+
+  module_lookups: list[dict[str, object]] = []
+  dependency_outputs: dict[str, bytes] = {}
+  for ordinal, name in enumerate(sorted(context.names)):
+    filename_raw = raw_files.records[12 + ordinal * 2][0]
+    dependency_raw = raw_files.records[13 + ordinal * 2][0]
+    try:
+      lookup = ordered_lookup(
+        dependency_raw, name, context.names, regeneration.dependencies,
+        context.builtins,
+      )
+    except ControlError as error:
+      raise RecipeError("E_CONTROL_OPERATIONAL_INVALID") from error
+    _require(filename_raw == (lookup.filename + "\n").encode("ascii"),
+             "E_CONTROL_OPERATIONAL_INVALID")
+    dependency_outputs[name] = dependency_raw
+    module_lookups.append({
+      "name": name,
+      "filename_sha256": _sha256(filename_raw),
+      "dependency_sha256": _sha256(dependency_raw),
+      "filename": lookup.filename,
+      "insmod": list(lookup.insmod),
+      "builtin": list(lookup.builtin),
+    })
+
+  alias_lookups: list[dict[str, object]] = []
+  for ordinal, alias in enumerate(ALIASES):
+    target = _operational_lookup_target(generated["modules.alias"], alias)
+    raw = raw_files.records[412 + ordinal][0]
+    _require(raw == dependency_outputs[target], "E_CONTROL_OPERATIONAL_INVALID")
+    alias_lookups.append({
+      "query": alias, "target": target, "sha256": _sha256(raw),
+    })
+
+  symbol_lookups: list[dict[str, object]] = []
+  for ordinal, symbol in enumerate(EXPORTS):
+    query = "symbol:" + symbol
+    target = _operational_lookup_target(generated["modules.symbols"], query)
+    raw = raw_files.records[415 + ordinal][0]
+    _require(raw == dependency_outputs[target], "E_CONTROL_OPERATIONAL_INVALID")
+    symbol_lookups.append({
+      "query": query, "target": target, "sha256": _sha256(raw),
+    })
+  _require(len(module_lookups) == 200 and len(alias_lookups) == 3
+           and len(symbol_lookups) == 9 and len(records) == 424,
+           "E_CONTROL_OPERATIONAL_INVALID")
+  return OperationalEvaluation(
+    records, generated, regeneration, tuple(module_lookups),
+    tuple(alias_lookups), tuple(symbol_lookups),
+  )
+
+
+def _operational_input_records(
+  inputs: OperationalInputSnapshot,
+) -> tuple[dict[str, object], ...]:
+  records: list[dict[str, object]] = []
+  for path, raw, identity in inputs.files:
+    records.append({
+      "kind": "file", "path": path, "bytes": len(raw), "sha256": _sha256(raw),
+      "identity": list(identity), "mode": stat.S_IMODE(identity[2]),
+      "uid": identity[3], "gid": identity[4], "nlink": identity[5],
+    })
+  for path, identity, members in inputs.directories:
+    records.append({
+      "kind": "directory", "path": path, "identity": list(identity),
+      "mode": stat.S_IMODE(identity[2]), "uid": identity[3], "gid": identity[4],
+      "members": list(members),
+    })
+  return tuple(records)
+
+
+def _operational_full_tree_identities(
+  root: Path,
+  state: TreeState,
+) -> tuple[tuple[str, tuple[int, ...]], ...]:
+  records: list[tuple[str, tuple[int, ...]]] = []
+  for relative in sorted(state.directories):
+    path = root if relative == "." else root / relative
+    identity = _structural_identity(path.lstat())
+    expected = state.directories[relative]
+    _require(identity[:5] == expected, "E_CONTROL_OPERATIONAL_INVALID")
+    records.append((str(path), identity))
+  for relative in sorted(state.files):
+    path = root / relative
+    value = state.files[relative]
+    _require(isinstance(value, FileState)
+             and _structural_identity(path.lstat()) == value.identity,
+             "E_CONTROL_OPERATIONAL_INVALID")
+    records.append((str(path), value.identity))
+  return tuple(records)
+
+
+def _operational_header_bytes() -> bytes:
+  value = {
+    "schema": 1,
+    "kind": "dev147-t1-e-control-v1",
+    "base_sha256": E_SHA256,
+    "base_bytes": E_BYTES,
+    "early_records": 7,
+    "early_bytes": EARLY_BYTES,
+    "early_sha256": EARLY_SHA256,
+    "main_records": 1163,
+    "main_bytes": MAIN_BYTES,
+    "main_sha256": MAIN_SHA256,
+    "module_count": 200,
+    "no_change_archive": True,
+    "gzip_exact": True,
+    "binary_only_lookup": True,
+    "module_loaded": False,
+    "image_staged": False,
+    "indexes": INDEX_SHA256,
+  }
+  return _semantic_json_bytes(value)
+
+
+def _operational_evidence_bytes(
+  context: OperationalContext,
+  raw_files: RawControlFiles,
+  evaluation: OperationalEvaluation,
+) -> bytes:
+  value = {
+    "schema": 2,
+    "kind": "dev147-e-control-operational-evidence-v2",
+    "status": "PASS",
+    "mode": EXECUTION_MODE,
+    "offline_no_change": True,
+    "bindings": list(EXECUTION_TASK_BINDINGS),
+    "read_only_mounts": EXECUTION_READ_ONLY_MOUNTS,
+    "recipe_sha256": _sha256(
+      _operational_input_bytes(context.inputs, "/inputs/recipe"),
+    ),
+    "inputs": list(_operational_input_records(context.inputs)),
+    "planned_commands": [list(command) for command in context.policy.commands],
+    "observed_commands": [record["command"] for record in evaluation.records],
+    "children_root": OPERATIONAL_RECORD_ROOT,
+    "planned_children": EXECUTION_PLANNED_CHILDREN,
+    "children_executed": EXECUTION_PLANNED_CHILDREN,
+    "record_files": OPERATIONAL_RECORD_FILES,
+    "records": list(evaluation.records),
+    "control_before": _semantic_stable_tree(Path(CONTROL_ROOT), context.control_before),
+    "control_after": _semantic_stable_tree(Path(CONTROL_ROOT), raw_files.control_state),
+    "lookup_before": _semantic_stable_tree(Path(LOOKUP_ROOT), context.lookup_before),
+    "lookup_after": _semantic_stable_tree(Path(LOOKUP_ROOT), raw_files.lookup_state),
+    "generated_indexes": {
+      name: {"bytes": len(raw), "sha256": _sha256(raw)}
+      for name, raw in sorted(evaluation.generated.items())
+    },
+    "retained_indexes": {
+      name: {"bytes": len(raw), "sha256": _sha256(raw)}
+      for name, raw in sorted(context.selection.indexes.items())
+    },
+    "retained_symbol_sha256": evaluation.regeneration.retained_symbol_sha256,
+    "generated_symbol_sha256": evaluation.regeneration.generated_symbol_sha256,
+    "alias_mappings": evaluation.regeneration.alias_mappings,
+    "symbol_mappings": evaluation.regeneration.symbol_mappings,
+    "module_lookups": list(evaluation.module_lookups),
+    "alias_lookups": list(evaluation.alias_lookups),
+    "symbol_lookups": list(evaluation.symbol_lookups),
+    "historical_generated_inputs": [],
+    "candidate_module_bound": False,
+    "operational_control_proved": True,
+    "fresh_control_proved": True,
+    "image_created": False,
+    "module_loaded": False,
+    "staged": False,
+    "booted": False,
+  }
+  raw = _semantic_json_bytes(value)
+  _require(len(raw) <= OPERATIONAL_EVIDENCE_LIMIT, "E_CONTROL_OPERATIONAL_INVALID")
+  return raw
+
+
+def _operational_result_bytes(
+  header_record: tuple[str, bytes, tuple[int, ...]],
+  evidence_record: tuple[str, bytes, tuple[int, ...]],
+  evaluation: OperationalEvaluation,
+) -> bytes:
+  def file_record(value: tuple[str, bytes, tuple[int, ...]]) -> dict[str, object]:
+    path, raw, identity = value
+    return {
+      "path": path, "bytes": len(raw), "sha256": _sha256(raw),
+      "identity": list(identity), "mode": stat.S_IMODE(identity[2]),
+      "uid": identity[3], "gid": identity[4], "nlink": identity[5],
+    }
+
+  children = tuple({
+    "index": record["index"],
+    "stdout": record["stdout"],
+    "stderr": record["stderr"],
+    "record": record["record"],
+  } for record in evaluation.records)
+  value = {
+    "schema": 2,
+    "kind": "dev147-e-control-result-v2",
+    "status": "PASS",
+    "mode": EXECUTION_MODE,
+    "offline_no_change": True,
+    "bindings": list(EXECUTION_TASK_BINDINGS),
+    "read_only_mounts": EXECUTION_READ_ONLY_MOUNTS,
+    "planned_children": EXECUTION_PLANNED_CHILDREN,
+    "children_executed": EXECUTION_PLANNED_CHILDREN,
+    "record_files": OPERATIONAL_RECORD_FILES,
+    "children_root": OPERATIONAL_RECORD_ROOT,
+    "children": list(children),
+    "header": file_record(header_record),
+    "evidence": file_record(evidence_record),
+    "historical_generated_inputs": [],
+    "candidate_module_bound": False,
+    "operational_control_proved": True,
+    "fresh_control_proved": True,
+    "image_created": False,
+    "module_loaded": False,
+    "staged": False,
+    "booted": False,
+  }
+  raw = _semantic_json_bytes(value)
+  _require(len(raw) <= OPERATIONAL_EVIDENCE_LIMIT, "E_CONTROL_OPERATIONAL_INVALID")
+  return raw
+
+
+def _finalize_executed_operational_result(
+  context: OperationalContext,
+  raw_files: RawControlFiles,
+  evaluation: OperationalEvaluation,
+) -> OperationalAcceptance:
+  header_path, evidence_path, result_path = map(Path, OPERATIONAL_ARTIFACTS)
+  pending_path = Path(OPERATIONAL_RESULT_PENDING)
+  _require(not any(path.exists() or path.is_symlink()
+                   for path in (header_path, evidence_path, pending_path, result_path)),
+           "E_CONTROL_OUTPUT_EXISTS")
+  header_raw = _operational_header_bytes()
+  evidence_raw = _operational_evidence_bytes(context, raw_files, evaluation)
+  write_new(header_path, header_raw)
+  write_new(evidence_path, evidence_raw)
+  header_record = _capture_operational_materialized_file(header_path, header_raw)
+  evidence_record = _capture_operational_materialized_file(evidence_path, evidence_raw)
+
+  tree_identities = (
+    _operational_full_tree_identities(Path(OPERATIONAL_RECORD_ROOT), raw_files.record_state),
+    _operational_full_tree_identities(Path(CONTROL_ROOT), raw_files.control_state),
+    _operational_full_tree_identities(Path(LOOKUP_ROOT), raw_files.lookup_state),
+  )
+  _require(_capture_operational_inputs() == context.inputs, "E_CONTROL_INPUT_CHANGED")
+  for path, expected, identity in context.materialized_files:
+    _require(_capture_operational_materialized_file(Path(path), expected)
+             == (path, expected, identity), "E_CONTROL_WORK_CHANGED")
+  final_raw_files = _collect_operational_outputs()
+  _require(final_raw_files == raw_files, "E_CONTROL_WORK_CHANGED")
+  _require((
+    _operational_full_tree_identities(
+      Path(OPERATIONAL_RECORD_ROOT), final_raw_files.record_state,
+    ),
+    _operational_full_tree_identities(Path(CONTROL_ROOT), final_raw_files.control_state),
+    _operational_full_tree_identities(Path(LOOKUP_ROOT), final_raw_files.lookup_state),
+  ) == tree_identities, "E_CONTROL_WORK_CHANGED")
+  expected_work = OPERATIONAL_INITIAL_WORK_MEMBERS | frozenset((
+    Path(OPERATIONAL_RECORD_ROOT).name, Path(CONTROL_ROOT).name, Path(LOOKUP_ROOT).name,
+    Path(EMPTY_CONFIG).name, Path(EARLY_PATH).name, Path(MAIN_PATH).name,
+    header_path.name, evidence_path.name,
+  ))
+  _require(_operational_work_membership() == expected_work
+           and not any(path.exists() or path.is_symlink()
+                       for path in (pending_path, result_path)),
+           "E_CONTROL_WORK_CHANGED")
+  _require(_capture_operational_materialized_file(header_path, header_raw) == header_record
+           and _capture_operational_materialized_file(evidence_path, evidence_raw)
+           == evidence_record, "E_CONTROL_WORK_CHANGED")
+
+  result_raw = _operational_result_bytes(header_record, evidence_record, evaluation)
+  acceptance = OperationalAcceptance(
+    status="PASS",
+    mode=EXECUTION_MODE,
+    header_sha256=_sha256(header_raw),
+    evidence_sha256=_sha256(evidence_raw),
+    result_sha256=_sha256(result_raw),
+    planned_children=EXECUTION_PLANNED_CHILDREN,
+    children_executed=EXECUTION_PLANNED_CHILDREN,
+    operational_control_proved=True,
+    fresh_control_proved=True,
+    image_created=False,
+    module_loaded=False,
+    staged=False,
+    booted=False,
+  )
+  write_new(pending_path, result_raw)
+  _require(
+    _capture_operational_materialized_file(pending_path, result_raw)
+    == (str(pending_path), result_raw, _structural_identity(pending_path.lstat()))
+    and not (result_path.exists() or result_path.is_symlink()),
+    "E_CONTROL_WORK_CHANGED",
+  )
+  _rename_noreplace(pending_path, result_path)
+  return acceptance
+
+
+def _run_operational_control() -> OperationalAcceptance:
+  context = _materialize_operational_context()
+  raw_files = _run_operational_commands(context)
+  records = _validate_operational_records(context, raw_files)
+  evaluation = _validate_operational_semantics(context, raw_files, records)
+  return _finalize_executed_operational_result(context, raw_files, evaluation)
+
+
+def operational_policy() -> OperationalPolicy:
+  """Return the sole authenticated eight-input operational policy; run nothing."""
+  inputs = _capture_operational_inputs()
+  policy, _selection, _names, _builtins = _operational_policy_from_inputs(inputs)
+  return policy
 
 
 def finalize_operational_result() -> NoReturn:
-  """Reserve the real PASS result and fresh provenance for an executed control."""
-  raise RecipeError("E_CONTROL_RECIPE_UNAVAILABLE")
+  """Refuse direct publication outside the fixed execute-and-validate sequence."""
+  raise RecipeError("E_CONTROL_DIRECT_FINALIZE_UNAVAILABLE")
 
 
 def finalize_structural_result() -> StructuralAcceptance:
@@ -2044,7 +2897,7 @@ def finalize_structural_result() -> StructuralAcceptance:
                and type(report["killed"]) is bool and report["killed"] is False
                and type(report["reaped"]) is bool and report["reaped"] is False,
                "E_CONTROL_INCOMPLETE")
-      if command == ("/usr/bin/gzip",):
+      if command == ("/usr/bin/gzip", "-n"):
         _require(report["planned_stdin_sha256"] == MAIN_SHA256
                  and type(report["planned_stdin_sha256"]) is str
                  and type(report["planned_stdin_bytes"]) is int
@@ -2096,9 +2949,9 @@ def finalize_structural_result() -> StructuralAcceptance:
   return acceptance
 
 
-def main() -> NoReturn:
-  """Neither a fixture nor a header can unlock an operational workload."""
-  raise RecipeError("E_CONTROL_RECIPE_UNAVAILABLE")
+def main() -> None:
+  """Run the one fixed offline E no-change control in the reviewed sandbox."""
+  _run_operational_control()
 
 
 if __name__ == "__main__":

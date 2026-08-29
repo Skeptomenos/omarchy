@@ -113,7 +113,7 @@ def approved_command(command: tuple[str, ...]) -> bool:
     type(part) is str and 0 < len(part) < 1024 and "\x00" not in part for part in command
   ):
     return False
-  if command == ("/usr/bin/gzip",):
+  if command == ("/usr/bin/gzip", "-n"):
     return True
   if len(command) == 6 and command[:5] == ("/usr/bin/python3.14", "-I", "-S", "-B", "-c"):
     return command[5] in SELF_CHECKS

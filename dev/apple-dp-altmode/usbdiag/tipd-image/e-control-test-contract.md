@@ -1,6 +1,6 @@
 # E-only control boundary: tested GREEN
 
-This is the narrow runner, reduced-root and ordered-lookup contract for the [T1 image boundary](README.md). The original three-test RED is preserved below. On 2026-08-29, the full GREEN run passed 18 methods and 11 harmless children. Its operational entry still raises `E_CONTROL_UNAVAILABLE`. The existing T1 assembler gate also remains closed.
+This is the narrow runner, reduced-root and ordered-lookup contract for the [T1 image boundary](README.md). The original three-test RED and old-helper GREEN are preserved below. On 2026-08-29, that historical GREEN passed 18 methods and 11 harmless children. The current helper includes the fixed production implementation, but this direct-helper fixture does not invoke it. The corrected production entry has not run. The existing T1 assembler gate also remains closed.
 
 Only the root task may execute the reviewed files in a fresh verified unprivileged sandbox. These fixtures do not accept real E, a real module, a saved W proof or a candidate identity. The 200 fixture module payloads are labelled ASCII text. The seven index payloads are also synthetic. They cannot prove ELF, index semantics, ABI, hardware behaviour or a usable image.
 
@@ -15,7 +15,7 @@ Only the root task may execute the reviewed files in a fresh verified unprivileg
 | Fresh roots | Only `/work/control-root` and `/work/lookup-root`. Require exactly 200 unique safe module paths with bytes payloads. The first root receives exactly the three depmod text inputs. The second receives exactly seven binary-image index files, with no text-index fallback. Refuse any existing root; do not overwrite, remove or repair it. |
 | Root proof | Return the real pinned `TreeState` snapshot. Require exact file membership, payload hashes and single-link metadata. A later snapshot must match. Deliberate mutation affects only a disposable fixture output and must be rejected. |
 | Ordered lookup | Parse real bounded dry-run text through the authenticated pure dependency parser. Require the exact reverse of the ordered `modules.dep` closure followed by the target. Reject missing, extra, duplicate, reordered, unsafe or malformed records. Only `lrw` may produce the single builtin `ecb`; no other builtin is permitted. |
-| Operational gate | These fixture helpers do not reconstruct E or assemble T1. `main()` must continue to refuse. Actual orchestration needs a separate reviewed entry, fixed inputs, proof contract and command list. Do not turn the fixture gate into a configurable bypass. |
+| Operational gate | This fixture suite does not reconstruct E, invoke the fixed production `main()`, or assemble T1. The production entry remains separate and has its own fixed inputs, proof contract, command list, pre-import gate, and publication gate. Do not turn the fixture gate into a configurable bypass. |
 
 The full suite has 18 methods: all 16 original method bodies and two added active-limit methods. The setup first authenticates the source chain, real file guards, a zlib single-gzip roundtrip and the five literal dependency entries. It also checks the intended correct lookup against the pinned parser independently of the new subject. Setup launches no child. No old main, archive/index workload, global rebinding or import-time inspection script is used.
 
@@ -41,9 +41,9 @@ The three intended failures were:
 
 All three occurred inside unittest assertions after valid setup. They were not import, pin, missing-file, executable, compile or test errors. On 2026-08-29, `run-m1rni4vb` recorded setup PASS, three assertion failures and zero errors. The root task and independent QA accepted this RED. The incomplete subject launched zero children and created no reduced root or image. The original three files are preserved at commit `ae4821ccdc0d12e54a67fbfe0d5578f9b26e7ffa`: subject SHA `a91506e45d5d024deb2b389f8a85092faa1685fabdf92b88c7b61b2f51510d7a`, runner SHA `eafbc0414482ed6d340900b278114445840ca8169ad346ea04933b210762c49a`, and contract SHA `0614fa1ae54393ac7b41aa90b971761ec261bbd97b04b13a3cd66c1d00368ca2`. No entire-suite RED was claimed.
 
-## Full GREEN: executed 2026-08-29
+## Historical old-helper GREEN: executed 2026-08-29
 
-After independent source review, the root task ran the complete fixture suite in a fresh verified sandbox:
+After independent source review, the root task ran the complete fixture suite against the then-current helper in a fresh verified sandbox:
 
 ```text
 /usr/bin/python3.14 -I -S -B /inputs/test
@@ -64,18 +64,26 @@ Use only these six inputs with the already reviewed fixed runtime. Single-file s
 
 The retained run is `run-0z8qsjmd`: setup and postchecks pass, 18 methods pass in 1.244 seconds, and all 11 expected child records exist. There are no failures, errors or skips. The outer workload exits 0 without timeout; all 591 read-only input fingerprints match. Both long-lived overflow children were killed and reaped in under 0.007 seconds. The active per-child and cumulative deadline cases completed in under 0.204 seconds. Each independent process check observed ECHILD and ESRCH. These are fixture observations, not a live-system safety guarantee.
 
-Runner SHA is `23eb117db32fe651a2a9574782c47afce5ced99c4e0c4267a168a6786d1caa9e`. The private pre-execution contract remains unchanged at SHA `323891076c027b5932924d27b2c2d10c801ba2f44f5599b8e86039210587a7cf`; this public document adds the later result. The original RED, source/test bytes, and outputs are retained. The test runner's pre-execution wording is historical, not a second run.
+Historical runner SHA is `23eb117db32fe651a2a9574782c47afce5ced99c4e0c4267a168a6786d1caa9e`. The private pre-execution contract remains unchanged at SHA `323891076c027b5932924d27b2c2d10c801ba2f44f5599b8e86039210587a7cf`; this public document adds the later result. The original RED, source/test bytes, and outputs are retained. The test runner's pre-execution wording is historical, not a second run.
 
-## Later real E control: separate evidence gate
+## Current corrected-helper QA
 
-This fixture GREEN covers these boundaries only. The actual E control remains a separate unexecuted gate. It must independently authenticate the exact E image: SHA `4d4f0557af57eebcc33322f004bcc7968254e644b069a11102375df0b31a52ae`, 19,191,513 bytes. It must retain the original TIPD payload, not the fresh rebuilt control. It must prove the exact early/main archive streams, all 200 module identities, raw no-op reconstruction and byte-exact GNU gzip output. The [image contract](README.md#gates-not-supplied-by-these-fixtures) retains the fixed stream hashes and limitations.
+Independent QA invoked the current direct-helper suite once. This was its first and only invocation against corrected helper SHA `16016875e731e88d047eb805c7c6d03045300abdb262361b18010a952adb7b80` and test SHA `e1d1e39bb0782962a225d1f9f25f29f91025ce3bad59e8c8030fec80f3398045`.
+
+Run `run-kyar_nn2` used 591 read-only mounts. It passed 18/18 methods in 1.199 seconds with zero failures, errors, or skips. It retained exactly 11 bounded fixture child records. Inputs and sources remained unchanged. The run did not time out. It created synthetic ASCII fixture trees at the exact names `/work/control-root` and `/work/lookup-root`. It created no E-derived production tree, production stream, `/work/e-control-children-e1`, header, evidence, pending result, final result, candidate image, module load, stage, or boot output.
+
+The fixture gzip child used exactly `("/usr/bin/gzip", "-n")`. Its ten-byte header was `1f 8b 08 00 00 00 00 00 00 03`, so bytes 5-8, the MTIME field, were zero. `test_unapproved_commands_and_limits_refuse_before_children` rejected bare `("/usr/bin/gzip",)` before a child started. This fixture result does not establish a fresh E-control PASS.
+
+## Current corrected E control: separate evidence gate
+
+This fixture GREEN covers these boundaries only. The actual E control remains a separate evidence gate. Its sole production attempt, `run-f2yoto48`, completed all 424 children and then failed closed before publication because bare gzip stored a nonzero MTIME. The corrected production entry has not run, so there is no fresh E-control PASS. The gate must independently authenticate the exact E image: SHA `4d4f0557af57eebcc33322f004bcc7968254e644b069a11102375df0b31a52ae`, 19,191,513 bytes. It must retain the original TIPD payload, not the fresh rebuilt control. It must prove the exact early/main archive streams, all 200 module identities, raw no-op reconstruction and byte-exact GNU gzip output. The [image contract](README.md#gates-not-supplied-by-these-fixtures) retains the fixed stream hashes and limitations. The [incident evidence](../../../../docs/evidence/dev-147-e-operational-first-attempt-gzip-determinism-2026-08-29.md) owns the failed attempt and correction.
 
 The planned real workload has exactly 424 fixed children:
 
 | Observation | Children |
 |---|---:|
 | Early/main list with GNU cpio and bsdtar | 4 |
-| No-option GNU gzip with checked regular-file stdin | 1 |
+| Exact `/usr/bin/gzip -n` with checked regular-file stdin; bare gzip is refused | 1 |
 | Four selected module payload reads to stdout only | 4 |
 | Fresh reduced-root depmod | 1 |
 | Generated and retained binary index dumps | 2 |

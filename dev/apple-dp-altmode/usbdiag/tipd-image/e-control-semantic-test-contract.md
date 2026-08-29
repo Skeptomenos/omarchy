@@ -1,6 +1,6 @@
 # Fixed E raw-observation semantic gate: three-method RED contract
 
-Status: replacement RED and minimal GREEN accepted. The two rejected semantic candidates and all failed runs remain retained outside this worktree. Accepted GREEN `run-vfbn_07m` passed 3/3 with 606 unchanged read-only mounts and zero workload children. It created only the distinct `NONFRESH_FIXTURE` result. The real control path remains unavailable.
+Status: the replacement RED and first minimal GREEN below are retained history. Their subject, helper, runner, and aggregate pins are historical. The current corrected recipe SHA is `57d35a30de9b351bcbaf0b78a1be186c8c44a2fbfb378d8f0b801e6e9256a7a9`, the helper SHA is `16016875e731e88d047eb805c7c6d03045300abdb262361b18010a952adb7b80`, and the semantic runner SHA is `fc2a34f573013d01ff24b18cf964ef236a1c22808fcb364724c05157cab602b6`. Independent QA `run-3sjaril5` passed 3/3 with 606 unchanged read-only mounts and zero workload children. One earlier production attempt failed closed. The corrected production entry has not run, so there is no fresh E-control PASS.
 
 ## Result boundary
 
@@ -19,7 +19,7 @@ The aggregate status is `NONFRESH_FIXTURE`. These fields are all false:
 - `staged`
 - `booted`
 
-The twelve historical C2 files are fixtures only. They do not prove a fresh depmod, lookup, gzip, archive-tool, image, load, stage, boot, USB-data, charging, or power-control result. No fixture input can become operational provenance. The real `/work/e-control-result.json` and all real control paths remain absent. `operational_policy()`, `finalize_operational_result()`, and `main()` remain closed with `E_CONTROL_RECIPE_UNAVAILABLE`.
+The twelve historical C2 files are fixtures only. They do not prove a fresh depmod, lookup, gzip, archive-tool, image, load, stage, boot, USB-data, charging, or power-control result. No fixture input can become operational provenance. At this historical checkpoint, the real `/work/e-control-result.json` and all real control paths were absent. `operational_policy()`, `finalize_operational_result()`, and `main()` were closed with `E_CONTROL_RECIPE_UNAVAILABLE`.
 
 ## Fixed raw outputs
 
@@ -202,10 +202,10 @@ The private `e-semantic-red-rejected-v2` snapshot was rejected before execution.
 | Artifact | SHA-256 |
 |---|---|
 | Accepted subject | `70f369f87942b6ca6826c808536353ae0cc400123204040b9c005995ab43c3e3` |
-| Current 16-method runner | `ab7e297f9b80f787a8137876df4d056208e2b74d237db71e2aefba3f7c3e956f` |
-| Current structural runner | `8816d63874b1590c24b5ac468d38a644896836a6dc76dcc7df4aaf6b5d2b2c70` |
+| Historical 16-method runner | `ab7e297f9b80f787a8137876df4d056208e2b74d237db71e2aefba3f7c3e956f` |
+| Historical structural runner | `8816d63874b1590c24b5ac468d38a644896836a6dc76dcc7df4aaf6b5d2b2c70` |
 | Accepted semantic runner | `4c14f023d719dd4e709e424812d53f96ab535fdeb7de2461e5b1c63a813099b2` |
 
 The structural regression `run-f0tjlamv` and pure recipe regression `run-m64c0_of` also pass after independent QA and safety review. Do not overwrite the accepted operational RED history.
 
-The next gate is a new zero-child execution RED and exact eight-input launch contract. The real 424-child run requires separate pre-execution review.
+That checkpoint's next gate was a new zero-child execution RED and exact eight-input launch contract. The current status and next gate are in the superseding note at the top of this document.

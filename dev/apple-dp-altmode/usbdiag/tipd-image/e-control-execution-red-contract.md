@@ -1,27 +1,215 @@
-# Fixed E execution boundary: zero-child RED contract
+# Fixed E execution boundary and operational pre-execution contract
+
+Status: corrected after one fail-closed production attempt. `run-f2yoto48`
+completed all 424 children, then stopped before publication on a gzip header
+timestamp mismatch. The corrected exact gzip command is `/usr/bin/gzip -n`.
+Four fresh toolchain-v5 zero-child sandboxes passed 25/25 focused methods
+against the correction. Independent QA repeated those suites and passed
+25/25. Its first and only direct-helper run also passed 18/18 methods with 11
+bounded fixture children. The corrected `run_e_control.py` SHA-256 is
+`57d35a30de9b351bcbaf0b78a1be186c8c44a2fbfb378d8f0b801e6e9256a7a9`.
+The source remains inside the contained offline A2-A4 gate. All image-build,
+load, stage, boot, sudo, reboot, cable, device, recovery-rehearsal, live-system,
+sysfs, and boot-file holds remain active.
+
+## Operational recipe under review
+
+The sole execution entry is the fixed no-argument `main()`. It calls the
+private `_run_operational_control()` sequence. The public `operational_policy()`
+only authenticates the exact inputs and returns the fixed policy. The public
+`finalize_operational_result()` always raises
+`E_CONTROL_DIRECT_FINALIZE_UNAVAILABLE`. A caller cannot publish evidence
+without the private execute-and-validate sequence.
+
+The recipe keeps the accepted authenticated five-source bootstrap. It keeps the
+exact eight production task inputs, 593 predicted read-only mounts, UID/GID
+1001, `/work`, umask `077`, fixed environment, fixed 424-command order, 270
+second control limit, 30 second per-child limit, and `E_NO_CHANGE_OFFLINE`
+mode. It has no argument, environment, override, retry, repair, candidate, or
+alternate-root input.
+
+The only approved launcher is the reviewed `sandbox.py` at SHA-256
+`62d3c8224cdf2add93a96195f2d35da232086b7074911c92346cd3200beee827`.
+The only approved runtime is toolchain-v5. Its 582-entry manifest SHA-256 is
+`5886d68d263c773990f2c7c5675f63e05debf5c78cdf693440339fddfca947c0`.
+Compared with v4, v5 changes one runtime entry only: the clean packaged
+`/usr/lib/libgcrypt.so.20.7.2` entry becomes
+`/usr/lib/libgcrypt.so.20.8.8`. No other runtime entry, launcher behavior, or
+containment rule can change. A different launcher, manifest, entry count, or
+additional library delta stops the gate before the recipe runs.
+
+The fixed sequence is:
+
+1. Require the exact initial `/work` membership. Authenticate the recipe, five
+   source files, E base, and exact three-file index-input directory with
+   no-follow bounded reads and before/open/after identity checks.
+2. Reconstruct E. Require the exact early and main streams, 200-module model,
+   three aliases, nine symbols, fixed built-ins, and exact 424-command plan.
+3. Create the empty configuration, early stream, main stream, control root, and
+   lookup root at fixed paths. Creation is exclusive. Existing or unexpected
+   output stops the recipe.
+4. Run the fixed plan once through the accepted `Commands` boundary. Child 4
+   is exactly `/usr/bin/gzip -n` and receives the exact main stream as stdin.
+   Bare `/usr/bin/gzip` is not approved. The positional stdout caps,
+   one-byte stderr cap, 128 KiB report cap, and 270/30 second limits are fixed.
+   The recipe does not retry, clean, repair, or replace partial output.
+5. Collect all 424 records with bounded no-follow reads. Require exact command
+   identity, status `ok`, return code zero, `observed_bytes == retained_bytes`,
+   empty stderr, positive PID, `killed == false`, and `reaped == true`.
+6. Validate archive listings, exact gzip output, four payloads, both
+   `modprobe --show-config` dumps at children 10-11, all 200 filename and
+   dependency lookups, three aliases, nine symbols, exact regenerated indexes,
+   retained indexes, and the known `modules.symbols.bin` exception.
+7. Create the header and evidence with exclusive writes, then capture their
+   exact bytes and identities. After those two files exist, re-read every input,
+   re-collect every record, re-read both bounded module roots, recheck the early,
+   main, and empty-config files, and require exact input, record, root, leaf,
+   materialized-file, header, evidence, and `/work` identity and membership.
+8. Construct the result and acceptance in memory after that final sweep. Write
+   the result only to the fixed
+   `/work/e-control-result.pending` path. Re-read and verify that pending file
+   while `/work/e-control-result.json` is absent. Rename pending to final with
+   the existing no-replace helper as the last fallible operation. Return the
+   precomputed acceptance without any post-rename check or mutation.
+
+The header, evidence, result, and acceptance state offline no-change only. They
+set image creation, module load, staging, boot, and candidate-module binding to
+false. Failure preserves partial output for review. It never converts partial
+output into acceptance.
+
+The recipe, semantic, structural, and execution runners are pinned to the exact
+candidate source. Their focused checks remain zero-child. They may
+inspect the read-only execution policy, fixed planner, authenticated bootstrap,
+bounded collector, structural fixture, semantic fixture, private-entry source
+shape, and direct-finalizer refusal. They do not invoke `main()`,
+`operational_policy()` in a nine-input harness, or any workload child. The
+corrected revision passed 25/25 focused dynamic methods after its static parse,
+compile, source-shape, mutation, and diff checks. The
+[failed-attempt and correction evidence](../../../../docs/evidence/dev-147-e-operational-first-attempt-gzip-determinism-2026-08-29.md)
+owns the current run directories, hashes, results, and containment facts. The
+[dated round-3 evidence](../../../../docs/evidence/dev-147-e-operational-preexecution-gate-2026-08-29.md)
+remains the pre-attempt history. The correction result is zero-child evidence.
+It is not an operational no-change PASS.
+
+The structural runner uses only the distinct `/work/e-control-structural-*`
+fixture namespace. The semantic runner uses only the distinct
+`/work/e-control-semantic-fixture-*` roots, streams, configuration, records, and
+result. Those fixture files model observations and always state zero executed
+children and no fresh proof. No accepted zero-child run created the production
+`/work/control-root`, `/work/lookup-root`, `/work/e-early.cpio`,
+`/work/e-main.cpio`, `/work/empty-modprobe.conf`,
+`/work/e-control-children-e1`, real header or evidence, pending result, or final
+`/work/e-control-result.json`.
+
+The execution runner requires the exact 230-node full-module top-level
+membership, count, and order. It also authenticates the complete 83-node
+operational block with per-node normalized AST hashes and exact order. It retains
+the accepted baseline and fixed bootstrap/collector templates. A closed
+internal call graph must make every operational helper reachable from the fixed
+private entry, except the two intentional public policy/refusal functions. The
+runner requires the exact validator order, fixed constants and positional caps,
+one `Commands` constructor site, two fixed `runner.run` AST sites, the complete
+input/output resweep, and the exact pending-to-final publication tail. Static
+negative mutations change a cap, substitute the launcher, reorder validators,
+remove an input resweep, write the final path directly, break pending
+verification, and add work after rename. Every mutation must fail the contract.
+Two more mutations insert an executable call and rebind `Commands` immediately
+before `ExecutionPolicy`; both must fail the full-module boundary.
+
+The semantic zero-child runner separately checks the exact subject pin and the
+83-node operational suffix AST SHA-256
+`597131f931549deb081af6de5850d7f6e81d962ea9fac0dd3f6673686fd72418`.
+Before it imports the recipe, it vets the authenticated source. The vet permits
+only the exact imports, pure module assignments, exact frozen dataclasses, fixed
+bootstrap definition and sole call, sole reviewed `ctypes` bindings, and the
+sole final `__main__` guard. The runner authenticates its own bootstrap shape and
+requires the pre-import source gate immediately before the sole subject
+`load_source` call. It also protects the imported `e_control`, `math`, and
+`NoReturn` bindings from later replacement. The publication scan covers the
+complete prefix before `ExecutionPolicy`. It permits `os.open`, `write_new`, and
+`os.sys.modules.update` only at the fixed authenticated loader, structural
+reader, pending semantic publisher, and bootstrap rollback sites. Three negative source mutations insert
+`runner.run(())`, `os.environ.update({})`, or a decoy `write_new(...)` call at
+the semantic/operational boundary. Both the pre-import and publication gates
+must reject every mutation. The separately authenticated operational suffix
+keeps its legitimate fixed `runner.run` sites outside the prefix scan.
+
+## First production attempt and correction
+
+Fresh probe `run-8xph_o58` passed. The sole production attempt,
+`run-f2yoto48`, then used exactly 593 read-only mounts. All 424 child reports
+were complete and all 1,272 child triplet files were retained. Every child
+reported status `ok`, return code zero, empty stderr, a positive PID, no kill,
+and a completed reap. The recipe still exited 1 at
+`_validate_archive_observation()` for child 4 with
+`E_CONTROL_SEMANTIC_INVALID`.
+
+The expected and observed gzip streams were both 19,181,273 bytes. The expected
+SHA-256 was
+`375aa35be0ea57fa8d3f79f20cfa70373742ba6e2afda409462497d0d96ad724`.
+The observed SHA-256 was
+`35ae12e147f556cd6fa5fadb7749acc69e8e60bf91593669c18e527b75070e8d`.
+Only one-based bytes 5-8 differed. Retained E stored a zero modification time.
+The observed stream stored `2026-08-29T17:04:07Z`, copied from the exact main
+stream. The compressed payload and trailer were otherwise identical, and both
+streams decompressed to SHA-256
+`7be7b4b03367b5ce4b356fe35977edba6540af0a7df930dbff990286c9b98e28`.
+
+The fail-closed boundary worked. No control header, evidence, pending result,
+final result, or fresh proof exists. Inputs stayed unchanged. No timeout
+occurred. No process remains active. No retry ran.
+
+The correction changes the fixed command identity only. It adds `-n`, which
+the retained local GNU gzip help defines as no stored name or timestamp. Bare
+gzip is now rejected by the helper and every focused command-plan check. The
+semantic fixture changed only its child-4 report. Its size changed from 648 to
+658 bytes. Its SHA-256 changed from
+`75fec501f6e0ef237715a107ce81bfbca3064b6d11944ad9b768751785fd7c6b` to
+`7d7060b4d09adeee70fa3b0eccacf75225912cb1289391a2722a705bed597642`.
+The directly derived aggregate SHA-256 changed from
+`68dd45eeeb9239b873c293b81cbbb5b7403d4ff0d5d1b5a32f3e27c14c92d44e` to
+`5f80a3cf89e2c21e9f694cb8ed47a062aa44003f554ceb18f5de3fc87ea6ebf0`.
+
+Corrective zero-child runs `run-voc0ceb9`, `run-q_c6c496`, `run-ng6qerzs`,
+and `run-z2rki6ms` passed 16/16, 3/3, 3/3, and 3/3. They ran no workload child.
+Independent QA runs `run-wdid9vqb`, `run-qv63ivbi`, `run-3sjaril5`, and
+`run-r24xtx2w` repeated the same 25/25 zero-child result. Direct-helper QA
+`run-kyar_nn2` passed 18/18 with 591 read-only mounts and 11 bounded fixture
+children. Its exact `/usr/bin/gzip -n` header had zero MTIME. Its refusal test
+rejected bare `/usr/bin/gzip` before child execution. These QA runs created no
+E-derived production tree, production stream, child-e1, header, evidence,
+pending, or final output. The helper run created synthetic ASCII fixture trees
+at the exact names `/work/control-root` and `/work/lookup-root`. The linked
+correction evidence records the exact pins.
+The corrected production entry has not run. A second production attempt is not
+authorized by these results.
+
+## Retained zero-child boundary history
 
 Status: accepted RED and corrected zero-child GREEN. RED `run-0zk61la1`
 produced the exact three controlled assertion failures. First GREEN
 `run-_l2w9p_k` stopped on the retained Python 3.14 `Path`/`PosixPath` predicate
 defect. Corrected GREEN `run-nr5woop4` passed all three methods. The
 [dated evidence](../../../../docs/evidence/dev-147-e-execution-boundary-2026-08-29.md)
-owns the exact hashes, results, and limits. This checkpoint does not run the
+owns the exact hashes, results, and limits. Those checkpoints did not run the
 424-command workload or open `main()`, `operational_policy()`, or
 `finalize_operational_result()`.
 
-## Scope and holds
+## Current zero-child scope and holds
 
-This is an unprivileged offline A2 test. All candidate-image, assembly, staging,
-sudo, reboot, cable, device, recovery-rehearsal, live-system, sysfs, module-load,
-and boot-file holds remain active. The runner executes no workload child. It
-does not create either module root, either cpio stream, an empty modprobe
-configuration, or a real E-control result.
+This is an unprivileged offline A2 test gate. All candidate-image, assembly,
+staging, sudo, reboot, cable, device, recovery-rehearsal, live-system, sysfs,
+module-load, and boot-file holds remain active. The runners execute no workload
+child. The structural and semantic runners can create only their distinct
+fixture roots, streams, configuration, records, headers, evidence, and result.
+They do not create a production module root, production cpio stream, production
+configuration, child record root, or real E-control result.
 
 The RED subject was `run_e_control.py` at SHA-256
 `70f369f87942b6ca6826c808536353ae0cc400123204040b9c005995ab43c3e3`.
-The corrected GREEN subject is
+The corrected zero-child GREEN subject was
 `39496435f113c7d9256e5592effd3fece8c52b0e61b774e8283fe96eb84d4add`.
-Its three operational APIs continue to
+At that historical checkpoint, its three operational APIs
 raise exactly `E_CONTROL_RECIPE_UNAVAILABLE` before, during, and after the test.
 Each authenticated AST body must contain only its docstring and the unconditional
 one-statement `raise RecipeError("E_CONTROL_RECIPE_UNAVAILABLE")`. No read,
@@ -219,10 +407,15 @@ active limit, kill, and reap behavior is already separately accepted. The new
 collector only reads retained outputs. It cannot launch, retry, repair, delete,
 rename, publish, or accept a partial control.
 
-The corrected GREEN implements only these fixed launch and collection
-primitives. It does not authorize a workload by itself. The three operational
-APIs and all live/manual holds remain closed. A separate independent review is
-still required before any real child runs. That review must bind the exact
-accepted subject, runner, eight production inputs, 593-mount model, 424-command
-plan, time limits, and result-publication boundary. A failed setup, child,
-containment, input, or result check stops the gate.
+The current corrected candidate implements the fixed operational sequence, but
+the zero-child gate does not authorize or prove that sequence. Direct result
+publication remains closed through `E_CONTROL_DIRECT_FINALIZE_UNAVAILABLE`.
+The previous candidate's `main()` ran once and failed closed. The corrected
+candidate's `main()` has not run. All live/manual holds remain active.
+Independent QA is complete. Independent final review must pass before a
+separate GO. A fresh toolchain-v5 containment probe must then pass before any
+separately authorized second exact
+eight-input, 593-mount, 424-child offline no-change attempt. Any source, runner,
+launcher, manifest, setup, containment, input, command, child, output, or result
+difference stops the gate. It does not trigger another retry, image build,
+staging step, or manual action.

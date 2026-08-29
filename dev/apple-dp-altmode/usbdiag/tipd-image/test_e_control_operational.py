@@ -19,7 +19,7 @@ import unittest
 
 TEST = Path("/inputs/test")
 SUBJECT = Path("/inputs/recipe")
-SUBJECT_SHA256 = "70f369f87942b6ca6826c808536353ae0cc400123204040b9c005995ab43c3e3"
+SUBJECT_SHA256 = "57d35a30de9b351bcbaf0b78a1be186c8c44a2fbfb378d8f0b801e6e9256a7a9"
 ASSEMBLY = Path("/inputs/assembly/prepare_image.py")
 CONTRACT = Path("/inputs/contract/image_contract.py")
 COMMANDS = Path("/inputs/subject/e_control.py")
@@ -34,7 +34,7 @@ SOURCE_PINS = {
   SUBJECT: SUBJECT_SHA256,
   ASSEMBLY: "00caceb3b7fa236dcc030fb4007d0baa75bfa08fcd1590626f85fcc8c22d5f60",
   CONTRACT: "a1eda280aa56967aa06b01a2cca0dfc70c3da6df25066f8a1e815beec719f1bf",
-  COMMANDS: "abbf59410a05fd5c789820df3d40e59d0a5c33cf1204ab93c7aeef806da7b1df",
+  COMMANDS: "16016875e731e88d047eb805c7c6d03045300abdb262361b18010a952adb7b80",
   CONTROL: "10b5afe6cff38df7b6ebe5619fd9a34935932a4b369f3a9ad2a51923c32932d8",
   HELPER: "a32eddd159263d19ff87d7e9caee9d53d17ef5c350fbffe9e7eb142cb43ebf58",
 }
@@ -98,7 +98,8 @@ FORBIDDEN_REAL_OUTPUTS = (
   Path("/work/control-root"), Path("/work/lookup-root"), Path("/work/empty-modprobe.conf"),
   Path("/work/e-early.cpio"), Path("/work/e-main.cpio"),
   Path("/work/e-control-children-e1"), Path("/work/e-control-header.json"),
-  Path("/work/e-control-evidence.json"), Path("/work/e-control-result.json"),
+  Path("/work/e-control-evidence.json"), Path("/work/e-control-result.pending"),
+  Path("/work/e-control-result.json"),
 )
 
 
@@ -213,10 +214,20 @@ def bootstrap() -> tuple[ModuleType, ModuleType, ModuleType, ModuleType,
   validate_binding_tree()
   data = {path: read_pinned(path) for path in PINS}
   indexes, index_state, index_file_states = read_index_directory()
-  assembly = load_source("prepare_image", ASSEMBLY, data[ASSEMBLY][0])
-  contract = load_source("t1_image_contract", CONTRACT, data[CONTRACT][0])
-  commands = load_source("e_control", COMMANDS, data[COMMANDS][0])
   subject = load_source("e_recipe", SUBJECT, data[SUBJECT][0])
+  assembly = sys.modules.get("prepare_image")
+  contract = sys.modules.get("t1_image_contract")
+  commands = sys.modules.get("e_control")
+  require(
+    isinstance(assembly, ModuleType) and assembly.__file__ == str(ASSEMBLY) and
+    isinstance(contract, ModuleType) and contract.__file__ == str(CONTRACT) and
+    isinstance(commands, ModuleType) and commands.__file__ == str(COMMANDS) and
+    isinstance(sys.modules.get("verify_control"), ModuleType) and
+    sys.modules["verify_control"].__file__ == str(CONTROL) and
+    isinstance(sys.modules.get("cpio_image"), ModuleType) and
+    sys.modules["cpio_image"].__file__ == str(HELPER),
+    "authenticated subject bootstrap source files differ",
+  )
   return (subject, contract, commands, assembly, {path: pair[0] for path, pair in data.items()},
           {path: pair[1] for path, pair in data.items()}, indexes, index_state, index_file_states)
 
@@ -240,7 +251,7 @@ def expected_plan(names: dict[str, str]) -> tuple[tuple[str, ...], ...]:
   for path in ("/work/e-early.cpio", "/work/e-main.cpio"):
     plan.extend((("/usr/bin/cpio", "--list", "--quiet", "--file", path),
                  ("/usr/bin/bsdtar", "--list", "--file", path)))
-  plan.append(("/usr/bin/gzip",))
+  plan.append(("/usr/bin/gzip", "-n"))
   for path in PAYLOADS:
     plan.append(("/usr/bin/bsdtar", "--extract", "--to-stdout", "--file",
                  "/work/e-main.cpio", path))
@@ -276,8 +287,8 @@ def structural_report(index: int, command: tuple[str, ...]) -> bytes:
     "stdout": f"record-{index:03d}.stdout", "stderr": f"record-{index:03d}.stderr",
     "retained_bytes": [0, 0], "observed_bytes": [0, 0],
     "planned_stdin_sha256": "7be7b4b03367b5ce4b356fe35977edba6540af0a7df930dbff990286c9b98e28"
-    if command == ("/usr/bin/gzip",) else None,
-    "planned_stdin_bytes": 61286668 if command == ("/usr/bin/gzip",) else 0,
+    if command == ("/usr/bin/gzip", "-n") else None,
+    "planned_stdin_bytes": 61286668 if command == ("/usr/bin/gzip", "-n") else 0,
     "executed": False, "elapsed_seconds": 0.0, "pid": None,
     "killed": False, "reaped": False,
   })
@@ -383,6 +394,7 @@ def setup_fixtures() -> None:
           "index input model differs")
   EXPECTED_PLAN = expected_plan(NAMES)
   require(len(EXPECTED_PLAN) == 424 and all(commands.approved_command(argv) for argv in EXPECTED_PLAN)
+          and not commands.approved_command(("/usr/bin/gzip",))
           and not any(argv[0] == "/usr/bin/python3.14" for argv in EXPECTED_PLAN),
           "literal operational plan differs")
   HEADER_BYTES, EVIDENCE_BYTES, RESULT_BYTES = build_structural_artifacts(EXPECTED_PLAN)
@@ -404,9 +416,14 @@ class EOperationalRedTests(unittest.TestCase):
     self.assertEqual(policy.record_root, str(RECORD_ROOT))
     self.assertEqual(policy.artifacts, (str(HEADER), str(EVIDENCE), str(RESULT)))
     self.assertNotIn("/work/e-control-result.json", policy.artifacts)
-    with self.assertRaisesRegex(subject.RecipeError, "^E_CONTROL_RECIPE_UNAVAILABLE$"):
-      subject.operational_policy()
-    with self.assertRaisesRegex(subject.RecipeError, "^E_CONTROL_RECIPE_UNAVAILABLE$"):
+    execution = subject.operational_execution_policy()
+    self.assertEqual(len(execution.task_bindings), 8)
+    self.assertEqual(execution.read_only_mounts, 593)
+    self.assertEqual(execution.planned_children, 424)
+    self.assertIn("_run_operational_control", subject.main.__code__.co_names)
+    with self.assertRaisesRegex(
+      subject.RecipeError, "^E_CONTROL_DIRECT_FINALIZE_UNAVAILABLE$",
+    ):
       subject.finalize_operational_result()
 
   def test_b_distinct_zero_child_structural_acceptance(self) -> None:
