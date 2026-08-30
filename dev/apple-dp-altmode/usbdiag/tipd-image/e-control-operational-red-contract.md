@@ -1,5 +1,11 @@
 # Fixed E-only structural boundary before operational control
 
+Reconciled: 2026-08-30. Assembly holds preserved below describe this E-only
+entry or its historical checkpoints, not the separate T1 assembler. The later
+authorized [private T1 assembly and independent result QA](../../../../docs/evidence/dev-147-t1-private-image-2026-08-30.md)
+passed. This E helper still cannot assemble T1. All staging, live and manual
+holds remain active; the next gate is offline A3 handoff-package review.
+
 Status: the corrected zero-child structural GREEN and its original pins below are retained history. The current recipe SHA is `1be81904b29c69cb24fae86208c62fb30e830eca46250978a65d8ed19db8de77`, helper SHA is `686d59e63166df1bef1afad27998a6d58f4c28b6b4439b6ccd607b56471268ca`, and structural runner SHA is `31ccbb035e6e92fab6328b203b090c77138d1abdd8f76e1cab430367fb8783b9`. Two production attempts failed closed and exposed gzip and lookup grammar. Current zero-production-child structural run `run-hgr5p8p1` passed 3/3 with 594 unchanged read-only mounts. [Independent QA](../../../../docs/evidence/dev-147-e-lookup-correction-independent-qa-2026-08-30.md) repeated 3/3 in `run-81ol5s2v`; final review passed with no blockers. The later [third operational attempt](../../../../docs/evidence/dev-147-e-operational-third-attempt-pass-2026-08-30.md) now supplies the fresh E-control PASS. Nothing in this structural checkpoint creates that result, constructs an image, stages, boots, or changes hardware.
 
 ## Provenance history

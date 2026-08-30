@@ -1,5 +1,11 @@
 # E-only control boundary: tested GREEN
 
+Reconciled: 2026-08-30. Assembly holds preserved below describe this E-only
+entry or its historical checkpoints, not the separate T1 assembler. The later
+authorized [private T1 assembly and independent result QA](../../../../docs/evidence/dev-147-t1-private-image-2026-08-30.md)
+passed. This E helper still cannot assemble T1. All staging, live and manual
+holds remain active; the next gate is offline A3 handoff-package review.
+
 This is the narrow runner, reduced-root and ordered-lookup contract for the [T1 image boundary](README.md). The original three-test RED and old-helper GREEN are preserved below. On 2026-08-29, that historical GREEN passed 18 methods and 11 harmless children. The current helper includes the fixed production implementation, but this direct-helper fixture does not invoke it. Two production entries ran and failed closed. The lookup-grammar correction then passed zero-production-child SWE checks, [independent QA](../../../../docs/evidence/dev-147-e-lookup-correction-independent-qa-2026-08-30.md), and final review. The later [third operational attempt](../../../../docs/evidence/dev-147-e-operational-third-attempt-pass-2026-08-30.md) supplies the fresh E-control PASS. The T1 assembler gate remains closed pending a separate exact review and explicit authority.
 
 Only the root task may execute the reviewed files in a fresh verified unprivileged sandbox. These fixtures do not accept real E, a real module, a saved W proof or a candidate identity. The 200 fixture module payloads are labelled ASCII text. The seven index payloads are also synthetic. They cannot prove ELF, index semantics, ABI, hardware behaviour or a usable image.

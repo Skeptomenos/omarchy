@@ -1,5 +1,11 @@
 # Fixed E execution boundary and operational contract
 
+Reconciled: 2026-08-30. Assembly holds preserved below describe this E-only
+entry or its historical checkpoints, not the separate T1 assembler. The later
+authorized [private T1 assembly and independent result QA](../../../../docs/evidence/dev-147-t1-private-image-2026-08-30.md)
+passed. This E helper still cannot assemble T1. All staging, live and manual
+holds remain active; the next gate is offline A3 handoff-package review.
+
 Status: accepted after two fail-closed production attempts and one fresh
 operational no-change PASS. `run-f2yoto48` exposed a gzip timestamp mismatch.
 `run-noq24xg7` proved the exact `/usr/bin/gzip -n` bytes and then exposed kmod
