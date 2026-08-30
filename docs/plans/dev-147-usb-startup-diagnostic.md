@@ -1,6 +1,6 @@
 # DEV-147 — one-boot USB startup diagnostic design
 
-Current boundary, 2026-08-30: user-supplied metadata confirms the numeric DRM symlink. The [direct-path helper correction](../evidence/dev-147-crashflag-path-correction-2026-08-30.md) passes 24 offline tests and independent review. A separate candidate is held for fresh readiness and one explicit user-run diagnostic release; no reboot is needed. The original release is consumed and no crash flag has been observed. All USB/T1 source, images, prior outcomes and other live holds remain unchanged.
+Current boundary, 2026-08-30: David confirmed readiness for [one corrected user-run crash-flag observation](../evidence/dev-147-crashflag-v2-manual-release-2026-08-30.md). The unchanged candidate is released once; await all output. No reboot or cable change is needed. The original release stays consumed, and no crash-flag result or recovery is established. All USB/T1 source, images, accepted results and other live holds remain unchanged.
 
 Completed offline checkpoint, 2026-08-30: the [T1 manual-boundary package](../evidence/dev-147-t1-manual-package-2026-08-30.md) passed independent handoff, manifest, safety and checksum review. Its seal, image, 54-method staging result and 13-method collector/binding result remain unchanged. That offline checkpoint ran no hardware; the separate [attended result](../evidence/dev-147-t1-boot-capture-2026-08-30.md) owns the later boot and capture.
 
