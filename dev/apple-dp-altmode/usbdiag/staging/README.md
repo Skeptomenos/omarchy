@@ -1,10 +1,20 @@
 # Staging helper source archive
 
-## C3 E-only helper — offline preparation
+## A3 T1 helper — partial offline preparation
+
+Reconciled: 2026-08-30. The [dated A3 checkpoint](../../../../docs/evidence/dev-147-t1-staging-preparation-hold-2026-08-30.md) retains both genuine RED runs, rejected unexecuted v1 and the actual syntax/seven-method sync-free result. Independent read-only result QA passed without a rerun. The full 54-method suite is UNRUN/HOLD because unchanged v5 lacks sync. A proposed addition preserves all 582 v5 rows and adds only the historically pinned sync, for 583 runtime entries and 590 read-only mounts. Separate approval is required; no manifest changed or sync ran in this A3 checkpoint. Sync -f flushes the containing filesystem, not only a fixture file.
+
+The [T1 public helper](../../stage-tipddiag-initramfs.sh) stays fail-closed. Its private copy differs by exactly SOURCE, PROOFS and ROOT_UUID. The [privacy GREEN companion](test_stage_tipddiag_privacy_green.py) preserves all 54 bodies; its [subset contract](t1-privacy-green-review-contract.md) does not claim full transaction GREEN. Preserve the [original RED](t1-test-contracts.md), [rejected v1 checkpoint](t1-green-review-contract.md) and [privacy RED](t1-privacy-red-contract.md) as history.
+
+The accepted private image is unchanged and unstaged. The active fixed-profile capture/binding implementation remains missing: 21 pure tests do not supply an actual collector and the operational entry remains closed. Private capture, one-case and recovery drafts are reviewed drafts, not release instructions. The [technical plan](../../../../docs/plans/dev-147-usb-startup-diagnostic.md#autonomous-offline-technical-gates-living) owns remaining gates. No complete A3/A4 package, overall goal completion or live/manual release is claimed.
+
+<a id="c3-e-only-helper--offline-preparation"></a>
+
+## C3 E-only helper — offline preparation (historical)
 
 Reconciled: 2026-08-28. The [C3 preparation evidence](../../../../docs/evidence/dev-147-usbearly-staging-helper-2026-08-28.md) retains syntax, 42 focused methods, independent QA, and exact private-copy review PASS. The separate [user-run staging record](../../../../docs/evidence/dev-147-usbearly-staging-2026-08-28.md) records C3 staging PASS. E remains staged; the command is consumed. The [C4 readiness](../../../../docs/evidence/dev-147-usbearly-boot-readiness-2026-08-28.md), [post-reboot loss](../../../../docs/evidence/dev-147-post-c4-display-loss-2026-08-28.md), and [E confirmation](../../../../docs/evidence/dev-147-c4-selection-confirmation-2026-08-28.md) remain separate from the new [display recovery after intended W](../../../../docs/evidence/dev-147-w-recovery-after-e-2026-08-28.md). Both native outputs are active; the filename was not restated, so this is not independently proven W artifact startup. The W handoff is consumed. The [main plan](../../../../docs/plans/dev-147-m2-displayport.md#current-state--display-recovery-observed-living) authorizes no further device or greeter test; USB/full Gate 4b remains HOLD.
 
-Current offline work, 2026-08-28: the [autonomous goal](../../../../docs/plans/dev-147-m2-displayport.md#autonomous-offline-goal--next-test-package-living) permits a new fixed-source, no-replace staging-helper draft after artifact selection and verification. Follow the [technical gates](../../../../docs/plans/dev-147-usb-startup-diagnostic.md#autonomous-offline-technical-gates-living). Test only private/synthetic files in fresh verified containment; no production preflight, staging, historical replay, or live action is authorized.
+Historical offline scope, 2026-08-28: the [autonomous goal](../../../../docs/plans/dev-147-m2-displayport.md#autonomous-offline-goal--next-test-package-living) permits a new fixed-source, no-replace staging-helper draft after artifact selection and verification. Follow the [technical gates](../../../../docs/plans/dev-147-usb-startup-diagnostic.md#autonomous-offline-technical-gates-living). Test only private/synthetic files in fresh verified containment; no production preflight, staging, historical replay, or live action is authorized.
 
 | Source | Scope |
 |---|---|
