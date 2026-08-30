@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import signal
 import hashlib
+import errno
 import struct
 import sys
 import tempfile
@@ -28,6 +29,7 @@ from crashflag import (  # noqa: E402
   EXPECTED_BOOT_SHA256,
   EXPECTED_KERNEL,
   TIPD_BUILD_ID,
+  TARGET,
   Action,
   Identity,
   Observation,
@@ -286,6 +288,30 @@ class RealFileTests(unittest.TestCase):
     finally:
       signal.setitimer(signal.ITIMER_REAL, 0)
       signal.signal(signal.SIGALRM, previous)
+
+
+class FixedTargetPathTests(unittest.TestCase):
+  def test_target_uses_confirmed_named_directory(self) -> None:
+    self.assertEqual(TARGET, Path("/sys/kernel/debug/dri/soc:display-subsystem/DP-1/ColorElements"))
+
+  def test_named_directory_opens_but_numeric_alias_stays_refused(self) -> None:
+    with tempfile.TemporaryDirectory() as directory:
+      root = Path(directory)
+      named = root / "soc:display-subsystem"
+      connector = named / "DP-1"
+      connector.mkdir(parents=True)
+      (connector / "ColorElements").write_bytes(b"fixture")
+      (root / "2").symlink_to(named.name, target_is_directory=True)
+      self.assertEqual(read_regular(connector / "ColorElements", 7, os.geteuid()), b"fixture")
+      with self.assertRaises(Refusal):
+        read_regular(root / "2" / "DP-1" / "ColorElements", 7, os.geteuid())
+
+  def test_missing_path_reports_requested_path_and_numeric_errno_only(self) -> None:
+    with tempfile.TemporaryDirectory() as directory:
+      missing = Path(directory) / "soc:display-subsystem" / "DP-1" / "ColorElements"
+      with self.assertRaises(Refusal) as caught:
+        read_regular(missing, 7, os.geteuid())
+      self.assertEqual(str(caught.exception), f"safe path open refused: path={missing} errno={errno.ENOENT}")
 
 
 if __name__ == "__main__":

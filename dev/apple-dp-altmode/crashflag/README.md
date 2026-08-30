@@ -10,6 +10,8 @@ The proposed live operation temporarily instruments the kernel. It creates one u
 
 Kernel, boot, installed-module hash, loaded module notes, expected display state and pre-existing mount/file identity must match. Missing paths or rejected probes stop the case. The helper does not mount debugfs, install dependencies, widen permissions or retry another target.
 
+The target uses the fixed device-named DRM directory observed on this machine. The numbered DRM alias is a symlink and remains forbidden by the nofollow guard. Safe-open refusals include the requested path and numeric errno. See the [path-correction evidence](../../../docs/evidence/dev-147-crashflag-path-correction-2026-08-30.md); offline checks do not establish live access.
+
 Only the crash byte and connector type are fetched. No pointer, string, stack or framebuffer payload is requested. The exact installed binary binds the probe offset and field layout. This is not a portable diagnostic for other kernels.
 
 ## Why the original atomic-test proposal changed

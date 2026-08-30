@@ -26,7 +26,7 @@ EXPECTED_KERNEL = "7.1.6-1-1-ARCH"
 APPLE_MODULE_SHA256 = "dbffe74e13a43e15e47fdc5eafe32eb1829b114a3f02f15fe6b18507d622b0e3"
 APPLE_BUILD_ID = "dd5e291114047bb4d7c83a529cddb4f4ac9292d7"
 TIPD_BUILD_ID = "40aa54382047ba36b02c9ac0da65a213862a77ad"
-TARGET = Path("/sys/kernel/debug/dri/2/DP-1/ColorElements")
+TARGET = Path("/sys/kernel/debug/dri/soc:display-subsystem/DP-1/ColorElements")
 TRACE_ROOT = Path("/sys/kernel/tracing")
 DRM_ROOT = Path("/sys/devices/platform/soc/soc:display-subsystem/drm/card2")
 MODULE = Path(f"/usr/lib/modules/{EXPECTED_KERNEL}/kernel/drivers/gpu/drm/apple/appledrm.ko")
@@ -246,7 +246,7 @@ def _open_checked(path: Path, flags: int, owner: int = 0, directory: bool = Fals
       raise Refusal("unexpected file type, ownership, or permissions")
     return fd
   except OSError as error:
-    raise Refusal("safe path open refused") from error
+    raise Refusal(f"safe path open refused: path={path} errno={error.errno}") from error
   finally:
     os.close(current)
 
