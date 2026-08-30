@@ -1,6 +1,6 @@
 # DEV-147 — one-boot USB startup diagnostic design
 
-Current boundary, 2026-08-30: David confirmed readiness and approved [one user-run crash-flag observation](../evidence/dev-147-crashflag-manual-release-2026-08-30.md). Its result is pending. The [main plan](dev-147-m2-displayport.md#minimum-remaining-path-living) owns that narrow release; it does not release a USB test, reconnect, mode request, image/driver change or reboot. The earlier [recurrence evidence](../evidence/dev-147-lg27-spontaneous-dropout-2026-08-30.md), temporary 4K60 result, source and images remain unchanged.
+Current boundary, 2026-08-30: the [crash-flag command refused before instrumentation](../evidence/dev-147-crashflag-preflight-refusal-2026-08-30.md). Its one-use release is consumed; no probe or observation occurred. The main plan now asks for fixed path metadata only. All USB/T1 source, images, prior outcomes and other live holds remain unchanged.
 
 Completed offline checkpoint, 2026-08-30: the [T1 manual-boundary package](../evidence/dev-147-t1-manual-package-2026-08-30.md) passed independent handoff, manifest, safety and checksum review. Its seal, image, 54-method staging result and 13-method collector/binding result remain unchanged. That offline checkpoint ran no hardware; the separate [attended result](../evidence/dev-147-t1-boot-capture-2026-08-30.md) owns the later boot and capture.
 
