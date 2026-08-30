@@ -2,7 +2,7 @@
 
 This archive contains the bounded log collector and boot/artifact consistency checks for the one accepted T1 diagnostic image. The [dated evidence](../../../../docs/evidence/dev-147-t1-capture-2026-08-30.md) owns executed results. The [plan](../../../../docs/plans/dev-147-m2-displayport.md#minimum-remaining-path-living) owns the next approval boundary.
 
-Do not run these files live. There is no installer or live CLI. The private fixed entry is held and unrun. Reconciled 2026-08-30: the [manual-boundary package](../../../../docs/evidence/dev-147-t1-manual-package-2026-08-30.md) passed independent handoff, manifest, safety, and final checksum review and is integrity-sealed. It is ready only for the first manual staging/review boundary. The 13-method result was reused, not rerun; staging, boot, and live capture remain held.
+Do not run these files live. There is no installer or live CLI. The private fixed entry is held and unrun. Reconciled 2026-08-30: [T1 user-run staging](../../../../docs/evidence/dev-147-t1-user-staging-2026-08-30.md) passes receipt review and independent QA; that release is consumed. T1 remains UNBOOTED. The [manual-package seal](../../../../docs/evidence/dev-147-t1-manual-package-2026-08-30.md) and 13-method result remain unchanged. A later attended boot and fixed capture require separate approval, fresh setup, and authenticated caller/input checks; no live capture is released.
 
 ## Contents
 
