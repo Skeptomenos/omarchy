@@ -1,13 +1,17 @@
-# Fixed E execution boundary and operational pre-execution contract
+# Fixed E execution boundary and operational contract
 
-Status: corrected after two fail-closed production attempts. `run-f2yoto48`
-exposed a gzip timestamp mismatch. `run-noq24xg7` proved the exact
-`/usr/bin/gzip -n` bytes and then exposed kmod 34.2's single trailing ASCII
-space on each `insmod` lookup line. Both attempts completed all 424 children
-and stopped before publication. The helper now accepts exactly one trailing
-space on `insmod` lines and no trailing space on `builtin ecb`. Controlled RED
-`run-mnmz924l` and GREEN `run-2f6yexwm` cover that correction. Four fresh
-toolchain-v5 zero-production-child sandboxes then passed 25/25 focused methods.
+Status: accepted after two fail-closed production attempts and one fresh
+operational no-change PASS. `run-f2yoto48` exposed a gzip timestamp mismatch.
+`run-noq24xg7` proved the exact `/usr/bin/gzip -n` bytes and then exposed kmod
+34.2's single trailing ASCII space on each `insmod` lookup line. Both attempts
+completed all 424 children and stopped before publication. Controlled RED
+`run-mnmz924l`, GREEN `run-2f6yexwm`, 25/25 focused boundary methods,
+independent QA, and final review cover the correction. Fresh probe
+`run-y3xcwg2_` and the one authorized third attempt `run-988kuwr1` passed. The
+third attempt completed all 424 children and published the complete
+[E no-change proof](../../../../docs/evidence/dev-147-e-operational-third-attempt-pass-2026-08-30.md).
+Independent read-only result QA found zero failures. Final documentation review
+found no blocker.
 The current `run_e_control.py` SHA-256 is
 `1be81904b29c69cb24fae86208c62fb30e830eca46250978a65d8ed19db8de77`.
 The current helper SHA-256 is
@@ -16,7 +20,7 @@ The source remains inside the contained offline A2-A4 gate. All image-build,
 load, stage, boot, sudo, reboot, cable, device, recovery-rehearsal, live-system,
 sysfs, and boot-file holds remain active.
 
-## Operational recipe under review
+## Operational recipe
 
 The sole execution entry is the fixed no-argument `main()`. It calls the
 private `_run_operational_control()` sequence. The public `operational_policy()`
@@ -187,8 +191,8 @@ pending, or final output. The helper run created synthetic ASCII fixture trees
 at the exact names `/work/control-root` and `/work/lookup-root`. The linked
 correction evidence records the exact pins.
 That corrected production entry ran once as `run-noq24xg7`; its result is the
-second fail-closed checkpoint below. No third production attempt is authorized
-by these results.
+second fail-closed checkpoint below. At that checkpoint, its results did not
+authorize a third production attempt.
 
 ## Second production attempt and lookup correction
 
@@ -234,10 +238,29 @@ Independent QA repeated the direct-helper suite in `run-i_x5ec4n` and the
 four zero-production-child boundary suites in `run-ks9kn889`,
 `run-81ol5s2v`, `run-_y7n3i3t`, and `run-bam09x3u`. The
 [second-attempt evidence](../../../../docs/evidence/dev-147-e-operational-second-attempt-lookup-grammar-2026-08-30.md)
-owns the production facts. The [independent QA evidence](../../../../docs/evidence/dev-147-e-lookup-correction-independent-qa-2026-08-30.md)
-owns the fresh QA results. Final review passed with no blockers. There is no fresh
-E-control PASS. Any third
-production attempt requires a separate GO and a fresh v5 probe.
+owns the second-attempt facts. The [independent QA evidence](../../../../docs/evidence/dev-147-e-lookup-correction-independent-qa-2026-08-30.md)
+owns the correction QA results. Final review passed with no blockers. David
+later supplied a separate GO for exactly one third attempt.
+
+## Third production attempt: fresh E no-change PASS
+
+Fresh probe `run-y3xcwg2_` passed with the reviewed toolchain-v5 launcher,
+exact eight inputs, and 593 read-only mounts. Production `run-988kuwr1` used
+byte-identical input and security manifests. It ran the fixed plan once and
+exited 0 without timeout. All inputs stayed unchanged.
+
+All 424 unique child processes completed with status `ok`, return code zero,
+empty stderr, retained bytes equal to observed bytes, and confirmed reap. All
+1,272 child files match the published descriptors. Exact gzip, raw archives,
+200 module lookups, three alias lookups, nine symbol lookups, regenerated
+indexes, retained indexes, and the reviewed `modules.symbols.bin` exception
+passed. The final header, evidence, and result were published at SHA-256
+`1665fe5a0d5d58eb3fa029faaea066da5c4b026415d19c33d644c5ec0b44f96a`,
+`6bbbb024d616bfa767dfe71b4a6121a1e75233bb1a1c8bc47b81b93f28628709`,
+and `5e08a383469bd65d402939d0b7ca9cef9c2febb77ca12de1d577454b0d2de8f2`.
+The [third-attempt evidence](../../../../docs/evidence/dev-147-e-operational-third-attempt-pass-2026-08-30.md)
+owns the complete run facts. No retry, T1 binding, image creation, load, stage,
+boot, or live action occurred. T1 assembly is a separate held gate.
 
 ## Retained zero-child boundary history
 
@@ -457,21 +480,23 @@ Every child uses a one-byte stderr detection cap and a 128 KiB JSON report cap.
 The empty config cap is one byte. The exact early and main stream caps are
 10,240 and 61,286,668 bytes. The record-root and tree limits above are part of
 the same fixed policy; they are not caller parameters.
-The existing `Commands` helper remains the only future process boundary. Its
+The existing `Commands` helper remains the only process boundary. Its
 active limit, kill, and reap behavior is already separately accepted. The new
 collector only reads retained outputs. It cannot launch, retry, repair, delete,
 rename, publish, or accept a partial control.
 
-The current corrected candidate implements the fixed operational sequence, but
-the zero-child gate does not authorize or prove that sequence. Direct result
-publication remains closed through `E_CONTROL_DIRECT_FINALIZE_UNAVAILABLE`.
-Two previous candidates each ran `main()` once and failed closed. The current
-lookup-corrected candidate's `main()` has not run. All live/manual holds remain
-active.
-Independent QA and final review are complete. A separate GO is still required.
-A fresh toolchain-v5 containment probe must then pass before any
-separately authorized third exact
-eight-input, 593-mount, 424-child offline no-change attempt. Any source, runner,
-launcher, manifest, setup, containment, input, command, child, output, or result
-difference stops the gate. It does not trigger another retry, image build,
-staging step, or manual action.
+The corrected candidate implements the fixed operational sequence. The
+zero-child gate alone did not authorize or prove that sequence. Direct result
+publication remains closed through `E_CONTROL_DIRECT_FINALIZE_UNAVAILABLE`;
+only the fixed private `main()` sequence can publish after every check passes.
+The first two `main()` entries each failed closed. After pre-execution QA and
+final review, David supplied a separate GO. Fresh toolchain-v5 probe
+`run-y3xcwg2_` passed. The third exact eight-input, 593-mount, 424-child attempt
+`run-988kuwr1` then passed and published the complete proof. All live and
+manual holds remain active.
+
+Any later source, runner, launcher, manifest, setup, containment, input,
+command, child, output, or result difference stops its own gate. The completed
+control does not trigger another retry, T1 assembly, image build, staging step,
+or manual action. T1 assembly requires a separate exact review and explicit
+authority.

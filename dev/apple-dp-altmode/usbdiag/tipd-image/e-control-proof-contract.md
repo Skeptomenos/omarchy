@@ -1,6 +1,6 @@
 # Fixed E-only control: recipe and proof contract
 
-Status: the three-assertion RED, first pure fixture GREEN, raw-observation semantic GREEN, and structural GREEN below are preserved checkpoint history. The current [execution boundary](e-control-execution-red-contract.md) uses recipe SHA `1be81904b29c69cb24fae86208c62fb30e830eca46250978a65d8ed19db8de77` and helper SHA `686d59e63166df1bef1afad27998a6d58f4c28b6b4439b6ccd607b56471268ca`. Two production attempts completed all 424 children and failed closed before publication. The second proved gzip determinism and exposed kmod lookup-line grammar. The narrow trailing-space correction passed current SWE zero-production-child checks, [independent QA](../../../../docs/evidence/dev-147-e-lookup-correction-independent-qa-2026-08-30.md), and final review. There is no fresh E-control PASS. T1 assembly remains unavailable.
+Status: the three-assertion RED, pure fixture GREEN, raw-observation semantic GREEN, structural GREEN, and two fail-closed production attempts below are preserved checkpoint history. The current [execution boundary](e-control-execution-red-contract.md) uses recipe SHA `1be81904b29c69cb24fae86208c62fb30e830eca46250978a65d8ed19db8de77` and helper SHA `686d59e63166df1bef1afad27998a6d58f4c28b6b4439b6ccd607b56471268ca`. After correction QA and final review, fresh probe `run-y3xcwg2_` and the one authorized third attempt `run-988kuwr1` passed. The [third-attempt evidence](../../../../docs/evidence/dev-147-e-operational-third-attempt-pass-2026-08-30.md) owns the first fresh operational E no-change proof. Independent read-only result QA found zero failures. Final documentation review found no blocker. T1 assembly remains unavailable pending a separate exact review and explicit authority.
 
 ## First checkpoint: three genuine assertion REDs (preserved)
 
@@ -60,7 +60,7 @@ The current recipe uses exact `/usr/bin/gzip -n` and rejects bare `/usr/bin/gzip
 
 The [first-attempt and gzip-correction evidence](../../../../docs/evidence/dev-147-e-operational-first-attempt-gzip-determinism-2026-08-29.md) records that checkpoint and its then-current pins. The later second attempt supersedes its operational-gate wording.
 
-## Current lookup-grammar checkpoint
+## Superseded lookup-grammar checkpoint
 
 Fresh probe `run-x65x28u0` passed. Production run `run-noq24xg7` proved exact
 `/usr/bin/gzip -n`, then stopped at `LOOKUP_FORMAT` because actual kmod 34.2
@@ -78,12 +78,22 @@ runner SHA-256 values are `170b27788135ae7d78e0355570ed5ee20ccd33c8ada11912b5cd1
 and `50ba54c6dcbe8304890908ac976ee0bf07e00e0ba34c5433043a9ee6efa491b3`.
 The [second-attempt evidence](../../../../docs/evidence/dev-147-e-operational-second-attempt-lookup-grammar-2026-08-30.md)
 owns the exact results. Independent QA passed the direct and boundary suites,
-and final review passed with no blockers. Another
-production attempt requires a separate GO and fresh v5 probe.
+and final review passed with no blockers. At that checkpoint, another
+production attempt required a separate GO and fresh v5 probe.
+
+## Current fresh E-control checkpoint
+
+David later authorized exactly one third attempt. Fresh probe `run-y3xcwg2_`
+passed. Production `run-988kuwr1` then passed all 424 fixed children and
+published the complete proof. All 1,272 child files, exact archive and gzip
+bytes, 200 module lookups, three alias lookups, nine symbol lookups, retained
+indexes, and the reviewed generated-symbol exception validate. Inputs and the
+lookup root stayed unchanged. No candidate was bound. No image, load, stage,
+boot, or live action occurred. See the [immutable run evidence](../../../../docs/evidence/dev-147-e-operational-third-attempt-pass-2026-08-30.md).
 
 ## Current corrected real E control: exact no-change case
 
-The fixed operational entry now exists. Its first invocation used bare gzip and failed closed. Its second invocation used exact gzip `-n` and failed closed on lookup grammar. Neither published a result. Its eight read-only inputs are the recipe, the five frozen pure/helper sources, the fixed E image, and a directory containing only the three pinned original depmod inputs. No caller-supplied identities, fixture mode, alternate base, old proof, candidate module, or command override is allowed. The recipe's source pin is enforced by the outer launcher and retained in the evidence. No accepted T1 module or image is bound by this contract.
+The fixed operational entry now has two retained fail-closed invocations and one fresh PASS. The first used bare gzip and stopped on MTIME. The second used exact gzip `-n` and stopped on lookup grammar. The third used the corrected helper and published the result. Its eight read-only inputs are the recipe, the five frozen pure/helper sources, the fixed E image, and a directory containing only the three pinned original depmod inputs. No caller-supplied identities, fixture mode, alternate base, old proof, candidate module, or command override is allowed. The recipe's source pin is enforced by the outer launcher and retained in the evidence. No accepted T1 module or image is bound by this contract.
 
 | Boundary | Required fresh evidence |
 |---|---|
@@ -118,6 +128,6 @@ The tested root builder copies module files in sorted path order. The historical
 
 Before the first child, authenticate all fixed sources and inputs, require all fixed outputs absent, and record the source/input identities. Maintain exact before/after snapshots for the regeneration and binary-only roots, both raw stream files, the empty config and every immutable input. The only new files are confined to the fresh `/work` output tree and `/tmp`; no live host paths are visible. Preserve partial outputs on failure.
 
-The proposed complete proof has three fixed new JSON files plus the runner's raw child files. `e-control-evidence.json` retains archive metadata/raw hashes, all module/index identities, full lookup results, before/after snapshots, and the complete planned/observed command ledger with raw-output hashes. `e-control-header.json` uses the existing strict fixed E header schema. `e-control-result.json` is written last and binds both JSON files and all 424 actual child result/stdout/stderr files by their read-back identities and hashes. The final check requires complete exact membership, all statuses/return codes, empty stderr, no kill/timeout, every expected command, and unchanged inputs/roots. A caller-supplied dictionary of hashes or a header alone cannot substitute for actual files. No full-control result may be written by the fixture runner.
+The published complete proof has three fixed JSON files plus the runner's raw child files. `e-control-evidence.json` retains archive metadata/raw hashes, all module/index identities, full lookup results, before/after snapshots, and the complete planned/observed command ledger with raw-output hashes. `e-control-header.json` uses the existing strict fixed E header schema. `e-control-result.json` is written last and binds both JSON files and all 424 actual child result/stdout/stderr files by their read-back identities and hashes. The final check requires complete exact membership, all statuses/return codes, empty stderr, no kill/timeout, every expected command, and unchanged inputs/roots. A caller-supplied dictionary of hashes or a header alone cannot substitute for actual files. No full-control result may be written by the fixture runner.
 
 Write the final result only after every archive, index, lookup, command and postcheck gate passes within the deadline. The result must state that it is an offline no-change E control, that the twelve historical test files were not operational inputs, and that no candidate image, module load, staging, reboot or hardware acceptance occurred. Later T1 assembly still needs the independently accepted real T1 binary identity, this complete fresh control proof, a new exact single-payload assembly review and its own evidence. No unknown identity is configurable and no failed W/E/D3 hardware case is replayed here.
