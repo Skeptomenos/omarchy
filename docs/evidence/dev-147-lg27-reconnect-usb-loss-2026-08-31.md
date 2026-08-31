@@ -46,3 +46,15 @@ The reconnect handoff is consumed. Do not repeat it, add a mouse, change PM or t
 The non-installed reader and its fixture tests are prepared. Separate Bash syntax checks, 14 real-filesystem checks and integrated-copy diff hygiene pass. Independent reader QA also passes. A discovered per-object encoding failure is fixed and covered by an oversized-file regression; the retained RED evidence is not a hardware failure. Public source bytes match the reviewed private copies. The plan records hashes, execution-provenance limits and the exact focused gate.
 
 No live `--record` run occurred. Snapshot cadence, live discovery and mid-read hardware races remain untested. The next boundary is user availability for one newly armed, attended case; it is not permission to repeat the old reconnect now.
+
+## Addendum — first bounded PM window, 2026-08-31 10:15–10:18Z
+
+David replied “ready”. Fresh checks matched the same W boot, packages and module notes. The agent armed the reviewed reader before releasing one reconnect instruction. The recorder finished normally after 180 samples. No completion or physical-action report had arrived when this record was written. The instruction expired with the window; the agent told David not to reconnect or repeat it now.
+
+Capture integrity PASS; reconnect classification and child-PM measurement INCONCLUSIVE. Every sample contains the same controller, xHCI and two root hubs, with no monitor hub or controls. The controller/xHCI report `on`/`active` and zero cumulative runtime-suspend time. The empty root hubs report `auto`/`suspended`. This does not establish what David physically did, exclude a missed transition, or explain the earlier USB loss.
+
+The first-to-last sample brackets span 12:15:03.933–12:18:03.962 CEST. There are 180 valid, contiguous ordinals, 470,592 bytes and only `ok`/`missing` attribute statuses. Sample-start intervals are 1.00–1.01 seconds by the saved uptime clock. Recorder exit is 0 and stderr is empty. `sha256sum -c capture.sha256` verifies all 33 captured files. Samples SHA-256: `7259e9ec73a9d4a24f9205078a74ec5e9f5e7f38fa80e304e1f937ab891657e8`.
+
+The incremental journal contains 48 ordered records and 42,909 bytes, from 12:15:39.774 through 12:19:41.500 CEST. It contains only audit/network entries, with no USB/display event. Its exit is 0 and stderr is empty. Journal SHA-256: `8b58fb069a4a2b138a1641cbdcb8fe08d6d03f619be602ef8d17c0518b11f5b5`. Silence in this journal is not proof of complete hardware observation.
+
+The same-boot after-snapshot has both native outputs enabled with DPMS on, both PD sources online and battery Full/100%. This is software state, not a fresh visible-image report. No boot, driver, PM, timer or system configuration changed. Raw captures remain private in the DEV-147 checkpoint. The [living plan](../plans/2026-08-31-dev147-usb-pm-recurrence.md) owns the pending action clarification; no automatic rearm follows.
