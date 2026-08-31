@@ -1,7 +1,7 @@
 # Prepare a capture of hub power state before USB loss
 
 **Goal:** Prepare a bounded reader and reviewed handoff for measuring hub/controls PM state during the next attended reconnect, without changing the working display drivers or PM policy.
-**Mode:** light — passive reader and fixture checks; no kernel or system mutation.
+**Mode:** light — read-only preparation and fixture checks; actual event tracing stays gated.
 **Branch:** `codex/dev-147-t1-image-offline`
 **Linear:** DEV-147
 **Started:** 2026-08-31
@@ -9,6 +9,8 @@
 Status, reconciled 2026-08-31 11:13Z: the [user clarification](../evidence/dev-147-lg27-reconnect-usb-loss-2026-08-31.md#correction--no-new-reconnect-2026-08-31-1113z) resolves the timing question. “Yes” referred to the earlier completed reconnect, not a new action during the PM window. The 180 root-only samples are a no-action baseline. Video remains the working prototype path; the open investigation concerns the monitor's USB hub/data connection. Child-PM measurement and cause remain open. No reconnect, repeat, PM change or automatic rearm.
 
 Saved comparison, 2026-08-31 11:25Z: the [initialization-path analysis](../research/dev-147-usb-hub-init-comparison-2026-08-31.md) places descriptor/setup failures before the later suspend warning. Status error `-5` hides the original transfer result. The next useful measurement is event-level control-transfer results plus runtime-PM transitions, not another root-only sampling window. Its collection method and release remain open. No user action is needed now.
+
+Current boundary after David's next “Proceed”, 2026-08-31: [source feasibility](../research/dev-147-usb-hub-init-comparison-2026-08-31.md#addendum--collector-feasibility-2026-08-31) finds that neither the proposed per-bus usbmon path nor native xHCI events satisfy the full measurement contract without further design. A [read-only capability helper](../../dev/apple-dp-altmode/usb-event-capture/README.md) now passes 12 offline test groups and independent review. Next David runs the reviewed private one-time wrapper to read protected formats/clocks. No USB capture, module load, trace activation, cable action or reboot is included. Full collector preparation remains open.
 
 ## Context
 
@@ -20,9 +22,11 @@ Prepare a small unprivileged reader under `/home/david/o/.dev147-stage/tipd-imag
 
 That reader is now prepared and its first window is complete. The saved comparison shows that some failed generations last less than one sample interval. Keep the reader as supporting evidence; do not reuse it alone to infer failure/PM ordering. A future event-level method needs its own containment review before activation.
 
+The immediate continuation reads only installed trace metadata. Its private wrapper runs the fixed helper through clean-environment sudo and a 20-second timeout, while the unprivileged caller retains stdout/stderr/exit and hashes in a fresh private directory. Missing formats are findings; do not load a module or select another path automatically. The helper does not acquire USB data or change trace state.
+
 ## Execution Protocol
 
-Use the light `self-correction-loop`. Validate saved capture integrity and the reader against filesystem fixtures; review independently before handoff. Never read partner `usb_mode`, issue USB control transfers, change PM, load drivers or use sudo. Exclude the known unsupported PHY/port delay fields. Keep the reader unarmed during preparation.
+Use the light `self-correction-loop`. Validate saved capture integrity and the reader against filesystem fixtures; review independently before handoff. Never read partner `usb_mode`, issue USB control transfers, change PM or load drivers. The agent does not execute sudo; David may run only the reviewed metadata-only handoff at the current boundary. Exclude the known unsupported PHY/port delay fields. Keep traffic recorders unarmed during preparation.
 
 ## Steps
 
@@ -53,6 +57,18 @@ Use the light `self-correction-loop`. Validate saved capture integrity and the r
   Goal: identify the earliest supported divergence without assigning PM causality.
   Validation: three selected journal hashes and JSON/order checks pass; independent data and pinned-source reviews distinguish descriptor validation, nonfatal TT fallback, status-result remapping and later suspend failure.
   Exit criteria: [dated comparison](../research/dev-147-usb-hub-init-comparison-2026-08-31.md) separates observations from source hypotheses and specifies the next measurement; no new live method is released.
+- [x] Inspect unprivileged capability metadata and pinned capture semantics.
+  Goal: avoid designing a collector around an unsupported or misleading interface.
+  Validation: saved configuration/module/permission inventory confirms compiled support; independent source review and root's direct reads establish the bus-lifecycle, payload, clock, drop-counter and xHCI status limits.
+  Exit criteria: findings recorded in the dated addendum; no module or trace activated. Protected event formats remain unread.
+- [x] Prepare the fixed read-only capability helper.
+  Goal: give David one bounded metadata-only sudo handoff.
+  Validation: the focused gate below passes 12 groups and separate syntax checks. Independent QA confirms the exact 15-file allowlist and 247,998-byte maximum-fixture output, below 256 KiB. The private copy matches the reviewed helper hash.
+  Exit criteria: helper, tests and README are saved; the once wrapper preserves results in files created and owned by the unprivileged caller. Actual tracefs errors/timeouts and event availability remain untested.
+- [ ] Execute and review the protected capability inventory.
+  Goal: identify the actual installed fields and clocks without recording traffic.
+  Validation: David runs the reviewed private once wrapper; inspect saved stdout/stderr/exit/hashes and exact kernel/format fields. Do not automatically retry incomplete output.
+  Exit criteria: inventory results preserved and collector design revisited. A complete metadata inventory is not a live-capture or monitor PASS.
 - [ ] Obtain the missing child-state and transfer observation.
   Goal: locate the first USB-hub failure without conflating it with working video or later PM cleanup.
   Validation: first review availability, privileges, device scope, shared clock alignment, loss detection, duration/byte caps and cleanup for control-URB headers plus scoped runtime-PM events. Any later attended capture needs a new, explicit cable instruction after arming; none is released now.
@@ -68,6 +84,11 @@ Use the light `self-correction-loop`. Validate saved capture integrity and the r
   Validation: the selected-journal gate below, pinned-source review and independent review of the three changed documents.
   Exit criteria: completed claims VERIFIED or explicitly qualified; missing live transfer/PM evidence remains open.
   Evidence: `pm_window_qa` independently reruns `sha256sum -c selected-journals.sha256` (3/3 OK), the JSON/count/common-boot/order gate, local-link checks and `git diff --check`; VERDICT: PASS, no DISPUTED claim. `usb_suspend_source_check` independently reviews the final source interpretations and measurement limits; VERDICT: PASS. Current protected hashes, actual recovery execution, collector suitability and live causal ordering remain UNVERIFIABLE HERE, not accepted results.
+- [x] FINAL: independently verify the capability handoff.
+  Goal: verify the new helper and private binding without protected host access.
+  Validation: rerun the complete focused helper gate; review private copy/wrapper hashes, path/privilege scope and these documentation changes.
+  Exit criteria: no DISPUTED claim. Installed formats, actual kernel read behavior and any acquisition machinery stay open.
+  Evidence: `trace_caps_qa` independently runs separate syntax checks and the 20-second bounded fixture gate: 12 groups, exit 0, VERDICT: PASS. Final `sha256sum`/`cmp` and static wrapper review confirm the private binding, fresh-output requirement and metadata-only scope. The private directory is `0700`, helper/wrapper `0600`, and the manual output directory does not yet exist. Review's output-ownership wording correction is applied. Live formats, kernel I/O/timeouts and acquisition design remain explicitly open; no live invocation was performed.
 
 ## Validation
 
@@ -89,6 +110,14 @@ For the later correlation-only checkpoint, use its separate 21-file manifest, bo
 
 For the saved initialization comparison, run `sha256sum -c selected-journals.sha256` in the private comparison case. Parse the three selected journals with `jq -s`; require 1,151 / 273 / 407 rows, one common boot, and ordered wall/journal-monotonic timestamps. Check the reported device milestones against the saved messages, then run `git diff --check` and independent source/document review. Private receipts and exact input paths are retained in DEV-147. No live sysfs, recorder, image, fixture or graphical suite is needed for this documentation-only gate.
 
+For the new metadata helper, run this one gate from the feature worktree:
+
+```bash
+bash -n dev/apple-dp-altmode/usb-event-capture/capabilities.sh && bash -n dev/apple-dp-altmode/usb-event-capture/capabilities-test.sh && timeout --kill-after=2s 20s bash dev/apple-dp-altmode/usb-event-capture/capabilities-test.sh && git diff --check
+```
+
+Expected: 12 `PASS` groups, `VERDICT: PASS`, exit 0. Tests run the real entrypoint in a private Bubblewrap root with synthetic read-only `/sys`; real `/sys`, `/proc`, `/run`, `/home` and device nodes are absent. There is no host fallback. Missing helper produced the initial RED. Fixtures do not emulate tracefs failures or prove live timeout behavior. No old reader, kernel-image or graphical suite is replayed. Helper SHA-256: `606efc05aa8a233c39a929b1ceb9980f07998a2ada2a145d79acc4c13bdb7074`.
+
 ## Progress (LIVING)
 
 - 2026-08-31 09:49Z: captured the completed reconnect. Video recovery is corroborated; hub/controls fail again. Independent saved-data QA passes with the documented root-port EIO exception.
@@ -101,6 +130,9 @@ For the saved initialization comparison, run `sha256sum -c selected-journals.sha
 - 2026-08-31 11:13Z: David resolves the ambiguity: no new reconnect; “yes” meant the earlier reported test. Reclassified the PM window as a no-action baseline, preserved history and closed the timing question. This is a documentation correction, with no new hardware observation or action.
 - 2026-08-31 11:25Z: saved initialization comparison and independent data/source checks complete. Descriptor errors can precede hub identification; hub 22 fails setup before failed suspend. Defined an event-level measurement, not a new image or PM workaround. Recorded cross-task boot/recovery preservation in the main plan; no hardware or package window is released.
 - 2026-08-31: final independent saved-data/source/document review PASS with no disputed claim. Root's selected-data gate also passes. Only the dated comparison and its two plan owners change. Child transfer/PM measurement stays open; no runtime observation was added.
+- 2026-08-31: David's “Proceed” starts event-collector preparation. Unprivileged support checks pass after the optional headers-package query stopped the first inventory. No package was added. Pinned-source review finds real capture gaps, so the next manual boundary is a fixed metadata read, not trace activation.
+- 2026-08-31: the metadata helper passes 12 offline groups and independent QA. The first sandbox assertion needed explicit namespace UID/GID mapping; no host fallback occurred. Initial missing-helper RED is retained. Review caught and corrected a multi-file `bash -n` check before the final gate. All raw receipts remain private.
+- 2026-08-31: final helper/binding/document review PASS after clarifying that output files are created by the unprivileged caller, while the root helper writes through inherited stdout/stderr. Root independently reruns the 12-group gate, private byte comparison and link/diff checks. The handoff now stops at David's single metadata-only invocation.
 
 ## Discoveries (LIVING)
 
@@ -120,9 +152,10 @@ For the saved initialization comparison, run `sha256sum -c selected-journals.sha
 - 2026-08-31: preserve the compound-question “yes” without inventing a new event timestamp. Clarify new versus earlier reconnect; do not replace that missing association with log silence or the older failed-suspend event.
 - 2026-08-31: accept the explicit clarification and withdraw the agent's initial interpretation. Keep successful video separate from USB-data reliability. Compare the saved initialization failures before proposing a new live test; do not disable PM on the strength of a warning that follows hub errors.
 - 2026-08-31: select request status/length plus scoped PM transitions as the next measurement. This resolves an actual information gap; repeating the same root-only reader or rebuilding an image does not. Review the collection method before asking David for one coordinated action.
+- 2026-08-31: do not adopt all-bus usbmon or unfiltered TRB events to bypass scope problems. Inspect installed metadata once, then choose a measurement with explicit identity, status, payload and loss limits. Source-defined gaps are not repaired merely by finding an event format.
 
 ## Follow-ups
 
-- The physical-action question is resolved. Prepare and review the event-level collection method before arranging any case: MagSafe, lid open, same monitor/cable/front port and empty monitor USB-A ports. Recheck current identity/root, arm before a new explicit instruction and preserve the bounded stop. No action is required from David now.
+- The physical-action question is resolved. The immediate user action is the metadata-only once wrapper, not a reconnect. A later real capture still needs a reviewed method and separately arranged setup: MagSafe, lid open, same monitor/cable/front port and empty monitor USB-A ports. Arm before a new explicit instruction and preserve the bounded stop.
 - Coordinate boot-hook, firmware/kernel package and Wi-Fi GPU/session windows using the [main plan's preservation handoff](dev-147-m2-displayport.md#cross-task-boot-and-recovery-handoff-living--not-released). Worktrees do not isolate the running kernel or desktop session.
-- Mouse, PM mutation, sudo, new images, reboot, timer-Off experiment and upstream submission remain held. Do not resume the old watch.
+- Only the reviewed metadata-only sudo handoff is offered next. Mouse, all other privileged work, PM/driver changes, new images, reboot, timer-Off experiment and upstream submission remain held. Do not resume the old watch.
