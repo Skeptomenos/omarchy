@@ -1,7 +1,7 @@
 # Prepare a capture of hub power state before USB loss
 
 **Goal:** Prepare a bounded reader and reviewed handoff for measuring hub/controls PM state during the next attended reconnect, without changing the working display drivers or PM policy.
-**Mode:** light — read-only preparation and fixture checks; actual event tracing stays gated.
+**Mode:** full for the new scoped event recorder; earlier read-only reader checkpoints used light validation.
 **Branch:** `codex/dev-147-t1-image-offline`
 **Linear:** DEV-147
 **Started:** 2026-08-31
@@ -10,7 +10,9 @@ Status, reconciled 2026-08-31 11:13Z: the [user clarification](../evidence/dev-1
 
 Saved comparison, 2026-08-31 11:25Z: the [initialization-path analysis](../research/dev-147-usb-hub-init-comparison-2026-08-31.md) places descriptor/setup failures before the later suspend warning. Status error `-5` hides the original transfer result. The next useful measurement is event-level control-transfer results plus runtime-PM transitions, not another root-only sampling window. Its collection method and release remain open. No user action is needed now.
 
-Current boundary, 2026-08-31: the [saved protected metadata result](../evidence/dev-147-trace-capabilities-2026-08-31.md) passes 3/3 hashes, exact framing and independent schema review: all 15 files complete, exit 0, empty stderr. The one-time wrapper is consumed; do not rerun it. Native formats confirm the known collector limits. Next design a narrow `usb_control_msg` entry/return measurement offline, before helper error remapping. No USB capture, module load, trace activation, cable action or reboot is released. Full collector preparation remains open.
+Current boundary, 2026-08-31: the [scoped recorder preparation](../evidence/dev-147-usb-control-recorder-preparation-2026-08-31.md) passes 26 isolated tests and independent QA/source review. Matched BTF and compiled-header constants establish the selected field offsets. Public code stays unreleased. The next boundary is one coordinated, boot-bound, user-run capture and one new reconnect after ARMED. No capture or hardware fix has run. The [earlier metadata wrapper](../evidence/dev-147-trace-capabilities-2026-08-31.md) remains consumed; do not repeat it.
+
+Execution update, 2026-08-31 15:55Z: David approves recorder preparation, offline tests, a later manual capture, and an evidence-based fix. Work now advances through the design and implementation below. The exact privileged command and reconnect instruction remain unreleased. Capture and any driver fix are not completed by offline tests. Use full self-correction intensity for the new kernel-instrumentation helper. Do not repeat the consumed metadata helper or historical image suites.
 
 ## Context
 
@@ -26,7 +28,7 @@ The completed metadata-only continuation used clean-environment sudo and a 20-se
 
 ## Execution Protocol
 
-Use the light `self-correction-loop`. Validate saved evidence and review independently before handoff. The fixture gate applies only when its implementation changes. Never read partner `usb_mode`, issue USB control transfers, change PM or load drivers. The agent does not execute sudo. The metadata-only handoff is consumed; no new privileged command is offered. Exclude the known unsupported PHY/port delay fields. Keep traffic recorders unarmed during preparation.
+Use the full `self-correction-loop` for this new instrumentation helper. Validate the changed implementation with its one focused gate and independent review. Never read partner `usb_mode`, issue USB control transfers, change PM or load drivers. The agent does not execute sudo. Keep tracing unarmed until David runs the exact coordinated private handoff. The earlier metadata-only command is consumed. No old image or reader suite needs replay.
 
 ## Steps
 
@@ -70,15 +72,37 @@ Use the light `self-correction-loop`. Validate saved evidence and review indepen
   Validation: David runs the reviewed private once wrapper; inspect saved stdout/stderr/exit/hashes and exact kernel/format fields. Do not automatically retry incomplete output.
   Exit criteria: inventory results preserved and collector design revisited. A complete metadata inventory is not a live-capture or monitor PASS.
   Evidence: root checksum review and independent `trace_caps_qa` PASS: 3/3 hashes, 12,940 stdout bytes, empty stderr, exit exactly 0, all 15 blocks and 12 schemas verified. The dated result records `[local]`, available `mono`, `nop` and global gate 1 without inferring active events or monitor health.
-- [ ] Design the scoped synchronous control-call measurement offline.
+- [x] Design the scoped synchronous control-call measurement offline.
   Goal: recover the original API error or successful length before descriptor/status helpers remap it.
   Assumption: matched arm64 probe support can preserve setup scalars and safely identify the selected controller across USB generations.
   Verify: inspect the existing matched binary/types and pinned probe implementation before choosing fields; reject guessed offsets or ambiguous identity. Define per-invocation correlation, clock, miss/loss accounting, caps and cleanup. No live probe is permitted by this step.
   Exit criteria: a reviewed narrow design or a specific unsupported requirement; no new kernel image solely to collect already available metadata. Wrapper results are not claimed as all-URB status or exact completion time.
+  Evidence: matched saved BTF and an independent header compilation agree on 11 constants; both receipt manifests pass 21 total hashes. Two source reviewers accept the raw sysdev-pointer filter, saved setup scalars, return-time identity and qualified PM-entry markers. See the preparation record for limitations and retained warnings.
+- [x] Implement and independently test the bounded recorder.
+  Goal: prepare a fixed user-run command that records only selected USB request metadata/results and relevant PM transitions, without USB payload or boot/driver/PM changes.
+  Probe first: expose missing implementation with a failing real-entrypoint fixture; derive fields from the exact saved kernel before enabling any production entrypoint.
+  Implementation: extend `dev/apple-dp-altmode/usb-event-capture/` only after the field/identity design is reviewed. Use private trace-instance ownership, unique global probe names, verified filters before enablement, bounded storage and a cooperative deadline. Retain attempted/completed actions and exact cleanup metadata before mutation. No global trace clearing, forced timeout kill, automatic retries or unattended rearm.
+  Validation: one focused offline gate must run real entrypoint refusal, parsing, scope, lifecycle, size/loss and cleanup checks in an isolated filesystem without live sysfs/procfs/devices. Independent QA runs the gate; a separate reviewer checks the design and diff. Exact gate command is added with implementation. Fixtures cannot prove kernel behavior or recovery after SIGKILL.
+  Exit criteria: reviewed public helper and exact private handoff design. Final boot/window binding and manual execution belong to the following step. No runtime safety claim from fixture success.
+  Assumption: the selected source-level instrumentation is available on the exact running build and can preserve identity across bus recreation.
+  Verify: future user-run preflight verifies build/boot/module identity and actual probe/filter/format readback before any capture. Refuse mismatch rather than changing the system to fit.
+  Evidence: final source `f4435259daab3c0cc4313c3d0d855f13bf02ed73d9c419d2ca42ea8a17d5a2b8`; independent QA and root each pass the complete 26-test gate, syntax and diff checks. Review fixes cover failed evidence writes during cleanup, timed ARMED output and inherited stack options. Full live orchestration and kernel acceptance remain untested.
+- [ ] Release one coordinated manual capture.
+  Goal: acquire the missing hardware evidence on the working image.
+  Validation: coordinate with AVD/boot/Wi-Fi owners; recheck physical readiness and fresh identity. David runs the exact privileged helper. Release a new reconnect instruction only after the recorder reports armed. Review records, loss counters and cleanup before another action.
+  Exit criteria: a bounded saved capture with explicit completeness limits; no automatic retry. The agent does not run sudo or perform cable actions.
 - [ ] Obtain the missing child-state and transfer observation.
   Goal: locate the first USB-hub failure without conflating it with working video or later PM cleanup.
   Validation: first review availability, privileges, device scope, shared clock alignment, loss detection, duration/byte caps and cleanup for control-URB headers plus scoped runtime-PM events. Any later attended capture needs a new, explicit cable instruction after arming; none is released now.
   Exit criteria: the first control-transfer failure is ordered against PM entry/return for the same generation, or the result records why that order remains unknown. No PM fix follows from the root-only window or an incomplete trace.
+- [ ] Select and validate the smallest evidence-supported fix.
+  Goal: improve monitor USB reliability without regressing working video.
+  Validation: identify a concrete failure mechanism from the capture and source; add a targeted regression test before a fix. If a driver/image change is needed, prepare a separately reviewed candidate and attended hardware test with W preserved.
+  Exit criteria: real hardware evidence establishes the improvement, or the result remains explicitly inconclusive. No speculative PM workaround or new boot image solely to replace missing measurement.
+- [ ] FINAL: independently verify the new recorder and hardware checkpoint.
+  Goal: re-derive all new completed claims without replaying historical tests.
+  Validation: fresh-context QA runs the complete focused recorder gate and checks every new evidence claim as VERIFIED, DISPUTED or UNVERIFIABLE HERE.
+  Exit criteria: no unresolved disputed claim; live capture and fix claims stay open until real evidence exists.
 - [x] FINAL: independently verify the live-window checkpoint.
   Goal: re-derive the new capture claims without repeating hardware actions or old fixture suites.
   Validation: saved-data gate below and independent semantic review.
@@ -97,6 +121,16 @@ Use the light `self-correction-loop`. Validate saved evidence and review indepen
   Evidence at preparation time: `trace_caps_qa` independently runs separate syntax checks and the 20-second bounded fixture gate: 12 groups, exit 0, VERDICT: PASS. Final `sha256sum`/`cmp` and static wrapper review confirm the private binding, fresh-output requirement and metadata-only scope. The private directory is `0700`, helper/wrapper `0600`, and the manual output directory did not yet exist. Review's output-ownership wording correction was applied. The later completed inventory is recorded separately above; it does not prove timeout behavior or acquisition suitability.
 
 ## Validation
+
+For the new event recorder, run only this focused gate from the feature worktree:
+
+```bash
+DEV147_TEST_ROOT=/home/david/o/.dev147-stage/usb-control-prep-20260831.Cr8fHxv7ec /usr/bin/timeout --kill-after=2s 60s /bin/bash dev/apple-dp-altmode/usb-event-capture/capture-test.sh
+```
+
+Expected: 26 tests, `VERDICT: PASS`, exit 0. This timeout is for isolated offline tests only, never the live capture. Exact receipts, source hashes and limitations are in the [preparation evidence](../evidence/dev-147-usb-control-recorder-preparation-2026-08-31.md). Do not run earlier unchanged gates below for this checkpoint.
+
+The delivery-only repair has its own gate: use the same environment and 60-second timeout with `dev/apple-dp-altmode/usb-event-capture/launch-test.sh`. Expected: seven PASS groups and exit 0. It runs the actual inline launcher with harmless fixtures, not the live recorder. Independent QA and root both pass. Do not execute a user-writable launcher pathname as root; the final handoff must contain the attested literal body and verify a protected root-owned helper copy before execution.
 
 For this saved metadata result, use `sha256sum -c capture.sha256` in the private `manual-capabilities` directory, require exit `0\n` and empty stderr, and validate the exact 15-block allowlist, byte lengths, schemas and terminal framing. Follow with `git diff --check`, local-link checks and independent saved-data/document review. The expected totals are 12,940 stdout bytes and 10,734 body bytes. This is the complete current documentation gate; do not replay unchanged fixture/image suites or access live tracefs for it.
 
@@ -128,6 +162,12 @@ Expected: 12 `PASS` groups, `VERDICT: PASS`, exit 0. Tests run the real entrypoi
 
 ## Progress (LIVING)
 
+- 2026-08-31 16:29Z: coordinator review finds a hash-to-execution race in the proposed user-owned wrapper. The original window is withdrawn unused and the wrapper stays unreleased. A minimal protected-copy launcher passes seven new delivery checks and independent QA; recorder bytes are unchanged. A new literal-body handoff with fresh boot verification and a separate 16:30–16:45 UTC proposal awaits reservation. No command or physical action has run.
+
+- 2026-08-31 16:18Z: recorder implementation and independent QA pass 26 tests. Root separately reproduces the gate. Source reviewers verify the matched layout and refined identity scheme. Three concrete safety gaps were corrected before release: cleanup journaling, ARMED-output timing and inherited stack capture. No live trace, sudo, cable, driver, PM or boot action occurred. Prepare the coordinated private handoff next.
+
+- 2026-08-31 15:55Z: David approves steps 1–4. Read current Linear and the complete PM plan; isolated feature worktree is clean. Two independent bounded investigations now verify matched layout/controller identity and probe correlation/loss semantics. No active display capture; coordinator notified before a later manual handoff.
+
 - 2026-08-31: saved metadata inventory and independent QA PASS. No rerun or trace activation. Source review selects `usb_control_msg` for further offline design with explicit API-result, timing and identity limits. DEV-162's firmware-only window has no active DEV-147 capture conflict; the main plan now supplies a conditional preservation handoff, not permission for device activation or reboot.
 
 - 2026-08-31 09:49Z: captured the completed reconnect. Video recovery is corroborated; hub/controls fail again. Independent saved-data QA passes with the documented root-port EIO exception.
@@ -155,6 +195,8 @@ Expected: 12 `PASS` groups, `VERDICT: PASS`, exit 0. Tests run the real entrypoi
 
 ## Decision Log (LIVING)
 
+- 2026-08-31: continue the existing no-install diagnostic tooling exception: standard-library typed dataclasses and unittest in isolated fixtures, not new Pydantic/pytest dependencies inside a privileged helper. Ruff and strict type-check tools are not installed and their results must not be claimed. Match the existing crashflag helper's documented exception; run syntax, fixture and independent review gates instead. No dependency or global environment change is authorized by recorder preparation.
+
 - 2026-08-31: arm before asking for another reconnect because the previous post-report capture missed two short-lived child generations during the roughly 32-second interval from bus recreation to final loss. Do not add another kernel image or disable PM without the missing child-state evidence.
 - 2026-08-31: keep source-based USB2 hardware-LPM exclusions separate from unmeasured runtime autosuspend. Neither the cable-warning string nor suspended empty root hubs establish cause.
 - 2026-08-31: accept the initial placeholder RED as author execution provenance with retained failure text; do not call it independently replayed. Current fixture results and the corrected encoding-error behavior have independent execution evidence. Live cadence, topology and mid-read hardware races remain untested, not silently accepted as runtime PASS.
@@ -166,6 +208,6 @@ Expected: 12 `PASS` groups, `VERDICT: PASS`, exit 0. Tests run the real entrypoi
 
 ## Follow-ups
 
-- The physical-action question and metadata handoff are resolved. No action is needed from David for the next offline design. A later real capture still needs a reviewed method and separately arranged setup: MagSafe, lid open, same monitor/cable/front port and empty monitor USB-A ports. Arm before a new explicit instruction and preserve the bounded stop.
+- The physical-action question and metadata handoff are resolved. Recorder preparation is complete. The next manual capture requires MagSafe, lid open, a responsive internal screen, the same LG27/cable/front port and empty monitor USB ports. David runs the one-time wrapper, waits for ARMED, then disconnects once for five seconds and reconnects once. No additional reconnect follows without reviewing the capture and cleanup.
 - Coordinate boot-hook, firmware/kernel package and Wi-Fi GPU/session windows using the [main plan's preservation handoff](dev-147-m2-displayport.md#cross-task-boot-and-recovery-handoff-living). Worktrees do not isolate the running kernel or desktop session. The DEV-162 firmware-only exception belongs to that handoff, not this measurement plan.
-- No new DEV-147 sudo command is offered. Mouse, tracing, PM/driver changes, new experimental images, reboot, timer-Off experiment and upstream submission remain held. Do not resume the old watch.
+- Only the exact coordinated capture may receive a private release. Mouse tests, PM/driver changes, new experimental images, reboot, timer-Off experiment and upstream submission remain held. Do not resume the old watch. Offline tests establish preparation, not a monitor fix.
