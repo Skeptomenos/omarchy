@@ -162,6 +162,8 @@ Expected: 12 `PASS` groups, `VERDICT: PASS`, exit 0. Tests run the real entrypoi
 
 ## Progress (LIVING)
 
+- 2026-08-31 16:35Z: final literal and retained seven-group QA pass independent review. The coordinator releases presentation of the new one-time handoff and holds conflicting changes through 16:45 UTC. David must start by 16:40 UTC, before the helper's 16:41 startup/arming cutoff. No run or reconnect is claimed; capture analysis and any fix remain open. The exact literal, pins and limits are in the preparation evidence.
+
 - 2026-08-31 16:29Z: coordinator review finds a hash-to-execution race in the proposed user-owned wrapper. The original window is withdrawn unused and the wrapper stays unreleased. A minimal protected-copy launcher passes seven new delivery checks and independent QA; recorder bytes are unchanged. A new literal-body handoff with fresh boot verification and a separate 16:30–16:45 UTC proposal awaits reservation. No command or physical action has run.
 
 - 2026-08-31 16:18Z: recorder implementation and independent QA pass 26 tests. Root separately reproduces the gate. Source reviewers verify the matched layout and refined identity scheme. Three concrete safety gaps were corrected before release: cleanup journaling, ARMED-output timing and inherited stack capture. No live trace, sudo, cable, driver, PM or boot action occurred. Prepare the coordinated private handoff next.
