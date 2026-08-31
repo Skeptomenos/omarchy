@@ -19,6 +19,7 @@ The working setup combines the packaged kernel/AppleDRM with an M2 device-tree s
 | Case | Result | Limit |
 |---|---|---|
 | [Working-image startup](../evidence/dev-147-one-boot-startup-2026-08-27.md) | LG35 at 3440×1440/99.982 Hz; internal 2560×1664/60 Hz; both visible | Monitor hub/controls did not enumerate at attached startup |
+| [Identified W/LG27 startup, 2026-08-31](../evidence/dev-147-w-lg27-startup-2026-08-31.md) | Exact W filename confirmed; LG27 at 3840×2160/59.997 Hz and internal panel at 60 Hz; monitor hub and LG controls enumerate within about five seconds of boot | One successful startup, not a repair of earlier USB failures, a downstream-mouse test, USB3 throughput or reliability proof |
 | [One attended reconnect](../evidence/dev-147-usb-reconnect-2026-08-27.md) | Video returned in about five seconds by user report; USB2 hub and LG controls enumerated | One case, not repeated-hotplug reliability |
 | [LG27 cable comparison](dev-147-lg27-link-investigation-2026-08-30.md) | LG27 reached 3840×2160/59.997 Hz with the other cable | The rejected cable works on other devices; it is not established as defective |
 | [LG27 recovery failure](../evidence/dev-147-crashflag-export-2026-08-31.md) | A later observation confirmed external `crashed=1`; earlier logs retained modes and rejected commits | The writer and initiating loss were not identified; not proof of the PR582 timeout path |
