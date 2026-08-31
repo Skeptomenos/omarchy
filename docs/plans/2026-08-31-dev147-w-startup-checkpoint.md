@@ -1,5 +1,7 @@
 # Record the identified W/LG27 startup
 
+Status, 2026-08-31: this startup checkpoint remains complete. A [later USB-data loss](../evidence/dev-147-lg27-usb-data-loss-2026-08-31.md) supersedes mouse-test readiness, not the startup result. The mouse test is HOLD pending physical-change context and review of that failure.
+
 **Goal:** Establish what this one reported W startup actually supports, then name the smallest useful manual test.
 **Mode:** light — read-only capture and documentation; no driver or system change.
 **Branch:** `codex/dev-147-t1-image-offline`
@@ -50,6 +52,7 @@ The gate authenticates saved capture bytes, exact exits, boot brackets, module n
 
 ## Progress (LIVING)
 
+- 2026-08-31 09:29Z: later readiness capture finds USB-data loss while both native displays and both PD sources remain active. [The separate loss record](../evidence/dev-147-lg27-usb-data-loss-2026-08-31.md) preserves the result. Mouse readiness is now HOLD pending physical-change context; completed startup evidence is unchanged.
 - 2026-08-31 09:16Z: one unprivileged capture saved. Both outputs, hub/controls and power are present.
 - 2026-08-31: instructions refreshed. Existing feature worktree was clean. The complete historical roadmap was read; no old work was restarted.
 - 2026-08-31: journal validator corrected to normalize the kernel's hyphenated boot ID to the journal's compact form. The original failed checks remain private. Corrected synthetic wrong-boot and duplicate-cursor checks each exit 5 with the specific reason; the original journal passes.
