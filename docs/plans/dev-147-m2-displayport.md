@@ -1,8 +1,29 @@
 # DEV-147 — contained M2 DisplayPort prototype
 
-Current boundary, reconciled 2026-08-31 after [David's clarification](../evidence/dev-147-lg27-reconnect-usb-loss-2026-08-31.md#correction--no-new-reconnect-2026-08-31-1113z): no new reconnect occurred during the PM window; “yes” referred to the earlier completed test. The 180 root-only samples are a no-action baseline. Both native outputs/PD were active in the 13:03 snapshot. The open fault concerns USB-hub/data reliability, not a new picture failure. The [PM plan](2026-08-31-dev147-usb-pm-recurrence.md) now calls for saved initialization-path comparison before another measurement. No action is required from David now. Mouse, PM/driver/image changes and upstream submission stay held; timer testing stays parked and the old watch paused.
+Current boundary, reconciled 2026-08-31: [David's clarification](../evidence/dev-147-lg27-reconnect-usb-loss-2026-08-31.md#correction--no-new-reconnect-2026-08-31-1113z) closes the action question: no new reconnect occurred during the PM window; “yes” referred to the earlier completed test. Its 180 root-only samples are a no-action baseline. Both native outputs/PD were active in the 13:03 snapshot. The open fault concerns USB-hub/data reliability, not a new picture failure. The [saved initialization comparison](../research/dev-147-usb-hub-init-comparison-2026-08-31.md) is complete: descriptor/setup failures precede the later suspend warning, and the original status-transfer result is hidden. The [PM plan](2026-08-31-dev147-usb-pm-recurrence.md) now calls for a reviewed event-level transfer/PM measurement. No capture is armed and no action is required from David now. Mouse, PM/driver/image changes and upstream submission stay held; timer testing stays parked and the old watch paused.
 
 Autonomy update, 2026-08-31: David explicitly authorizes necessary safe read-only checks and contained investigation/implementation without asking for each check. This supersedes earlier per-check approval holds, not their historical results. Continue until manual support, privileged execution, or a materially unsafe/out-of-scope action is required. David still performs sudo, reboots, cable/device/monitor-control actions. Preserve boot defaults, system/runtime files, old images, backups and evidence; never read partner `usb_mode` or replay consumed helpers. No external submission is authorized. Keep this permission distinct from the paused scheduler's fixed procedure.
+
+## Cross-task boot and recovery handoff (LIVING — not released)
+
+DEV-147 owns the experimental boot, DTB, modules, images and recovery baseline. The coordination task must reserve separate package, hardware/session and release windows. Offline analysis is not an active hardware window and does not release boot mutations. Keep implementation in each task's isolated worktree; do not edit the shared dirty checkout or `/home/david/o-live` for this investigation.
+
+| Preserve before another task changes the host | Reason |
+|---|---|
+| Working `/boot/initramfs-linux-asahi-dpalt.img`, stock image and every retained diagnostic/control/candidate image | W has working display evidence; the other images preserve separate failed or untested cases. Never overwrite or delete them. |
+| `/boot/vmlinuz-linux-asahi`, matching `7.1.6-1-1-ARCH` kernel/module tree and DTBs, active `/boot/efi/m1n1/boot.bin`, firmware inputs | An old initramfs alone is not a bootable fallback after a kernel change. The active boot bundle contains the prototype DTB. |
+| `/boot/grub/grub.cfg`, defaults/arguments, effective mkinitcpio configuration, ordered drop-ins, presets and hooks | Rebuilding from the base config alone does not reproduce the accepted image or preserve Asahi/HID/firmware settings. |
+| Both `boot.bin.pre-dpalt-20260826T222113Z` backups, both timestamped Mac restore/guide copies, private artifacts/manifests/staging logs | Retain the original bytes and recovery instructions. Actual full DTB/Mac restore has not been rehearsed. |
+
+Before releasing another task's host change:
+
+1. The task supplies its exact diff or package transaction, dependencies, hooks and every output path. Boot-error cleanup must account for the effective encrypt hook, not infer its safety from an ext4 root alone. Preserve `base -> asahi -> udev`, Apple HID modules and vendor-firmware routing. DEV-162 must treat firmware installation as boot-affecting: the saved package-hook review finds that firmware changes can invoke `mkinitcpio -P` and rewrite the stock image.
+2. DEV-147 and the coordinator review a preservation inventory and a fresh, separately authorized protected preflight. Retain matching kernel/image/module/DTB/firmware versions and verified backups before mutation. No broad upgrade, casual hook suppression, `update-m1n1`, GRUB regeneration or reuse of consumed helpers.
+3. Define one changed variable and exact output/rollback paths. For a standalone initramfs build, use a new output and reviewed `--nopost` invocation, not a preset rebuild over existing images. Package hooks need their own explicit output/backup plan. Default selection and experimental images stay unchanged unless separately approved.
+4. The coordinator obtains explicit handoff acknowledgement from DEV-147, then David authorizes the exact sudo/reboot or physical action. No concurrent Wi-Fi GPU/session tests or package installs during display capture/boot validation. Offline Bluetooth, AVD and Wi-Fi source work can continue without this host release.
+5. After that window, verify the intended file changes, loaded identities, both displays, responsiveness and power; establish a new baseline before DEV-147 resumes hardware conclusions. Preserve failures too. Normal stock-image selection restores the stock driver image, not the original DTB.
+
+This is a preservation contract, not approval to run any listed operation. No new protected read, package install, capture, image build or recovery action occurred while recording it.
 
 ## PR #582 offline preparation (LIVING)
 

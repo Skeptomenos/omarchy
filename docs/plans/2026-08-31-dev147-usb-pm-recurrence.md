@@ -8,6 +8,8 @@
 
 Status, reconciled 2026-08-31 11:13Z: the [user clarification](../evidence/dev-147-lg27-reconnect-usb-loss-2026-08-31.md#correction--no-new-reconnect-2026-08-31-1113z) resolves the timing question. “Yes” referred to the earlier completed reconnect, not a new action during the PM window. The 180 root-only samples are a no-action baseline. Video remains the working prototype path; the open investigation concerns the monitor's USB hub/data connection. Child-PM measurement and cause remain open. No reconnect, repeat, PM change or automatic rearm.
 
+Saved comparison, 2026-08-31 11:25Z: the [initialization-path analysis](../research/dev-147-usb-hub-init-comparison-2026-08-31.md) places descriptor/setup failures before the later suspend warning. Status error `-5` hides the original transfer result. The next useful measurement is event-level control-transfer results plus runtime-PM transitions, not another root-only sampling window. Its collection method and release remain open. No user action is needed now.
+
 ## Context
 
 The [attended reconnect](../evidence/dev-147-lg27-reconnect-usb-loss-2026-08-31.md) restored video but only transient USB devices. Final USB loss occurred about 32 seconds after bus recreation. The later capture missed child PM state. The current working W image, all old experiments, backups and the paused timer watch remain unchanged. This continuation supersedes the completed startup plan's proposed reconnect, not its history.
@@ -15,6 +17,8 @@ The [attended reconnect](../evidence/dev-147-lg27-reconnect-usb-loss-2026-08-31.
 ## Approach
 
 Prepare a small unprivileged reader under `/home/david/o/.dev147-stage/tipd-image-code-20260829.TPjkwkTaMa/worktree/dev/apple-dp-altmode/`. It will sample only the selected DWC3 controller's USB subtree. Arm it before requesting any new physical action. A sample records current PM policy and counters, not causal ordering between samples.
+
+That reader is now prepared and its first window is complete. The saved comparison shows that some failed generations last less than one sample interval. Keep the reader as supporting evidence; do not reuse it alone to infer failure/PM ordering. A future event-level method needs its own containment review before activation.
 
 ## Execution Protocol
 
@@ -45,16 +49,25 @@ Use the light `self-correction-loop`. Validate saved capture integrity and the r
   Goal: separate the earlier completed reconnect from the later passive window.
   Validation: David explicitly says no monitor removal/change in the last hour and identifies his “yes” as the earlier five-second-wait/ten-second-video-return test; the dated correction retains this testimony.
   Exit criteria: no new reconnect is claimed; the agent's interpretation is withdrawn and the timing question is closed.
-- [ ] Obtain the missing child-state observation.
+- [x] (2026-08-31 11:25Z) Compare saved initialization and define the missing measurement.
+  Goal: identify the earliest supported divergence without assigning PM causality.
+  Validation: three selected journal hashes and JSON/order checks pass; independent data and pinned-source reviews distinguish descriptor validation, nonfatal TT fallback, status-result remapping and later suspend failure.
+  Exit criteria: [dated comparison](../research/dev-147-usb-hub-init-comparison-2026-08-31.md) separates observations from source hypotheses and specifies the next measurement; no new live method is released.
+- [ ] Obtain the missing child-state and transfer observation.
   Goal: locate the first USB-hub failure without conflating it with working video or later PM cleanup.
-  Validation: next compare the saved successful and failed hub initialization paths, then select the smallest useful measurement. Any later attended capture needs a new, explicit cable instruction after arming; none is released now.
-  Exit criteria: an observed child generation has readable PM state before loss, or an explicit recorded reason it could not be measured. No PM fix follows from this root-only window.
+  Validation: first review availability, privileges, device scope, shared clock alignment, loss detection, duration/byte caps and cleanup for control-URB headers plus scoped runtime-PM events. Any later attended capture needs a new, explicit cable instruction after arming; none is released now.
+  Exit criteria: the first control-transfer failure is ordered against PM entry/return for the same generation, or the result records why that order remains unknown. No PM fix follows from the root-only window or an incomplete trace.
 - [x] FINAL: independently verify the live-window checkpoint.
   Goal: re-derive the new capture claims without repeating hardware actions or old fixture suites.
   Validation: saved-data gate below and independent semantic review.
-  Exit criteria: capture claims verified; physical execution and missing child PM remain explicitly open.
+  Exit criteria: capture claims verified; child PM remains open. The later user clarification closes the physical-action question as no new reconnect.
   Evidence: independent verifier `pm_window_qa` re-derives all 33 checksums, sample schema/ordinals/statuses, three boot brackets, journal identity/order/cursor, exits/stderr, sizes/hashes and after-state claims. Diff hygiene passes. No blocking discrepancy; this checkpoint does not complete the open measurement above.
   Continuation evidence: the same verifier independently checks 21/21 new raw files, both journal intervals, joins, event timing and after-state. The earlier failed-suspend event is not covered by child PM samples and is not promoted to a cause.
+- [x] FINAL: independently verify the saved-comparison checkpoint.
+  Goal: re-derive new comparison and handoff claims, not replay old hardware or fixture tests.
+  Validation: the selected-journal gate below, pinned-source review and independent review of the three changed documents.
+  Exit criteria: completed claims VERIFIED or explicitly qualified; missing live transfer/PM evidence remains open.
+  Evidence: `pm_window_qa` independently reruns `sha256sum -c selected-journals.sha256` (3/3 OK), the JSON/count/common-boot/order gate, local-link checks and `git diff --check`; VERDICT: PASS, no DISPUTED claim. `usb_suspend_source_check` independently reviews the final source interpretations and measurement limits; VERDICT: PASS. Current protected hashes, actual recovery execution, collector suitability and live causal ordering remain UNVERIFIABLE HERE, not accepted results.
 
 ## Validation
 
@@ -74,6 +87,8 @@ For the live-window evidence-only checkpoint, validate the saved case, not the u
 
 For the later correlation-only checkpoint, use its separate 21-file manifest, both saved journals, cursor/boot joins, recorded exits/stderr and `git diff --check`. Do not rerun the recorder or old fixture suite to validate a documentation-only correlation.
 
+For the saved initialization comparison, run `sha256sum -c selected-journals.sha256` in the private comparison case. Parse the three selected journals with `jq -s`; require 1,151 / 273 / 407 rows, one common boot, and ordered wall/journal-monotonic timestamps. Check the reported device milestones against the saved messages, then run `git diff --check` and independent source/document review. Private receipts and exact input paths are retained in DEV-147. No live sysfs, recorder, image, fixture or graphical suite is needed for this documentation-only gate.
+
 ## Progress (LIVING)
 
 - 2026-08-31 09:49Z: captured the completed reconnect. Video recovery is corroborated; hub/controls fail again. Independent saved-data QA passes with the documented root-port EIO exception.
@@ -84,6 +99,8 @@ For the later correlation-only checkpoint, use its separate 21-file manifest, bo
 - 2026-08-31: independent saved-data QA PASS. The complete checkpoint gate exits 0 with `VERDICT: PASS`. DEV-147 readback preserves its prior history and In Progress state. Only this dated evidence and its two owning plan pointers change; the child-PM objective stays open.
 - 2026-08-31 11:06Z: recorded David's exact “yes” and asked which reconnect it identifies. Saved-gap correlation and independent QA pass 21/21 checksums. Earlier USB errors include a failed runtime-suspend attempt; later logs do not locate a new reconnect. Both outputs/PD remain active in the snapshot. No physical action, source change, build or PM change was performed by the agent.
 - 2026-08-31 11:13Z: David resolves the ambiguity: no new reconnect; “yes” meant the earlier reported test. Reclassified the PM window as a no-action baseline, preserved history and closed the timing question. This is a documentation correction, with no new hardware observation or action.
+- 2026-08-31 11:25Z: saved initialization comparison and independent data/source checks complete. Descriptor errors can precede hub identification; hub 22 fails setup before failed suspend. Defined an event-level measurement, not a new image or PM workaround. Recorded cross-task boot/recovery preservation in the main plan; no hardware or package window is released.
+- 2026-08-31: final independent saved-data/source/document review PASS with no disputed claim. Root's selected-data gate also passes. Only the dated comparison and its two plan owners change. Child transfer/PM measurement stays open; no runtime observation was added.
 
 ## Discoveries (LIVING)
 
@@ -92,6 +109,7 @@ For the later correlation-only checkpoint, use its separate 21-file manifest, bo
 - Clock fields are `uptime_seconds`, not journal-monotonic timestamps. `/proc/uptime` [includes suspend time](https://man7.org/linux/man-pages/man5/proc_uptime.5.html). Use the captured wall-time bracket for journal alignment. Samples are non-atomic; a short transition or same-path replacement can evade sampling.
 - The first live window observes 1.00–1.01-second sample-start spacing by the saved uptime clock and only the same four root objects. Child discovery and child PM remain unmeasured. No new USB/display event appears in its journal; this is not evidence of a failed reconnect without the physical-action report.
 - The earlier-gap journal records hub configuration errors before a failed runtime/autosuspend attempt on the same generation. This establishes a useful error path, not successful suspension or an initiating cause. The event predates the recorder and does not fill in missing child PM state.
+- The descriptor helper can synthesize `-71`; the standard status helper can replace the original transfer result with `-5`. Kernel log errno alone therefore does not identify the wire/HCD failure. An approximately 170 ms generation also fits between one-second samples.
 
 ## Decision Log (LIVING)
 
@@ -101,9 +119,10 @@ For the later correlation-only checkpoint, use its separate 21-file manifest, bo
 - 2026-08-31: retain the first live window as inconclusive for reconnect/child PM. Wait for the physical-action report instead of extending the bounded capture, repeating the cable instruction or changing PM. No response is not proof that David did nothing.
 - 2026-08-31: preserve the compound-question “yes” without inventing a new event timestamp. Clarify new versus earlier reconnect; do not replace that missing association with log silence or the older failed-suspend event.
 - 2026-08-31: accept the explicit clarification and withdraw the agent's initial interpretation. Keep successful video separate from USB-data reliability. Compare the saved initialization failures before proposing a new live test; do not disable PM on the strength of a warning that follows hub errors.
+- 2026-08-31: select request status/length plus scoped PM transitions as the next measurement. This resolves an actual information gap; repeating the same root-only reader or rebuilding an image does not. Review the collection method before asking David for one coordinated action.
 
 ## Follow-ups
 
-- The physical-action question is resolved. If another case becomes necessary after the saved-source comparison, arrange it separately: MagSafe, lid open, same monitor/cable/front port and empty monitor USB-A ports. Recheck current identity/root, arm before a new explicit instruction and preserve the bounded stop. No action is required from David now.
-- Compare per-generation PM values with a bounded incremental journal. A recorded suspend is not by itself proof that it caused the loss; unsampled brief transitions remain possible.
+- The physical-action question is resolved. Prepare and review the event-level collection method before arranging any case: MagSafe, lid open, same monitor/cable/front port and empty monitor USB-A ports. Recheck current identity/root, arm before a new explicit instruction and preserve the bounded stop. No action is required from David now.
+- Coordinate boot-hook, firmware/kernel package and Wi-Fi GPU/session windows using the [main plan's preservation handoff](dev-147-m2-displayport.md#cross-task-boot-and-recovery-handoff-living--not-released). Worktrees do not isolate the running kernel or desktop session.
 - Mouse, PM mutation, sudo, new images, reboot, timer-Off experiment and upstream submission remain held. Do not resume the old watch.
