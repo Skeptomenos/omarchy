@@ -1,0 +1,88 @@
+--- a/bin/omarchy-debug-dp-altmode
++++ b/bin/omarchy-debug-dp-altmode
+@@ -96,7 +96,8 @@
+ done
+ 
+ if [[ -z $cable_port ]]; then
+-  echo "  Cable: nothing plugged into any USB-C port."
++  echo "  USB-C partner: none detected."
++  echo "  Check monitor power and standby settings. The cable may still be connected."
+ elif [[ $cable_addr == "$dp_addr" ]]; then
+   echo "  Cable: in the DisplayPort-capable port ($cable_addr) -- correct."
+ else
+--- /dev/null
++++ b/test/shell.d/dp-altmode-partner-test.sh
+@@ -0,0 +1,73 @@
++#!/bin/bash
++
++set -euo pipefail
++
++source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/base-test.sh"
++
++case_root=$(mktemp -d "$ROOT/.partner-test.XXXXXXXXXX")
++printf 'fixtures: %s\n' "$case_root"
++
++make_case() {
++  local name=$1 address=$2 port=$3 partner=$4 state=$5
++  local fixture="$case_root/$name"
++  local dcp="$fixture/tree/soc/dcp@271c00000"
++  local connector="$fixture/tree/soc/i2c@235010000/usb-pd@3f/connector"
++  local device="$fixture/devices/$address/typec/$port"
++
++  mkdir -p "$dcp" "$connector" "$device" "$fixture/typec" "$fixture/drm/card0-DP-1"
++  printf 'apple,j293\0apple,t8103\0' >"$fixture/tree/compatible"
++  printf 'Apple MacBook Pro (13-inch, M1, 2020)\0' >"$fixture/tree/model"
++  printf '\x00\x00\x00\x45' >"$dcp/phandle"
++  printf 'okay\0' >"$dcp/status"
++  printf 'USB-C Left-front\0' >"$connector/label"
++  printf '\x00\x00\x00\x45' >"$connector/displayport"
++  printf '%s\n' "$state" >"$fixture/drm/card0-DP-1/status"
++  ln -s "$device" "$fixture/typec/$port"
++  if [[ $partner == "yes" ]]; then
++    mkdir "$fixture/typec/${port}-partner"
++  fi
++}
++
++run_case() {
++  local name=$1
++  local fixture="$case_root/$name"
++  local status
++
++  if env -i PATH=/usr/bin:/bin LC_ALL=C OMARCHY_PATH="$ROOT" \
++    OMARCHY_DEVICE_TREE="$fixture/tree" OMARCHY_TYPEC_PATH="$fixture/typec" \
++    OMARCHY_DRM_PATH="$fixture/drm" "$ROOT/bin/omarchy-debug-dp-altmode" \
++    >"$fixture/stdout" 2>"$fixture/stderr"; then
++    status=0
++  else
++    status=$?
++  fi
++  printf '%s\n' "$status" >"$fixture/exit-status"
++  OUT=$(<"$fixture/stdout")
++  (( status == 0 )) || fail "$name diagnostic exits zero" "$OUT"
++  [[ ! -s $fixture/stderr ]] || fail "$name diagnostic has no stderr" "$(<"$fixture/stderr")"
++}
++
++make_case connected 0-003f port2 yes connected
++run_case connected
++[[ $OUT == *"Cable: in the DisplayPort-capable port (0-003f) -- correct."* ]] ||
++  fail "connected-partner output stays unchanged" "$OUT"
++[[ $OUT != *"Check monitor power"* ]] ||
++  fail "connected-partner output has no absent-partner advice" "$OUT"
++pass "connected-partner output stays unchanged"
++
++make_case wrong-port 0-0038 port1 yes disconnected
++run_case wrong-port
++[[ $OUT == *"Cable: in 0-0038, which has no DisplayPort wired up."* &&
++   $OUT == *"Move it to the port marked 'DisplayPort: yes' above."* ]] ||
++  fail "wrong-port output stays unchanged" "$OUT"
++[[ $OUT != *"Check monitor power"* ]] ||
++  fail "wrong-port output has no absent-partner advice" "$OUT"
++pass "wrong-port output stays unchanged"
++
++make_case no-partner 0-003f port2 no disconnected
++run_case no-partner
++[[ $OUT == *"USB-C partner: none detected."* &&
++   $OUT == *"Check monitor power and standby settings. The cable may still be connected."* &&
++   $OUT != *"nothing plugged into any USB-C port"* ]] ||
++  fail "absent partner does not assert cable removal and suggests checking monitor power or standby" "$OUT"
++pass "absent partner does not assert cable removal and suggests checking monitor power or standby"

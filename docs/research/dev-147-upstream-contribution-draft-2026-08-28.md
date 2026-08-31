@@ -43,3 +43,7 @@ The work and the proposed report used material AI assistance, including code, in
 I saw your open [Omarchy Mac PR #289](https://github.com/omarchy-mac/omarchy-mac/pull/289). If a narrow M2 report is welcome, which channel should it use so it does not duplicate your work? We would preserve the upstream author credit and keep our failures and untested cases explicit.
 
 No message has been sent. Do not forward this draft to Asahi or treat it as permission to submit code.
+
+## Addendum — refreshed report, 2026-08-31
+
+The [2026-08-31 M2 replication report](dev-147-m2-replication-report-2026-08-31.md) supersedes the hardware summary above for a future submission. It adds later LG27/cable, crash-guard, paired-image and standby observations without changing this historical draft. Both reports remain UNSENT; recipient terms, AI-assistance disclosure and separate submission approval remain required.
