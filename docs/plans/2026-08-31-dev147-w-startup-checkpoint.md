@@ -1,6 +1,6 @@
 # Record the identified W/LG27 startup
 
-Status, 2026-08-31: this startup checkpoint remains complete. A [later USB-data loss](../evidence/dev-147-lg27-usb-data-loss-2026-08-31.md) supersedes mouse-test readiness, not the startup result. The mouse test is HOLD pending physical-change context and review of that failure.
+Status, 2026-08-31: this startup checkpoint remains complete. A [later USB-data loss and PM check](../evidence/dev-147-lg27-usb-data-loss-2026-08-31.md) supersedes mouse-test readiness, not the startup result. David confirms unchanged physical setup and working images. The hub remains missing; its pre-loss PM state is unknown. Next is one attended USB-C reconnect for a healthy hub baseline, not a new image or PM change.
 
 **Goal:** Establish what this one reported W startup actually supports, then name the smallest useful manual test.
 **Mode:** light — read-only capture and documentation; no driver or system change.
@@ -52,6 +52,7 @@ The gate authenticates saved capture bytes, exact exits, boot brackets, module n
 
 ## Progress (LIVING)
 
+- 2026-08-31 09:38Z: read-only PM capture and later fixed port/configuration reads preserve both outputs/PD, but no LG hub. Host controllers/ports have zero recorded runtime-suspend residency. The built-in usbcore default is 2 despite the modprobe file's intended -1. This is a configuration mismatch, not proof of the loss cause. Record the PHY attribute EIO as a partial read; do not retry it. David's unchanged-setup testimony resolves the earlier context hold.
 - 2026-08-31 09:29Z: later readiness capture finds USB-data loss while both native displays and both PD sources remain active. [The separate loss record](../evidence/dev-147-lg27-usb-data-loss-2026-08-31.md) preserves the result. Mouse readiness is now HOLD pending physical-change context; completed startup evidence is unchanged.
 - 2026-08-31 09:16Z: one unprivileged capture saved. Both outputs, hub/controls and power are present.
 - 2026-08-31: instructions refreshed. Existing feature worktree was clean. The complete historical roadmap was read; no old work was restarted.
@@ -73,6 +74,8 @@ The gate authenticates saved capture bytes, exact exits, boot brackets, module n
 
 ## Follow-ups
 
-- One attended wired-mouse test through a monitor USB-A port. David must insert it and confirm movement/clicks. Keep USB-C, MagSafe, input selection and modes unchanged. No sudo or reboot is needed. Stop for loss of either display, input failure or system/power regression.
+- Current manual boundary: one USB-C reconnect at the Mac, with the same cable orientation and front/lower port, MagSafe connected, lid open and monitor USB-A ports empty. Wait about five seconds before reconnecting. Do not change inputs/settings or repeat a failed attempt. David reports external recovery and internal/system health; no sudo or reboot is needed.
+- Then capture the returned hub/controls and upstream PM state read-only. If the hub does not return, preserve that result and stop the case. If it returns, select a bounded recurrence observation before changing global PM. The absent hub's pre-loss policy cannot be reconstructed from root-only snapshots.
+- The wired-mouse test remains HOLD until the hub is available and reviewed. David must eventually insert it and confirm movement/clicks; enumeration alone is not mouse acceptance.
 - Later, agree on a small repeated-startup/hotplug matrix. Suspend, cold-start, sustained monitor-only charging, alternate cables and full rollback stay separate.
 - Timer-Off validation stays parked and the old watch stays paused. No new upstream submission or default-on installation is authorized.
