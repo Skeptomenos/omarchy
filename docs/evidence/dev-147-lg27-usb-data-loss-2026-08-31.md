@@ -66,3 +66,7 @@ Independent saved-data and document review PASS: all 39 raw checksums match; boo
 Use one attended reconnect to seek a healthy hub baseline, not a new boot or PM workaround. Keep MagSafe, lid open, the same monitor, cable, front/lower port and input settings; leave monitor USB-A ports empty. Disconnect USB-C at the Mac, wait about five seconds, then reconnect it once in the same orientation. Do not repeat if recovery fails. Stop and report loss of the internal display, responsiveness, power safety or external recovery.
 
 After David reports the result, take a bounded passive snapshot of any returned hub/controls and their upstream PM state, then decide whether a short recurrence capture is useful. Keep the mouse, global PM changes, new images and upstream submissions on hold. The older four-hour standby case stays parked.
+
+## Addendum — reconnect completed, 2026-08-31
+
+The one-reconnect handoff above is consumed. The [separate result](dev-147-lg27-reconnect-usb-loss-2026-08-31.md) records restored video but only transient USB devices. Do not repeat the old instructions. The [PM recurrence plan](../plans/2026-08-31-dev147-usb-pm-recurrence.md) owns any next observation.

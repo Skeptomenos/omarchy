@@ -1,6 +1,6 @@
 # Record the identified W/LG27 startup
 
-Status, 2026-08-31: this startup checkpoint remains complete. A [later USB-data loss and PM check](../evidence/dev-147-lg27-usb-data-loss-2026-08-31.md) supersedes mouse-test readiness, not the startup result. David confirms unchanged physical setup and working images. The hub remains missing; its pre-loss PM state is unknown. Next is one attended USB-C reconnect for a healthy hub baseline, not a new image or PM change.
+Status, 2026-08-31: this startup checkpoint remains complete. The [later reconnect](../evidence/dev-147-lg27-reconnect-usb-loss-2026-08-31.md) restored video but lost the USB hub again. Its one-use handoff is consumed. The [PM recurrence plan](2026-08-31-dev147-usb-pm-recurrence.md) now owns continuation; the startup result and earlier follow-up history below remain intact.
 
 **Goal:** Establish what this one reported W startup actually supports, then name the smallest useful manual test.
 **Mode:** light — read-only capture and documentation; no driver or system change.
