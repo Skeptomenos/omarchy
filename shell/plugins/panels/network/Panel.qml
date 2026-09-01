@@ -1802,6 +1802,7 @@ Panel {
         anchors.verticalCenter: parent.verticalCenter
 
         ToggleSwitch {
+          id: autoConnectSwitch
           visible: row.isKnown && row.autoConnectProfile !== undefined
           checked: row.autoConnectProfile ? row.autoConnectProfile.enabled : false
           busy: root.pendingAutoConnectId === (row.autoConnectProfile ? row.autoConnectProfile.uuid : "")
@@ -1817,7 +1818,7 @@ Panel {
           }
 
           PanelToolTip {
-            visible: parent.containsMouse || row.autoConnectFocused
+            visible: autoConnectSwitch.containsMouse || row.autoConnectFocused
             text: row.autoConnectProfile && row.autoConnectProfile.enabled ? "Auto-connect enabled" : "Auto-connect disabled"
             fontFamily: root.bar.fontFamily
           }

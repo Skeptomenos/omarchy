@@ -357,6 +357,34 @@ assertEqual(
   undefined,
   'network leaves a row unresolved when none of its snapshotted UUIDs exist'
 )
+assertEqual(
+  network.selectAutoConnectProfile({ 0: 'uuid-old', 1: 'uuid-newest', 2: 'uuid-active', length: 3 }, selectionProfiles)?.uuid,
+  'uuid-active',
+  'network accepts indexed UUID sequences returned by QML list delegates'
+)
+for (const value of [null, undefined, 'uuid-active', 3, {}, { length: '1' }, { length: -1 }, { length: 0.5 }, { length: Infinity }, { length: NaN }]) {
+  assertEqual(
+    network.selectAutoConnectProfile(value, selectionProfiles),
+    undefined,
+    'network rejects an invalid UUID collection: ' + String(value)
+  )
+}
+let coercedUuid = false
+const nonPrimitiveUuid = { toString() { coercedUuid = true; return 'uuid-active' } }
+assertEqual(
+  network.selectAutoConnectProfile([nonPrimitiveUuid, null, undefined, 42, 'uuid-newest', 'uuid-newest'], selectionProfiles)?.uuid,
+  'uuid-newest',
+  'network ignores non-string UUID entries and duplicate profile references'
+)
+assertEqual(coercedUuid, false, 'network never coerces an object into a profile UUID')
+
+const autoConnectSwitchSource = panelSource.match(/ToggleSwitch \{[\s\S]*?visible: row\.isKnown && row\.autoConnectProfile !== undefined[\s\S]*?PanelToolTip \{\s*visible: ([^\n]+)/)
+assert(autoConnectSwitchSource, 'network has the auto-connect switch tooltip')
+assert(/id: autoConnectSwitch/.test(autoConnectSwitchSource[0]), 'network names the auto-connect switch as the stable tooltip hover owner')
+const tooltipVisible = new Function('parent', 'autoConnectSwitch', 'row', 'return ' + autoConnectSwitchSource[1])
+assertEqual(tooltipVisible(null, { containsMouse: true }, { autoConnectFocused: false }), true, 'network auto-connect tooltip reads hover without a Popup parent')
+assertEqual(tooltipVisible(null, { containsMouse: false }, { autoConnectFocused: true }), true, 'network auto-connect tooltip remains visible for keyboard focus')
+assertEqual(tooltipVisible(null, { containsMouse: false }, { autoConnectFocused: false }), false, 'network auto-connect tooltip hides without hover or keyboard focus')
 
 assertDeepEqual(
   network.autoConnectProfilesCommand,

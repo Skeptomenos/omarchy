@@ -348,14 +348,19 @@ function parseAutoConnectProfiles(raw) {
 // active matches and equal timestamps are ambiguous, so leave them unresolved
 // instead of changing an unpredictable profile.
 function selectAutoConnectProfile(profileUuids, profiles) {
-  var uuids = Array.isArray(profileUuids) ? profileUuids : []
+  // ListView turns nested snapshot arrays into QML sequences. Both expose
+  // indexed strings and a length, but only the original row is a JS Array.
+  var uuids = profileUuids
+  if (!uuids || typeof uuids !== "object" || typeof uuids.length !== "number"
+      || !isFinite(uuids.length) || uuids.length < 0 || Math.floor(uuids.length) !== uuids.length) return undefined
+
   var profileMap = profiles || {}
   var candidates = []
   var seen = {}
 
   for (var i = 0; i < uuids.length; i++) {
-    var uuid = String(uuids[i] || "")
-    if (uuid === "" || seen[uuid] || profileMap[uuid] === undefined) continue
+    var uuid = uuids[i]
+    if (typeof uuid !== "string" || uuid === "" || seen[uuid] || profileMap[uuid] === undefined) continue
     seen[uuid] = true
     candidates.push(profileMap[uuid])
   }
