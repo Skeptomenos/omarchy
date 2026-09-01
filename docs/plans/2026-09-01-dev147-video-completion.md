@@ -34,7 +34,7 @@ Execution uses the full `self-correction-loop`. Work on one slice at a time. Run
   - Record the current boot, loaded module identities, active DTB status, DRM state, power state, kernel/package versions, W metadata, and saved rollback assets before the first physical action.
   Implementation:
   - [x] Case A: boot exact W with one known-good monitor attached to the lower/front left USB-C port. Evidence: [identified W/LG27 startup](../evidence/dev-147-w-lg27-startup-2026-08-31.md) records David's exact W line, both physical images, responsive Linux, and 4K at 59.997 Hz.
-  - [ ] Case B: boot exact W without a monitor, then attach the monitor after login.
+  - [x] Case B: boot exact W without a monitor, then attach the monitor after login. Evidence: [W attach-after-login](../evidence/dev-147-w-attach-after-login-2026-09-01.md) records exact W user provenance, healthy internal-only startup, later LG27 4K60, both physical images, responsive Linux, and the temporary `disablehooks=encrypt` qualification.
   - [x] Case C: on the working boot, disconnect once, wait five seconds, reconnect once, and allow up to 15 seconds for video. Evidence: [LG27 reconnect](../evidence/dev-147-lg27-reconnect-usb-loss-2026-08-31.md) records David's five-second disconnect and external-image return after about ten seconds on the same identified W boot.
   - [ ] Case D: switch once to the second tested LG monitor and verify its native mode.
   - [ ] Case E: suspend and resume once, last, with the recovery guide available. Classify the result; do not loop on failure.
@@ -119,6 +119,7 @@ Monitor USB data, monitor-only overnight charging, greeter focus, and automatic-
 - 2026-09-01: Re-scoped DEV-147 to external video acceptance and reversible fork integration. Created related DEV-163 for monitor USB-hub/data loss. Preserved the earlier main and USB plans as historical owners. No hardware action or system mutation occurred in this update.
 - 2026-09-01 17:55Z: accepted existing Case A and Case C evidence instead of repeating them. Fresh read-only preflight finds M2/J413, running and installed kernel `7.1.6-1-1-ARCH`, patched TIPD ID `8fd9e3d39ee211f439471a812fb5eaa2622f7585`, packaged AppleDRM ID `dd5e291114047bb4d7c83a529cddb4f4ac9292d7`, and external DCP status `okay`. W remains a root-owned 19,184,103-byte regular file. Both m1n1 backups and both recovery bundles are present. The external connector is disconnected; the internal output is healthy. MagSafe and aggregate AC are online; battery is Full/100%. No systemd job or pacman lock is active. Current command line does not identify the initramfs, so the next case requires a fresh exact W selection. Protected W and boot hashes remain a user-run pre-reboot check.
 - 2026-09-01 18:59Z: David's user-run protected check reports W SHA-256 `ae8f1ed7f4f258f89931209cd7de6030be9f6875372d7329151b822a6ba2281f`, matching the accepted image. Fresh same-boot checks retain kernel `7.1.6-1-1-ARCH`, disconnected external DP, connected internal display, MagSafe and aggregate AC online, Full/100% battery, no systemd jobs, no pacman lock, and a clean branch pushed at `1a0f676b1`. Release one exact W reboot with every external monitor disconnected. After login, stop before attaching LG27 so the new boot can be identified first.
+- 2026-09-01 19:25Z: Case B PASS. David booted exact W without the monitor, logged in with a healthy internal display, then attached LG27 and woke or powered it. He reports both physical images and responsive Linux. Same-boot capture verifies LG27 at 3840×2160/59.997 Hz, eDP-1 at 2560×1664/60 Hz, both DPMS on, accepted module IDs, active M2 external DCP, both power sources online, Full/100% battery, no failed units, and no fatal display pattern. The combined boot carried temporary `disablehooks=encrypt`; accept the functional video result with that qualification and require intended production arguments for the later integrated-candidate test. Next manual case is one LG27-to-LG35 switch, not another reboot or reconnect loop.
 
 ## Discoveries (LIVING)
 
@@ -128,6 +129,8 @@ Monitor USB data, monitor-only overnight charging, greeter focus, and automatic-
   **Evidence:** Both LG monitors failed to detect a device on that candidate. The later W boot restored video.
 - **Finding:** `linux-asahi-headers` is not installed in the current package inventory.
   **Evidence:** `pacman -Q linux-asahi-headers` reports that the package is not found, while `linux-asahi 7.1.6.asahi1-1` is installed. This does not block W acceptance. Resolve the build dependency before Slice 2.
+- **Finding:** LG27 attach-after-login works on W even when the boot starts with no external partner.
+  **Evidence:** The accepted boot begins with only eDP-1. After the later attach and monitor wake/power action, DP-1 publishes 16 modes and runs at 4K60 without a driver reload or reboot.
 
 ## Decision Log (LIVING)
 
@@ -142,6 +145,9 @@ Monitor USB data, monitor-only overnight charging, greeter focus, and automatic-
   **Date:** 2026-09-01
 - **Decision:** Reuse the identified attached-startup and hot-reconnect results.
   **Rationale:** Both have exact W user provenance and independently checked saved evidence. Repeating them adds risk and time without closing a new gap.
+  **Date:** 2026-09-01
+- **Decision:** Accept Case B with the temporary `disablehooks=encrypt` qualification.
+  **Rationale:** The token skips an unused initramfs hook. It did not change W, the kernel, DTB, display modules, or display configuration. Repeating the hardware case would add risk without isolating a display variable. The later integrated candidate must still pass with its intended production arguments.
   **Date:** 2026-09-01
 
 ## Follow-ups
