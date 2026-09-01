@@ -2,7 +2,8 @@
 
 **Goal:** Install reversible, opt-in external DisplayPort support for the M2 MacBook Air from the known-good W configuration, with repeatable video acceptance on both tested LG monitors.
 **Mode:** full
-**Branch:** `codex/dev-147-t1-image-offline`
+**Research branch:** `codex/dev-147-t1-image-offline`
+**Integration branch:** `codex/dev-147-m2-displayport-opt-in`
 **Linear:** `DEV-147`
 **Started:** 2026-09-01
 
@@ -46,7 +47,7 @@ Execution uses the full `self-correction-loop`. Work on one slice at a time. Run
   - Case E has one recorded result. A recoverable failure becomes an explicit experimental limitation and blocks default-on release, but it does not block opt-in packaging.
   Assumption: W remains compatible with installed kernel `7.1.6-1-1-ARCH` and the current active prototype DTB.
   Verify: compare the running kernel, package version, loaded TIPD and AppleDRM build IDs, DTB status, W metadata, and retained recovery-file metadata before release of the first reboot.
-- [ ] Slice 2: design and test reversible M2/J413 integration.
+- [x] Slice 2: design and test reversible M2/J413 integration.
   Goal: reproduce W through a small opt-in fork workflow instead of a one-off manual artifact.
   Probe first:
   - Inventory the fork's current install, hardware-detection, update, initramfs, m1n1, and uninstall patterns. Identify the exact files and package hooks that a kernel update can change.
@@ -68,9 +69,11 @@ Execution uses the full `self-correction-loop`. Work on one slice at a time. Run
   Probe first:
   - Recheck protected inputs and exact rollback paths in one user-run staging preflight.
   Implementation:
-  - David runs the reviewed sudo staging command.
-  - Boot the distinct candidate once with the monitor attached.
-  - Run one hot reconnect and the second-monitor check if startup passes.
+  - David runs the reviewed sudo preparation command with MagSafe connected and every external USB-C device disconnected.
+  - Verify the prepared image, package guard, backups, recovery guide, and root-owned state while the active `boot.bin` remains unchanged.
+  - David runs the separate activation command only immediately before the attended reboot.
+  - Boot `/boot/initramfs-linux-asahi-m2-displayport.img` once with the external monitor disconnected.
+  - Verify the internal panel and system first. Then attach LG27 and verify native video. Run one LG35 switch only after the first monitor passes.
   Validation:
   - Candidate identity is distinct and complete. Both displays and Linux remain healthy. Stock, W, defaults, backups, and recovery files remain unchanged.
   Exit criteria:
@@ -122,6 +125,9 @@ Monitor USB data, monitor-only overnight charging, greeter focus, and automatic-
 - 2026-09-01 19:25Z: Case B PASS. David booted exact W without the monitor, logged in with a healthy internal display, then attached LG27 and woke or powered it. He reports both physical images and responsive Linux. Same-boot capture verifies LG27 at 3840×2160/59.997 Hz, eDP-1 at 2560×1664/60 Hz, both DPMS on, accepted module IDs, active M2 external DCP, both power sources online, Full/100% battery, no failed units, and no fatal display pattern. The combined boot carried temporary `disablehooks=encrypt`; accept the functional video result with that qualification and require intended production arguments for the later integrated-candidate test. Next manual case is one LG27-to-LG35 switch, not another reboot or reconnect loop.
 - 2026-09-01 20:17Z: Case D PASS on fresh exact W boot `261ba5db-68fc-4044-8cd8-09687a5fcba3`. The coordinated boot-cleanup reboot started with LG35 attached. David reports both images and responsive Linux. Same-boot capture verifies LG35 at 3440×1440/99.982 Hz, eDP-1 at 2560×1664/60 Hz, both DPMS on, accepted module IDs, both DCP nodes active, MagSafe and monitor power online, Full/100% battery, no failed units, and no fatal display pattern. The display remains active after 460 seconds. Accept this attached-startup result for second-monitor compatibility instead of repeating the superseded live switch. One suspend/resume classification remains last.
 - 2026-09-01 20:31Z: Slice 1 complete with Case E FAIL. The system slept for about 20.7 seconds of wall time. Resume attempted the LG35 native mode, but external `prepareLink()` failed with `0xe00002ed`; the modeset failed, the pipe stayed disabled, and swaps were discarded. David saw only an unusable internal lock screen until he disconnected LG35 and woke the machine again. The same W boot recovered to a responsive internal-only session with MagSafe online, Full/100% battery, no failed units, and no fatal display pattern. Do not repeat suspend. The first integration remains reversible and opt-in only; attached-display suspend is unsupported.
+- 2026-09-02: Slice 2 complete. Official Asahi tag `asahi-7.1.6-1` resolved to commit `e2e1930a9595bffafad92cec2b5504525efb9cd4`. Rebuilt stock `boot.bin` matched the preserved stock backup. The patched J413 DTB and candidate boot matched the accepted prototype byte for byte. The rebuilt TIPD module was runtime-equivalent after debug and build-ID normalization. The fresh integrated image is 19,184,210 bytes with SHA-256 `a93dd0c1b3a6c4d81bf76f2f43c7c7a2b8b7e1e0306bc487de018667f9c8c196`.
+- 2026-09-02: The reversible integration now separates unprivileged bundle preparation, privileged preparation, and privileged boot activation. Preparation leaves `boot.bin`, GRUB, the default image, W, and the stock module unchanged. The package guard pins `linux-asahi`, `m1n1`, and `uboot-asahi`. Offline preparation, activation, and rollback restored the exact stock boot and preserved all protected sentinel hashes. Final bundle: `/home/david/o/.dev147-stage/dev147-optin-bundle-final.iQVkvWr13p/bundle`. Final simulation: `/home/david/o/.dev147-stage/dev147-optin-simulation-final.n40ajXo9lR`.
+- 2026-09-02: Independent QA and review passed. The focused integration suite, 454-command metadata gate, Bash syntax, whitespace, documentation links, bundle validation, and 14-field rollback-state verification passed. The repository-wide suite reached all 236 shell test files. DEV-147 passed; three unrelated package-coverage tests failed only because this isolated worktree has no `omarchy-pkgs` checkout. Commit `6dbcc24adbf7bfe435b1c64b0ec5c6ff5eed0f09` is pushed to `Skeptomenos/omarchy-mac:codex/dev-147-m2-displayport-opt-in`.
 
 ## Discoveries (LIVING)
 
@@ -137,6 +143,8 @@ Monitor USB data, monitor-only overnight charging, greeter focus, and automatic-
   **Evidence:** Fresh boot `261ba5db-68fc-4044-8cd8-09687a5fcba3` publishes 14 LG HDR WQHD modes and remains active at 3440×1440/99.982 Hz after 460 seconds.
 - **Finding:** W does not recover the external display across suspend with LG35 attached.
   **Evidence:** Resume reaches external `dcp_dptx_connect`, then `prepareLink()` fails with `0xe00002ed`; the native modeset returns `80000104` with the pipe disabled. Cable removal is required before the internal login becomes usable again.
+- **Finding:** The accepted prototype can be reconstructed from the official Asahi source and retained matching build inputs.
+  **Evidence:** Stock boot reconstruction is byte-identical. The patched DTB and candidate boot are byte-identical to the prototype. The rebuilt TIPD module has identical runtime content after removing debug data and the build-ID note.
 
 ## Decision Log (LIVING)
 
@@ -161,6 +169,9 @@ Monitor USB data, monitor-only overnight charging, greeter focus, and automatic-
 - **Decision:** Complete Slice 1 with attached-display suspend unsupported and block default-on release.
   **Rationale:** Case E failed at external link preparation and modeset and required cable removal for a usable internal login. The predeclared exit criteria permit this one classified failure for reversible opt-in packaging. Repetition would add recovery risk without changing the release boundary.
   **Date:** 2026-09-01
+- **Decision:** Separate preparation from boot activation.
+  **Rationale:** Preparation can publish the image, recovery assets, state, and update guard while leaving the active boot chain unchanged. A short, separate activation gate limits the time in a mixed boot state before the attended reboot.
+  **Date:** 2026-09-02
 
 ## Follow-ups
 

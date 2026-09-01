@@ -453,6 +453,14 @@ Only propose permanent integration after Gates 4–6 and review of the firmware 
 
 The reviewed source is already on the fork's `codex/dev-147-m2-dp-altmode-public` branch. Preserve that research history. Source publication is not release or deployment, and merging the archive alone does not install the patched driver or DTB. After acceptance, propose a small opt-in integration PR against `Skeptomenos/omarchy-mac:quattro-arm`, not the fork's default `main`. Keep private images/logs and temporary diagnostics out of the release. Resolve or explicitly waive recorded release-test failures. Release approval and deployment through `omarchy update` remain separate.
 
+As of 2026-09-02, the small opt-in integration is implemented, reviewed, tested,
+and pushed at commit `6dbcc24adbf7bfe435b1c64b0ec5c6ff5eed0f09` on
+`Skeptomenos/omarchy-mac:codex/dev-147-m2-displayport-opt-in`. It prepares a
+non-default image without changing the active boot file. A separate activation
+gate changes only `boot.bin` immediately before an attended reboot. The
+integrated image has not yet been boot-tested. The active execution plan is the
+[video completion plan](2026-09-01-dev147-video-completion.md).
+
 The [refreshed unsent M2 report](../research/dev-147-m2-replication-report-2026-08-31.md) supersedes the historical hardware summary in the [older report/inquiry draft](../research/dev-147-upstream-contribution-draft-2026-08-28.md). It adds no permission to send either text. A fresh read-only check on 2026-08-31 finds [haripako's PR #289](https://github.com/omarchy-mac/omarchy-mac/pull/289) still open, now naming fairydust and separating USB-C DP from HDMI; do not duplicate it. [Asahi PR #582](https://github.com/AsahiLinux/linux/pull/582) is also open, not merged. Confirm recipient terms and disclose material AI assistance before any submission. No external message, issue, PR or comment is authorized here.
 
 Contribution priority, reconciled 2026-08-31: share a limited M2 J413/T8112 replication report and diagnostic lessons before proposing production enablement. Existing M2 routing and HPD forwarding come from Asahi/fairydust; our value is tested replication and failure distinctions, not a new M2 hardware discovery. The useful observations are native output on two LG monitors; separate video, USB-data and PD outcomes; cable-dependent behavior without declaring the cable faulty; controller-based port mapping instead of unstable `portN`; and monitor standby as a working explanation for a near-four-hour link/PD loss. Keep the earlier crash-guard observation and USB first-probe source finding qualified: neither establishes its initiating hardware cause or a validated repair.
