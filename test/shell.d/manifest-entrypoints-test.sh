@@ -70,10 +70,14 @@ TMPDIR=$(mktemp -d)
 result="$TMPDIR/result.json"
 log="$TMPDIR/quickshell.log"
 config_dir="$TMPDIR/manifest-entrypoints"
-mkdir -p "$config_dir" "$TMPDIR/home"
+stub_bin="$TMPDIR/bin"
+clipboard_stub_error="$TMPDIR/clipboard-process-stub.err"
+clipboard_capture_script="$ROOT/shell/plugins/clipboard/capture.sh"
+mkdir -p "$config_dir" "$TMPDIR/home" "$stub_bin"
 cp "$SHELL_TEST_DIR/fixtures/manifest-entrypoints/shell.qml" "$config_dir/shell.qml"
 ln -s "$ROOT/shell/Ui" "$config_dir/Ui"
 ln -s "$ROOT/shell/Commons" "$config_dir/Commons"
+install_clipboard_process_stubs "$stub_bin"
 
 OMARCHY_PATH="$ROOT" \
 OMARCHY_QML_TEST_RESULT="$result" \
@@ -82,9 +86,11 @@ HOME="$TMPDIR/home" \
 XDG_CONFIG_HOME="$TMPDIR/home/.config" \
 XDG_CACHE_HOME="$TMPDIR/home/.cache" \
 XDG_STATE_HOME="$TMPDIR/home/.local/state" \
+OMARCHY_TEST_CLIPBOARD_CAPTURE_SCRIPT="$clipboard_capture_script" \
+OMARCHY_TEST_CLIPBOARD_STUB_ERROR="$clipboard_stub_error" \
 QML2_IMPORT_PATH="$ROOT/shell${QML2_IMPORT_PATH:+:$QML2_IMPORT_PATH}" \
 QML_IMPORT_PATH="$ROOT/shell${QML_IMPORT_PATH:+:$QML_IMPORT_PATH}" \
-PATH="$ROOT/bin:$PATH" \
+PATH="$stub_bin:$ROOT/bin:$PATH" \
   quickshell -p "$config_dir" --no-color >"$log" 2>&1 &
 QS_PID=$!
 
@@ -110,4 +116,6 @@ if ! jq -e '.ok == true' "$result" >/dev/null; then
   fail "manifest entrypoints load"
 fi
 
+[[ ! -s $clipboard_stub_error ]] ||
+  fail "clipboard manifest fixture uses only test-owned process commands" "$(<"$clipboard_stub_error")"
 pass "manifest entrypoints load"

@@ -29,6 +29,49 @@ require_command() {
   command -v "$command" >/dev/null || fail "required command is available: $command"
 }
 
+install_clipboard_process_stubs() {
+  local stub_bin="$1"
+
+  [[ -d $stub_bin ]] || fail "clipboard process stub directory exists"
+
+  cat >"$stub_bin/pkill" <<'SH'
+#!/bin/bash
+
+error_file=${OMARCHY_TEST_CLIPBOARD_STUB_ERROR:?}
+
+if (( $# == 2 )) && [[ $1 == "-f" && $2 == 'wl-paste .*--watch .*/shell/plugins/clipboard/capture\.sh' ]]; then
+  exit 0
+fi
+
+printf 'unexpected pkill invocation:' >>"$error_file"
+printf ' %q' "$@" >>"$error_file"
+printf '\n' >>"$error_file"
+exit 64
+SH
+
+  cat >"$stub_bin/wl-paste" <<'SH'
+#!/bin/bash
+
+capture_script=${OMARCHY_TEST_CLIPBOARD_CAPTURE_SCRIPT:?}
+error_file=${OMARCHY_TEST_CLIPBOARD_STUB_ERROR:?}
+
+if (( $# == 1 )) && [[ $1 == "--list-types" ]]; then
+  exit 0
+fi
+
+if (( $# == 5 )) && [[ $1 == "--type" && ( $2 == "text" || $2 == "image/png" ) && $3 == "--watch" && $4 == "$capture_script" && $5 == "$2" ]]; then
+  exec sleep 300
+fi
+
+printf 'unexpected wl-paste invocation:' >>"$error_file"
+printf ' %q' "$@" >>"$error_file"
+printf '\n' >>"$error_file"
+exit 64
+SH
+
+  chmod +x "$stub_bin/pkill" "$stub_bin/wl-paste"
+}
+
 # WAYLAND_DISPLAY proves the variable was inherited, not that the compositor
 # answers. Sandboxes pass the environment through while blocking
 # $XDG_RUNTIME_DIR, so Quickshell clears a bare variable check and then aborts

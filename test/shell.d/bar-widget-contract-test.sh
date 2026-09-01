@@ -57,10 +57,16 @@ TMPDIR=$(mktemp -d)
 result="$TMPDIR/result.json"
 log="$TMPDIR/quickshell.log"
 config_dir="$TMPDIR/bar-widget-contract"
-mkdir -p "$config_dir" "$TMPDIR/home"
+stub_bin="$TMPDIR/bin"
+mkdir -p "$config_dir" "$TMPDIR/home" "$stub_bin"
 cp "$SHELL_TEST_DIR/fixtures/bar-widget-contract/shell.qml" "$config_dir/shell.qml"
 ln -s "$ROOT/shell/Ui" "$config_dir/Ui"
 ln -s "$ROOT/shell/Commons" "$config_dir/Commons"
+cat >"$stub_bin/omarchy-agent-usage-update" <<'SH'
+#!/bin/bash
+exit 0
+SH
+chmod +x "$stub_bin/omarchy-agent-usage-update"
 
 OMARCHY_PATH="$ROOT" \
 OMARCHY_QML_TEST_RESULT="$result" \
@@ -71,7 +77,7 @@ XDG_CACHE_HOME="$TMPDIR/home/.cache" \
 XDG_STATE_HOME="$TMPDIR/home/.local/state" \
 QML2_IMPORT_PATH="$ROOT/shell${QML2_IMPORT_PATH:+:$QML2_IMPORT_PATH}" \
 QML_IMPORT_PATH="$ROOT/shell${QML_IMPORT_PATH:+:$QML_IMPORT_PATH}" \
-PATH="$ROOT/bin:$PATH" \
+PATH="$stub_bin:$ROOT/bin:$PATH" \
   quickshell -p "$config_dir" --no-color >"$log" 2>&1 &
 QS_PID=$!
 

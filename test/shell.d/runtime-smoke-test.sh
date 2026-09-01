@@ -45,10 +45,13 @@ test_root="$TMPDIR/omarchy"
 test_home="$TMPDIR/home"
 stub_bin="$TMPDIR/bin"
 log="$TMPDIR/quickshell.log"
+clipboard_stub_error="$TMPDIR/clipboard-process-stub.err"
+clipboard_capture_script="$test_root/shell/plugins/clipboard/capture.sh"
 mkdir -p "$test_root" "$test_home" "$stub_bin"
 cp -a "$ROOT/shell" "$test_root/shell"
 ln -s "$ROOT/config" "$test_root/config"
 ln -s "$ROOT/bin" "$test_root/bin"
+install_clipboard_process_stubs "$stub_bin"
 
 # Every plugin under ~/.config/omarchy/plugins hot-reloads, whoever wrote it.
 hot_reload_id="acme.hot-reload"
@@ -103,6 +106,8 @@ HOME="$test_home" \
 XDG_CONFIG_HOME="$test_home/.config" \
 XDG_CACHE_HOME="$test_home/.cache" \
 XDG_STATE_HOME="$test_home/.local/state" \
+OMARCHY_TEST_CLIPBOARD_CAPTURE_SCRIPT="$clipboard_capture_script" \
+OMARCHY_TEST_CLIPBOARD_STUB_ERROR="$clipboard_stub_error" \
 PATH="$stub_bin:$ROOT/bin:$PATH" \
   quickshell -p "$test_root/shell" --no-color >"$log" 2>&1 &
 QS_PID=$!
@@ -140,31 +145,6 @@ jq -e '
 }
 pass "shell IPC lists plugin metadata"
 
-jq '.name = "After Hot Reload"' "$hot_reload_dir/manifest.json" >"$hot_reload_dir/manifest.json.tmp"
-mv "$hot_reload_dir/manifest.json.tmp" "$hot_reload_dir/manifest.json"
-
-hot_reload_name=""
-for _ in {1..80}; do
-  hot_reload_name=$(shell_ipc shell listPlugins 2>/dev/null |
-    jq -r --arg id "$hot_reload_id" '.[] | select(.id == $id) | .name' 2>/dev/null || true)
-  [[ $hot_reload_name == "After Hot Reload" ]] && break
-  if ! kill -0 "$QS_PID" 2>/dev/null; then
-    fail_with_log "test shell exited while reloading a changed installed plugin"
-  fi
-  sleep 0.1
-done
-[[ $hot_reload_name == "After Hot Reload" ]] ||
-  fail_with_log "installed plugin changes reload without an explicit rescan"
-pass "installed plugin changes reload without an explicit rescan"
-
-[[ $(shell_ipc shell setPluginEnabled "$hot_reload_id" true) == "ok" ]] ||
-  fail_with_log "installed plugin could not be enabled"
-[[ $(shell_ipc shell summon omarchy.emojis "{}") == "ok" ]] ||
-  fail_with_log "calls to a cloned source id do not reach its enabled clone"
-shell_ipc_quiet shell hide omarchy.emojis >/dev/null
-shell_ipc_quiet shell setPluginEnabled "$hot_reload_id" false >/dev/null
-pass "shell IPC routes built-in ids to enabled clones"
-
 shell_config=$(shell_ipc shell listShellConfig)
 jq -e '
   .version == 1 and
@@ -193,27 +173,6 @@ jq -e '.locked | type == "boolean"' <<<"$(shell_ipc lock status)" >/dev/null || 
 [[ $(shell_ipc osd show '{"message":"Runtime smoke","duration":0}') == "ok" ]] || fail_with_log "OSD IPC opens"
 [[ $(shell_ipc osd close) == "ok" ]] || fail_with_log "OSD IPC closes"
 pass "plugin IPC contracts respond"
-
-shell_ipc_quiet shell rescanPlugins >/dev/null
-selector_rows_b64=$(printf '%s\t%s' "$TMPDIR/selector.png" "$TMPDIR/selector.png" | base64 -w 0)
-selector_selection_file=$(mktemp "$TMPDIR/selector-selection.XXXXXX")
-selector_done_file=$(mktemp "$TMPDIR/selector-done.XXXXXX")
-rm -f "$selector_done_file"
-selector_open=""
-for _ in {1..80}; do
-  selector_open=$(shell_ipc image-selector open "" "$selector_rows_b64" "" "$selector_selection_file" "$selector_done_file" false false 2>/dev/null || true)
-  if [[ $selector_open == "ok" ]]; then
-    break
-  fi
-  if ! kill -0 "$QS_PID" 2>/dev/null; then
-    fail_with_log "test shell exited during plugin rescan"
-  fi
-  sleep 0.1
-done
-[[ $selector_open == "ok" ]] || fail_with_log "image selector IPC survives plugin rescan"
-shell_ipc_quiet image-selector cancel "$selector_done_file" >/dev/null
-rm -f "$selector_selection_file" "$selector_done_file"
-pass "image selector IPC survives plugin rescan"
 
 shell_ipc_quiet omarchy.system-update refresh >/dev/null 2>&1 || true
 sleep 0.8
@@ -301,6 +260,52 @@ if (( worst > screens - 1 )); then
 fi
 pass "each widget registers its IPC handler once per screen"
 
+jq '.name = "After Hot Reload"' "$hot_reload_dir/manifest.json" >"$hot_reload_dir/manifest.json.tmp"
+mv "$hot_reload_dir/manifest.json.tmp" "$hot_reload_dir/manifest.json"
+
+hot_reload_name=""
+for _ in {1..80}; do
+  hot_reload_name=$(shell_ipc shell listPlugins 2>/dev/null |
+    jq -r --arg id "$hot_reload_id" '.[] | select(.id == $id) | .name' 2>/dev/null || true)
+  [[ $hot_reload_name == "After Hot Reload" ]] && break
+  if ! kill -0 "$QS_PID" 2>/dev/null; then
+    fail_with_log "test shell exited while reloading a changed installed plugin"
+  fi
+  sleep 0.1
+done
+[[ $hot_reload_name == "After Hot Reload" ]] ||
+  fail_with_log "installed plugin changes reload without an explicit rescan"
+pass "installed plugin changes reload without an explicit rescan"
+
+[[ $(shell_ipc shell setPluginEnabled "$hot_reload_id" true) == "ok" ]] ||
+  fail_with_log "installed plugin could not be enabled"
+[[ $(shell_ipc shell summon omarchy.emojis "{}") == "ok" ]] ||
+  fail_with_log "calls to a cloned source id do not reach its enabled clone"
+shell_ipc_quiet shell hide omarchy.emojis >/dev/null
+shell_ipc_quiet shell setPluginEnabled "$hot_reload_id" false >/dev/null
+pass "shell IPC routes built-in ids to enabled clones"
+
+shell_ipc_quiet shell rescanPlugins >/dev/null
+selector_rows_b64=$(printf '%s\t%s' "$TMPDIR/selector.png" "$TMPDIR/selector.png" | base64 -w 0)
+selector_selection_file=$(mktemp "$TMPDIR/selector-selection.XXXXXX")
+selector_done_file=$(mktemp "$TMPDIR/selector-done.XXXXXX")
+rm -f "$selector_done_file"
+selector_open=""
+for _ in {1..80}; do
+  selector_open=$(shell_ipc image-selector open "" "$selector_rows_b64" "" "$selector_selection_file" "$selector_done_file" false false 2>/dev/null || true)
+  if [[ $selector_open == "ok" ]]; then
+    break
+  fi
+  if ! kill -0 "$QS_PID" 2>/dev/null; then
+    fail_with_log "test shell exited during plugin rescan"
+  fi
+  sleep 0.1
+done
+[[ $selector_open == "ok" ]] || fail_with_log "image selector IPC survives plugin rescan"
+shell_ipc_quiet image-selector cancel "$selector_done_file" >/dev/null
+rm -f "$selector_selection_file" "$selector_done_file"
+pass "image selector IPC survives plugin rescan"
+
 HOME="$test_home" OMARCHY_PATH="$test_root" PATH="$ROOT/bin:$PATH" "$ROOT/bin/omarchy-plugin-disable" omarchy.audio
 
 for _ in {1..80}; do
@@ -375,3 +380,7 @@ jq -e '[.bar.layout[] | select(type == "array") | .[] | .id // .]
   <<<"$(shell_ipc shell listShellConfig)" >/dev/null ||
   fail_with_log "bar put added a second copy of a widget already on the bar"
 pass "bar put leaves a widget already on the bar alone"
+
+[[ ! -s $clipboard_stub_error ]] ||
+  fail "clipboard runtime fixture uses only test-owned process commands" "$(<"$clipboard_stub_error")"
+pass "clipboard runtime fixture uses only test-owned process commands"

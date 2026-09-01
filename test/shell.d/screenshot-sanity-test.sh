@@ -57,10 +57,13 @@ stub_bin="$TMPDIR/bin"
 screenshot_dir="$TMPDIR/screenshots"
 log="$TMPDIR/quickshell.log"
 screenshot_err="$TMPDIR/screenshot.err"
+clipboard_stub_error="$TMPDIR/clipboard-process-stub.err"
+clipboard_capture_script="$test_root/shell/plugins/clipboard/capture.sh"
 mkdir -p "$test_root" "$test_home" "$stub_bin" "$screenshot_dir"
 cp -a "$ROOT/shell" "$test_root/shell"
 ln -s "$ROOT/config" "$test_root/config"
 ln -s "$ROOT/bin" "$test_root/bin"
+install_clipboard_process_stubs "$stub_bin"
 
 cat >"$stub_bin/omarchy-update-available" <<'SH'
 #!/bin/bash
@@ -91,6 +94,8 @@ HOME="$test_home" \
 XDG_CONFIG_HOME="$test_home/.config" \
 XDG_CACHE_HOME="$test_home/.cache" \
 XDG_STATE_HOME="$test_home/.local/state" \
+OMARCHY_TEST_CLIPBOARD_CAPTURE_SCRIPT="$clipboard_capture_script" \
+OMARCHY_TEST_CLIPBOARD_STUB_ERROR="$clipboard_stub_error" \
 PATH="$stub_bin:$ROOT/bin:$PATH" \
   quickshell -p "$test_root/shell" --no-color >"$log" 2>&1 &
 QS_PID=$!
@@ -241,4 +246,6 @@ if len(colors) < 3 or non_black == 0:
   sys.exit(1)
 PY
 
+[[ ! -s $clipboard_stub_error ]] ||
+  fail "clipboard screenshot fixture uses only test-owned process commands" "$(<"$clipboard_stub_error")"
 pass "fullscreen screenshot shows a nonblank bar band"

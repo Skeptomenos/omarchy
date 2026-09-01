@@ -136,7 +136,7 @@ pass "migration notifier re-checks for an update after waiting for the notificat
 # The guard must never read a lock outside this user's runtime directory: a
 # shared /tmp path belongs to whoever created it first, so honouring it would
 # let one user silence another user's critical notification.
-rm -f "$test_tmp/notify-args" /tmp/omarchy-update.lock
+rm -f "$test_tmp/notify-args"
 foreign_lock="$test_tmp/foreign/omarchy-update.lock"
 mkdir -p "$(dirname "$foreign_lock")"
 : >"$foreign_lock"
