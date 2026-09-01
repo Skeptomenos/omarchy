@@ -69,11 +69,11 @@ Execution uses the full `self-correction-loop`. Work on one slice at a time. Run
   Probe first:
   - Recheck protected inputs and exact rollback paths in one user-run staging preflight.
   Implementation:
-  - David runs the reviewed sudo preparation command with MagSafe connected and every external USB-C device disconnected.
-  - Verify the prepared image, package guard, backups, recovery guide, and root-owned state while the active `boot.bin` remains unchanged.
-  - David runs the separate activation command only immediately before the attended reboot.
-  - Boot `/boot/initramfs-linux-asahi-m2-displayport.img` once with the external monitor disconnected.
-  - Verify the internal panel and system first. Then attach LG27 and verify native video. Run one LG35 switch only after the first monitor passes.
+  - [x] David runs the reviewed sudo preparation command with MagSafe connected and every external USB-C device disconnected.
+  - [x] Verify the prepared image, package guard, backups, recovery guide, and root-owned state while the active `boot.bin` remains unchanged.
+  - [ ] David runs the separate activation command only immediately before the attended reboot.
+  - [ ] Boot `/boot/initramfs-linux-asahi-m2-displayport.img` once with the external monitor disconnected.
+  - [ ] Verify the internal panel and system first. Then attach LG27 and verify native video. Run one LG35 switch only after the first monitor passes.
   Validation:
   - Candidate identity is distinct and complete. Both displays and Linux remain healthy. Stock, W, defaults, backups, and recovery files remain unchanged.
   Exit criteria:
@@ -128,6 +128,7 @@ Monitor USB data, monitor-only overnight charging, greeter focus, and automatic-
 - 2026-09-02: Slice 2 complete. Official Asahi tag `asahi-7.1.6-1` resolved to commit `e2e1930a9595bffafad92cec2b5504525efb9cd4`. Rebuilt stock `boot.bin` matched the preserved stock backup. The patched J413 DTB and candidate boot matched the accepted prototype byte for byte. The rebuilt TIPD module was runtime-equivalent after debug and build-ID normalization. The fresh integrated image is 19,184,210 bytes with SHA-256 `a93dd0c1b3a6c4d81bf76f2f43c7c7a2b8b7e1e0306bc487de018667f9c8c196`.
 - 2026-09-02: The reversible integration now separates unprivileged bundle preparation, privileged preparation, and privileged boot activation. Preparation leaves `boot.bin`, GRUB, the default image, W, and the stock module unchanged. The package guard pins `linux-asahi`, `m1n1`, and `uboot-asahi`. Offline preparation, activation, and rollback restored the exact stock boot and preserved all protected sentinel hashes. Final bundle: `/home/david/o/.dev147-stage/dev147-optin-bundle-final.iQVkvWr13p/bundle`. Final simulation: `/home/david/o/.dev147-stage/dev147-optin-simulation-final.n40ajXo9lR`.
 - 2026-09-02: Independent QA and review passed. The focused integration suite, 454-command metadata gate, Bash syntax, whitespace, documentation links, bundle validation, and 14-field rollback-state verification passed. The repository-wide suite reached all 236 shell test files. DEV-147 passed; three unrelated package-coverage tests failed only because this isolated worktree has no `omarchy-pkgs` checkout. Commit `6dbcc24adbf7bfe435b1c64b0ec5c6ff5eed0f09` is pushed to `Skeptomenos/omarchy-mac:codex/dev-147-m2-displayport-opt-in`.
+- 2026-09-01 21:51Z: Slice 3 preparation PASS. David ran the reviewed clean-environment sudo command with only MagSafe attached. `/boot/initramfs-linux-asahi-m2-displayport.img` is root-owned, mode 0600, and exactly 19,184,210 bytes. The package guard is root-owned, mode 0644, and matches SHA-256 `469820ad7cfd015a22cff979b0aa70d62e82dcc7cc05951dca92f40cd660f2bd`. Active `boot.bin` stayed unchanged at the accepted candidate SHA-256 `203ab7027536c8d16f373d02c1f6346a5c34cfe095a9dafd0cfe37d2b354090c`. The EFI backup matches it exactly, and the recovery guide is present. Candidate destinations were absent before preparation. Afterward, no package lock, systemd job, failed unit, or external USB-C partner was present; MagSafe remained online and the battery Full/100%. The root-private state is intentionally unreadable without privilege and will be revalidated by activation. Do not reboot before the separate activation gate.
 
 ## Discoveries (LIVING)
 
