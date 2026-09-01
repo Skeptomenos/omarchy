@@ -33,11 +33,11 @@ Execution uses the full `self-correction-loop`. Work on one slice at a time. Run
   Probe first:
   - Record the current boot, loaded module identities, active DTB status, DRM state, power state, kernel/package versions, W metadata, and saved rollback assets before the first physical action.
   Implementation:
-  - Case A: boot exact W with one known-good monitor attached to the lower/front left USB-C port.
-  - Case B: boot exact W without a monitor, then attach the monitor after login.
-  - Case C: on the working boot, disconnect once, wait five seconds, reconnect once, and allow up to 15 seconds for video.
-  - Case D: switch once to the second tested LG monitor and verify its native mode.
-  - Case E: suspend and resume once, last, with the recovery guide available. Classify the result; do not loop on failure.
+  - [x] Case A: boot exact W with one known-good monitor attached to the lower/front left USB-C port. Evidence: [identified W/LG27 startup](../evidence/dev-147-w-lg27-startup-2026-08-31.md) records David's exact W line, both physical images, responsive Linux, and 4K at 59.997 Hz.
+  - [ ] Case B: boot exact W without a monitor, then attach the monitor after login.
+  - [x] Case C: on the working boot, disconnect once, wait five seconds, reconnect once, and allow up to 15 seconds for video. Evidence: [LG27 reconnect](../evidence/dev-147-lg27-reconnect-usb-loss-2026-08-31.md) records David's five-second disconnect and external-image return after about ten seconds on the same identified W boot.
+  - [ ] Case D: switch once to the second tested LG monitor and verify its native mode.
+  - [ ] Case E: suspend and resume once, last, with the recovery guide available. Classify the result; do not loop on failure.
   Validation:
   - Each mandatory case records an external image, a healthy internal display, responsive Linux, and a native advertised external mode.
   - Capture bounded kernel, DRM, compositor, Type-C, and power state after each case without reading partner `usb_mode`.
@@ -117,6 +117,7 @@ Monitor USB data, monitor-only overnight charging, greeter focus, and automatic-
 ## Progress (LIVING)
 
 - 2026-09-01: Re-scoped DEV-147 to external video acceptance and reversible fork integration. Created related DEV-163 for monitor USB-hub/data loss. Preserved the earlier main and USB plans as historical owners. No hardware action or system mutation occurred in this update.
+- 2026-09-01 17:55Z: accepted existing Case A and Case C evidence instead of repeating them. Fresh read-only preflight finds M2/J413, running and installed kernel `7.1.6-1-1-ARCH`, patched TIPD ID `8fd9e3d39ee211f439471a812fb5eaa2622f7585`, packaged AppleDRM ID `dd5e291114047bb4d7c83a529cddb4f4ac9292d7`, and external DCP status `okay`. W remains a root-owned 19,184,103-byte regular file. Both m1n1 backups and both recovery bundles are present. The external connector is disconnected; the internal output is healthy. MagSafe and aggregate AC are online; battery is Full/100%. No systemd job or pacman lock is active. Current command line does not identify the initramfs, so the next case requires a fresh exact W selection. Protected W and boot hashes remain a user-run pre-reboot check.
 
 ## Discoveries (LIVING)
 
@@ -124,6 +125,8 @@ Monitor USB data, monitor-only overnight charging, greeter focus, and automatic-
   **Evidence:** W produced native video on both LG monitors even when only USB root hubs remained. The later reconnect restored video before the monitor hub disappeared again.
 - **Finding:** The PR #582 candidate is not the local video solution.
   **Evidence:** Both LG monitors failed to detect a device on that candidate. The later W boot restored video.
+- **Finding:** `linux-asahi-headers` is not installed in the current package inventory.
+  **Evidence:** `pacman -Q linux-asahi-headers` reports that the package is not found, while `linux-asahi 7.1.6.asahi1-1` is installed. This does not block W acceptance. Resolve the build dependency before Slice 2.
 
 ## Decision Log (LIVING)
 
@@ -135,6 +138,9 @@ Monitor USB data, monitor-only overnight charging, greeter focus, and automatic-
   **Date:** 2026-09-01
 - **Decision:** Keep MagSafe connected during video acceptance.
   **Rationale:** A prior unattended monitor-only session lost net charging. Power-source endurance is a separate question.
+  **Date:** 2026-09-01
+- **Decision:** Reuse the identified attached-startup and hot-reconnect results.
+  **Rationale:** Both have exact W user provenance and independently checked saved evidence. Repeating them adds risk and time without closing a new gap.
   **Date:** 2026-09-01
 
 ## Follow-ups
