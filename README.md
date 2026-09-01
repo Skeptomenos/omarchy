@@ -189,6 +189,7 @@ Consider supporting the project: [![Buy Me A Coffee](https://img.shields.io/badg
 - Btrfs snapshots and disk encryption — [docs/btrfs.md](docs/btrfs.md)
 - Upgrading from 3.x to Quattro — [docs/upgrade-to-quattro.md](docs/upgrade-to-quattro.md)
 - Apple Silicon keyboard backlight — [docs/apple-silicon-keyboard-backlight.md](docs/apple-silicon-keyboard-backlight.md)
+- Experimental M2 external DisplayPort — [dev/apple-dp-altmode/m2-j413/](dev/apple-dp-altmode/m2-j413/)
 
 ---
 

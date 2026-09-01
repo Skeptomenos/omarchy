@@ -1,0 +1,14 @@
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Operation = Remove
+Type = Package
+Target = linux-asahi
+Target = m1n1
+Target = uboot-asahi
+
+[Action]
+Description = Remove experimental M2 DisplayPort support before changing its boot-chain packages
+When = PreTransaction
+Exec = /usr/bin/false
+AbortOnFail
