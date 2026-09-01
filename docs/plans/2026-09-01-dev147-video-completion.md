@@ -28,7 +28,7 @@ Execution uses the full `self-correction-loop`. Work on one slice at a time. Run
 
 ## Steps
 
-- [ ] Slice 1: complete the compact W video acceptance matrix.
+- [x] Slice 1: complete the compact W video acceptance matrix.
   Goal: establish whether the known-good prototype is reliable enough to package as an opt-in M2 feature.
   Probe first:
   - Record the current boot, loaded module identities, active DTB status, DRM state, power state, kernel/package versions, W metadata, and saved rollback assets before the first physical action.
@@ -37,7 +37,7 @@ Execution uses the full `self-correction-loop`. Work on one slice at a time. Run
   - [x] Case B: boot exact W without a monitor, then attach the monitor after login. Evidence: [W attach-after-login](../evidence/dev-147-w-attach-after-login-2026-09-01.md) records exact W user provenance, healthy internal-only startup, later LG27 4K60, both physical images, responsive Linux, and the temporary `disablehooks=encrypt` qualification.
   - [x] Case C: on the working boot, disconnect once, wait five seconds, reconnect once, and allow up to 15 seconds for video. Evidence: [LG27 reconnect](../evidence/dev-147-lg27-reconnect-usb-loss-2026-08-31.md) records David's five-second disconnect and external-image return after about ten seconds on the same identified W boot.
   - [x] Case D: verify the second tested LG monitor at its native mode. Evidence: [W/LG35 attached startup](../evidence/dev-147-w-lg35-startup-2026-09-01.md) records exact W user provenance, both physical images, responsive Linux, and LG35 at 3440×1440/99.982 Hz. The coordinated reboot superseded the planned live switch; Case C already supplies the required hot-reconnect result.
-  - [ ] Case E: suspend and resume once, last, with the recovery guide available. Classify the result; do not loop on failure.
+  - [x] Case E: suspend and resume once, last. Result: FAIL with safe recovery after external cable removal. Evidence: [W suspend/resume failure](../evidence/dev-147-w-suspend-resume-failure-2026-09-01.md) records failed external link preparation and modeset, an unusable internal lock screen until recovery, and the resulting opt-in-only limitation. Do not repeat.
   Validation:
   - Each mandatory case records an external image, a healthy internal display, responsive Linux, and a native advertised external mode.
   - Capture bounded kernel, DRM, compositor, Type-C, and power state after each case without reading partner `usb_mode`.
@@ -121,6 +121,7 @@ Monitor USB data, monitor-only overnight charging, greeter focus, and automatic-
 - 2026-09-01 18:59Z: David's user-run protected check reports W SHA-256 `ae8f1ed7f4f258f89931209cd7de6030be9f6875372d7329151b822a6ba2281f`, matching the accepted image. Fresh same-boot checks retain kernel `7.1.6-1-1-ARCH`, disconnected external DP, connected internal display, MagSafe and aggregate AC online, Full/100% battery, no systemd jobs, no pacman lock, and a clean branch pushed at `1a0f676b1`. Release one exact W reboot with every external monitor disconnected. After login, stop before attaching LG27 so the new boot can be identified first.
 - 2026-09-01 19:25Z: Case B PASS. David booted exact W without the monitor, logged in with a healthy internal display, then attached LG27 and woke or powered it. He reports both physical images and responsive Linux. Same-boot capture verifies LG27 at 3840×2160/59.997 Hz, eDP-1 at 2560×1664/60 Hz, both DPMS on, accepted module IDs, active M2 external DCP, both power sources online, Full/100% battery, no failed units, and no fatal display pattern. The combined boot carried temporary `disablehooks=encrypt`; accept the functional video result with that qualification and require intended production arguments for the later integrated-candidate test. Next manual case is one LG27-to-LG35 switch, not another reboot or reconnect loop.
 - 2026-09-01 20:17Z: Case D PASS on fresh exact W boot `261ba5db-68fc-4044-8cd8-09687a5fcba3`. The coordinated boot-cleanup reboot started with LG35 attached. David reports both images and responsive Linux. Same-boot capture verifies LG35 at 3440×1440/99.982 Hz, eDP-1 at 2560×1664/60 Hz, both DPMS on, accepted module IDs, both DCP nodes active, MagSafe and monitor power online, Full/100% battery, no failed units, and no fatal display pattern. The display remains active after 460 seconds. Accept this attached-startup result for second-monitor compatibility instead of repeating the superseded live switch. One suspend/resume classification remains last.
+- 2026-09-01 20:31Z: Slice 1 complete with Case E FAIL. The system slept for about 20.7 seconds of wall time. Resume attempted the LG35 native mode, but external `prepareLink()` failed with `0xe00002ed`; the modeset failed, the pipe stayed disabled, and swaps were discarded. David saw only an unusable internal lock screen until he disconnected LG35 and woke the machine again. The same W boot recovered to a responsive internal-only session with MagSafe online, Full/100% battery, no failed units, and no fatal display pattern. Do not repeat suspend. The first integration remains reversible and opt-in only; attached-display suspend is unsupported.
 
 ## Discoveries (LIVING)
 
@@ -134,6 +135,8 @@ Monitor USB data, monitor-only overnight charging, greeter focus, and automatic-
   **Evidence:** The accepted boot begins with only eDP-1. After the later attach and monitor wake/power action, DP-1 publishes 16 modes and runs at 4K60 without a driver reload or reboot.
 - **Finding:** LG35 attached startup works on W at its native high-refresh mode.
   **Evidence:** Fresh boot `261ba5db-68fc-4044-8cd8-09687a5fcba3` publishes 14 LG HDR WQHD modes and remains active at 3440×1440/99.982 Hz after 460 seconds.
+- **Finding:** W does not recover the external display across suspend with LG35 attached.
+  **Evidence:** Resume reaches external `dcp_dptx_connect`, then `prepareLink()` fails with `0xe00002ed`; the native modeset returns `80000104` with the pipe disabled. Cable removal is required before the internal login becomes usable again.
 
 ## Decision Log (LIVING)
 
@@ -154,6 +157,9 @@ Monitor USB data, monitor-only overnight charging, greeter focus, and automatic-
   **Date:** 2026-09-01
 - **Decision:** Accept the fresh LG35 attached-startup result as Case D instead of repeating the superseded live monitor switch.
   **Rationale:** The case exists to prove second-monitor compatibility at native mode. Exact W now proves that result, while Case C already proves one controlled hot reconnect. Another physical action would add risk without closing the remaining suspend/resume gap.
+  **Date:** 2026-09-01
+- **Decision:** Complete Slice 1 with attached-display suspend unsupported and block default-on release.
+  **Rationale:** Case E failed at external link preparation and modeset and required cable removal for a usable internal login. The predeclared exit criteria permit this one classified failure for reversible opt-in packaging. Repetition would add recovery risk without changing the release boundary.
   **Date:** 2026-09-01
 
 ## Follow-ups
