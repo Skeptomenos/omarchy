@@ -3,8 +3,10 @@
 **Goal:** Prepare a bounded reader and reviewed handoff for measuring hub/controls PM state during the next attended reconnect, without changing the working display drivers or PM policy.
 **Mode:** full for the new scoped event recorder; earlier read-only reader checkpoints used light validation.
 **Branch:** `codex/dev-147-t1-image-offline`
-**Linear:** DEV-147
+**Linear:** DEV-163, split from DEV-147
 **Started:** 2026-08-31
+
+Status, reconciled 2026-09-01: deferred follow-up. This plan no longer blocks DEV-147 external-video completion. The tested recorder and all saved USB evidence remain valid and preserved. Do not reuse the expired manual window. Resume only under DEV-163 with a fresh boot binding and one new attended reconnect. The active display plan is [Complete M2 external DisplayPort support](2026-09-01-dev147-video-completion.md).
 
 Status, reconciled 2026-08-31 11:13Z: the [user clarification](../evidence/dev-147-lg27-reconnect-usb-loss-2026-08-31.md#correction--no-new-reconnect-2026-08-31-1113z) resolves the timing question. “Yes” referred to the earlier completed reconnect, not a new action during the PM window. The 180 root-only samples are a no-action baseline. Video remains the working prototype path; the open investigation concerns the monitor's USB hub/data connection. Child-PM measurement and cause remain open. No reconnect, repeat, PM change or automatic rearm.
 
