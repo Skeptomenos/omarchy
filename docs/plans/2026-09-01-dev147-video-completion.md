@@ -131,20 +131,28 @@ Execution uses the full `self-correction-loop`. Work on one slice at a time. Run
 - [ ] Slice 7: keep DisplayPort usable across repeated AFK service generations.
   Goal: let one supported external monitor reconnect for more than eight link generations without exhausting endpoint `0x28` or requiring a reboot.
   Probe first:
-  - Add an offline lifecycle harness that drives at least ten two-service announce and teardown generations against the service allocator.
-  - Confirm that the unmodified allocator rejects generation nine after 16 slots even when endpoint-specific teardown disabled every prior service.
+  - [x] Add an offline lifecycle harness that drives at least ten two-service announce and teardown generations against the service allocator.
+  - [x] Confirm that the unmodified allocator rejects generation nine after 16 slots.
+  - [x] Reject the first disabled-slot candidate when a disabled service still owns a pending command.
+  - [x] Reject post-teardown command admission and teardown between command reservation and send.
   Implementation:
-  - Reuse only disabled service entries. Preserve enabled torn-down entries until their late command replies complete and their endpoint owner disables them.
-  - Reset all per-service command, cookie, and debugfs state before a disabled slot is reused.
-  - Keep the accepted image and active boot unchanged. Build a separate non-default control and candidate pair from the exact accepted source and inputs.
+  - [x] Limit reuse to the two opted-in endpoint `0x28` service operations.
+  - [x] Keep torn-down services enabled until teardown is requested, the command bitmap is empty, the owner cookie is clear, no transient external user remains, and no debugfs state exists.
+  - [x] Protect DCP AV owner acquisition and teardown with a nonblocking lock and transient user count. Preserve a newer owner during stale teardown.
+  - [x] Serialize command admission, reservation, record setup, and AFK send against teardown. Release the bitmap before unlock when send fails.
+  - [x] Reset all per-service state only after the complete retirement boundary.
+  - [x] Keep the accepted image and active boot unchanged. Build fresh control and candidate AppleDRM modules from the exact accepted source and inputs. Prepare a separate non-default candidate image from the accepted image.
+  - [x] Prepare a literal root bootstrap that authenticates a root-owned image publisher before execution and leaves the saved boot selection unchanged. Evidence: [AFK reuse staging readiness](../evidence/dev-147-afk-reuse-staging-readiness-2026-09-02.md) records the rejected first design, final hashes, 20-test gate, independent QA, and security review.
   Validation:
-  - The lifecycle probe fails on the accepted source and passes after the smallest allocation change.
-  - The Apple DRM driver builds from the sealed source, and control/candidate inspection proves that only the reviewed AFK change differs.
+  - [x] The lifecycle probe fails on the accepted source, rejects three unsafe candidate boundaries, and passes with explicit quiescent retirement and serialized send.
+  - [x] The Apple DRM driver builds from the sealed source, and control/candidate inspection proves that only the reviewed AFK change differs.
+  - [x] The image-only staging path publishes the exact production candidate in an isolated sandbox, rejects mutable-code and protected-path races, and passes independent QA and security review.
   - After an attended candidate reboot, one supported monitor completes at least ten controlled reconnect generations. Every generation must regain native video, retain a healthy internal display, and leave Linux responsive with zero service-capacity errors.
   Exit criteria:
   - The offline probe, build, artifact comparison, independent review, and attended generation test pass. Recovery assets remain unchanged and ready.
-  Assumption: endpoint-specific teardown sets `enabled=false` only after the service no longer needs late command replies, so disabled entries are safe reuse candidates.
-  Verify: exercise immediate teardown, teardown with an outstanding reply, reply completion, delayed disable, and slot reuse ordering in the lifecycle harness before building a candidate.
+  Assumption: the two opted-in endpoint `0x28` services are the only records consumed by each external link generation, and the DCP DP member has no external command caller in the accepted source.
+  Verify: build the exact patched Apple DRM module, inspect its imports and layouts against a control, then exceed the stock eight-generation limit in one attended boot.
+  Evidence in progress: [AFK reuse safety correction](../evidence/dev-147-afk-reuse-safety-correction-2026-09-02.md) rejects disabled-only reuse and records the corrected retirement contract and exact-code gate. [AFK reuse offline build](../evidence/dev-147-afk-reuse-build-2026-09-02.md) records the independent patch review, reproducible module pair, interface inspection, and one-member candidate image. [AFK reuse staging readiness](../evidence/dev-147-afk-reuse-staging-readiness-2026-09-02.md) records the authenticated root handoff and confirms that no live staging occurred.
 - [ ] FINAL: verify the migrated live state and reliable reconnect boundary, then reconcile DEV-147.
   Goal: prove that the hardened rollback path owns the live experiment and that one supported monitor no longer exhausts AFK service slots.
   Validation:
@@ -194,6 +202,12 @@ Monitor USB data, monitor-only overnight charging, greeter focus, and automatic-
 - 2026-09-02: Final format-2 independent verification PASS. A fresh-context verifier classified one external-port safety claim as VERIFIED, zero claims as DISPUTED, and six historical privileged or root-private claims as UNVERIFIABLE HERE. David's exact three PASS outputs remain their explicit provenance. Focused integration, 454-command metadata, parser-selective syntax, changed-script syntax, and diff gates passed. The aggregate suite retained only the three known unrelated package failures across all 236 shell files. No item re-enters the plan. Evidence: [live format-2 independent verification](../evidence/dev-147-live-format2-independent-verification-2026-09-02.md).
 - 2026-09-02 13:49Z: A later same-boot two-monitor attempt exposed AFK service-slot exhaustion and reopened DEV-147 reliability work. Boot `fa500274-a4fd-49e3-a84a-82ec4948b8e3` reached all 16 endpoint `0x28` slots on channels 1 through 31, then logged 14 capacity errors and 32 failed announcements while both tested monitors stayed blank. David safely recovered by disconnecting both displays and booting the same accepted candidate. Fresh boot `d930e28c-4a73-4de0-be0b-7bbfae3ceafe` has two services on channels 1 and 3, zero capacity or announcement errors, and a completed LG27 3840x2160 mode set. David confirms both displays and Linux are healthy. The format-2 migration remains accepted; only final reliability closure is reopened. Evidence: [AFK service-slot exhaustion](../evidence/dev-147-afk-service-exhaustion-2026-09-02.md).
 - 2026-09-02 13:55Z: Documentation boundary validation passed every DEV-147 test, command metadata for 455 commands, all selected Bash and Python syntax checks, local links, and diff hygiene. The aggregate suite reached all 235 shell files and remained red for three known package-checkout tests plus an unrelated Quickshell runtime assertion that counted three widget handlers for two screens. The same runtime assertion repeated once, so no further retry or out-of-scope fix was attempted.
+- 2026-09-02 14:45Z: Slice 7 reached its final implementation cycle after two review rejections. Stock fails at generation nine. Disabled-only reuse erases a pending command. A second candidate admits a command after teardown. A third boundary lets teardown enter between reservation and send. The final five-file prototype adds endpoint-scoped retirement, protected owner lifetime, command admission, and a service-lock span through AFK send. All four negative controls and the full exact-code lifecycle gate pass. Fresh cycle-3 QA passed the exact patch, AST, patch application, checkpatch, path inventory, hash, and accepted-source checks. Final independent review passed with no blocking bug. No accepted source, package, boot file, or live-system mutation occurred. Evidence: [AFK reuse safety correction](../evidence/dev-147-afk-reuse-safety-correction-2026-09-02.md).
+- 2026-09-02 15:45Z: The fresh offline AppleDRM control and candidate builds pass. The control is byte-identical to the earlier control. The candidate keeps the stock name, vermagic, dependencies, aliases, and empty export set. It adds only the expected `_raw_spin_lock` and `_raw_spin_unlock` kernel imports, which exist in the pinned `Module.symvers`. AArch64, DWARF, BTF, and `.BTF.base` checks pass. Independent build QA reports PASS. The reviewed image builder replaces only `appledrm.ko` in the accepted image and retains the early archive plus all other 1,161 main records byte-for-byte. The separate image is 21,598,988 bytes with SHA-256 `ebd383c21a35d6b0eff22ffe6f144ea7790c31d7cf058a1c3afa5e39c2375acd`. It is not staged or booted. Evidence: [AFK reuse offline build](../evidence/dev-147-afk-reuse-build-2026-09-02.md).
+- 2026-09-02 16:00Z: The first image-only staging wrapper passed isolated functional QA but failed the required root-path review. It hashed a user-owned library by pathname and then sourced that pathname as root. A same-user replacement between those operations could execute unverified code as root. The wrapper is rejected and removed from the branch. No live staging occurred. The replacement must copy the wrapper and library into a new root-owned, non-writable directory, verify those copied bytes, and execute only the authenticated root-owned copy.
+- 2026-09-02 17:32Z: The replacement staging handoff is ready for manual execution. The literal bootstrap embeds the publisher as data, creates a fresh root-owned mode-0700 transaction on `/boot`, verifies the root-owned publisher before isolated Python execution, and keeps `INCOMPLETE` until exact no-replace publication and all final checks are durable. The focused gate passes 20 tests. It includes the real 21,598,988-byte candidate, mutable source and protected-path races, publication and completion fault boundaries, exact bwrap bootstrap controls, and collision preservation. Independent QA and security review PASS. The candidate remains unstaged. The accepted image, default image, `boot.bin`, GRUB, packages, modules, and live destination remain unchanged. Evidence: [AFK reuse staging readiness](../evidence/dev-147-afk-reuse-staging-readiness-2026-09-02.md).
+- 2026-09-02 17:36Z: Fresh-context milestone verification PASS with zero disputed claims and no item to reopen. The verifier reran the exact lifecycle and 20-test staging gates, independently spot-checked the protected ancestor attack and real candidate copy, verified all three staging hashes and the embedded payload, and found the live candidate and matching transactions absent. Historical negative-action and root-private claims remain accepted with David's approval and prior command or physical provenance. The final attended reboot and ten-generation hardware result remain open.
+- 2026-09-02 17:38Z: Final branch boundary validation completed all 235 shell test files. DEV-147 passed. Three unrelated package-ownership tests failed because this isolated worktree has no `omarchy-pkgs` checkout. The earlier transient Quickshell failure did not recur. Command metadata passed 455 commands. Entrypoint syntax passed 5 Python and 453 Bash files. The focused staging gate, documentation gate, and diff hygiene pass.
 
 ## Discoveries (LIVING)
 
@@ -223,6 +237,12 @@ Monitor USB data, monitor-only overnight charging, greeter focus, and automatic-
   **Evidence:** It was prepared and activated before the format-2 rollback fix. The new strict parser correctly refuses the old 14-field state. The live installation must use the exact `6dbcc24ad` implementation for rollback before any fresh format-2 preparation.
 - **Finding:** Repeated external link generations exhaust the fixed endpoint `0x28` AFK service table.
   **Evidence:** The failed boot allocated 16 services on channels 1 through 31. Later generations produced `too many enabled services!` and rejected channel announcements through 59. A fresh reboot reset the table to channels 1 and 3 and restored native LG27 video.
+- **Finding:** `enabled=false` is not a safe AFK service reuse boundary.
+  **Evidence:** Endpoint `0x28` teardown can disable a service while its command bitmap remains populated. The first candidate erased that pending state. The corrected prototype keeps the old channel routable until explicit quiescence. Evidence: [AFK reuse safety correction](../evidence/dev-147-afk-reuse-safety-correction-2026-09-02.md).
+- **Finding:** The exact Apple DRM build inputs remain available without installing the live headers package.
+  **Evidence:** The retained private header root contains the matching `.config`, `Module.symvers`, `vmlinux`, generated headers, and prior contained build toolchain for `7.1.6-1-1-ARCH`.
+- **Finding:** Hashing user-owned code before a later root import does not authenticate the executed bytes.
+  **Evidence:** The rejected wrapper allowed pathname replacement between `sha256sum` and `source`. The accepted handoff writes embedded data into a root-owned private directory, verifies that destination, and only then executes it.
 
 ## Decision Log (LIVING)
 
@@ -278,7 +298,13 @@ Monitor USB data, monitor-only overnight charging, greeter focus, and automatic-
   **Rationale:** The failure is a live service-lifecycle defect in the unchanged Apple DCP driver. The migration did not change the running kernel or tested payload. A reboot cleared the failure, which isolates the regression from the installation-state change.
   **Date:** 2026-09-02
 - **Decision:** Test slot reuse offline before another display reboot.
-  **Rationale:** A torn-down service can remain enabled while a late command reply is pending. Reusing only disabled entries is the smallest plausible fix, but the lifecycle ordering must be falsified in a harness before it reaches this machine.
+  **Rationale:** A torn-down service can still have a late command reply or external owner. The first disabled-only design failed QA. Require explicit endpoint-scoped retirement and exact-code lifecycle validation before this machine boots a candidate.
+  **Date:** 2026-09-02
+- **Decision:** Deliver the staging publisher as an authenticated literal root bootstrap.
+  **Rationale:** Root must not execute or import a mutable user-owned pathname. The literal writes fixed payload bytes into a new root-owned private transaction and authenticates that copy before execution.
+  **Date:** 2026-09-02
+- **Decision:** Accept the staging verifier's historical and root-private claims with explicit user provenance.
+  **Rationale:** The fresh verifier found no contradiction and current state matches the recorded boundary. Repeating past negative actions is impossible. Privileged staging and the physical reboot remain separate future evidence gates.
   **Date:** 2026-09-02
 
 ## Follow-ups

@@ -1,0 +1,452 @@
+Subject: [PATCH] drm/apple: reuse quiescent dpav AFK services
+
+The dpav endpoint consumes two AFK service slots for each external display
+generation. Retire and reuse only opted-in dpav services after teardown,
+command completion, owner detachment, external-user release, and debugfs
+quiescence.
+
+Protect the shared dcpav service owner with a nonblocking spinlock and a
+transient user count. Keep torn-down services enabled until late replies
+and users release them. Reject new commands after teardown so a caller
+that acquired the service before teardown cannot strand retirement.
+Serialize command setup and send against teardown.
+
+---
+--- a/drivers/gpu/drm/apple/afk.c
++++ b/drivers/gpu/drm/apple/afk.c
+@@ -231,19 +231,127 @@
+ static struct apple_epic_service *afk_epic_find_service(struct apple_dcp_afkep *ep,
+ 						 u32 channel)
+ {
+-    for (u32 i = 0; i < ep->num_channels; i++)
+-        if (ep->services[i].enabled && ep->services[i].channel == channel)
+-            return &ep->services[i];
++	for (u32 i = 0; i < ep->num_channels; i++)
++		if (READ_ONCE(ep->services[i].enabled) &&
++		    ep->services[i].channel == channel)
++			return &ep->services[i];
+ 
+     return NULL;
+ }
+ 
++static bool afk_epic_service_can_reuse(struct apple_epic_service *service)
++{
++	return service->ops && service->ops->reusable &&
++	       service->retirement_requested && service->torndown &&
++	       !service->enabled && !service->external_users &&
++	       bitmap_empty(service->cmd_map, MAX_PENDING_CMDS) &&
++	       !service->cookie && !service->debugfs.entry &&
++	       !service->debugfs.scratch;
++}
++
++static void afk_epic_try_retire_locked(struct apple_epic_service *service)
++{
++	if (!service->ops || !service->ops->reusable ||
++	    !service->retirement_requested || !service->torndown ||
++	    service->external_users ||
++	    !bitmap_empty(service->cmd_map, MAX_PENDING_CMDS) ||
++	    service->cookie || service->debugfs.entry ||
++	    service->debugfs.scratch)
++		return;
++
++	WRITE_ONCE(service->enabled, false);
++}
++
++static int afk_epic_reserve_command_locked(struct apple_epic_service *service)
++{
++	if (!service->enabled || service->torndown)
++		return -ESHUTDOWN;
++
++	return bitmap_find_free_region(service->cmd_map, MAX_PENDING_CMDS, 0);
++}
++
++static void afk_epic_release_command_locked(struct apple_epic_service *service,
++					    u8 idx)
++{
++	bitmap_release_region(service->cmd_map, idx, 0);
++	afk_epic_try_retire_locked(service);
++}
++
++static struct apple_epic_service *
++afk_epic_prepare_service(struct apple_dcp_afkep *ep)
++{
++	struct apple_epic_service *service;
++	unsigned long flags;
++	u32 ch_idx;
++
++	for (ch_idx = 0; ch_idx < ep->num_channels; ch_idx++) {
++		service = &ep->services[ch_idx];
++		spin_lock_irqsave(&service->lock, flags);
++		if (afk_epic_service_can_reuse(service)) {
++			spin_unlock_irqrestore(&service->lock, flags);
++			goto prepare;
++		}
++		spin_unlock_irqrestore(&service->lock, flags);
++	}
++
++	if (ep->num_channels >= AFK_MAX_CHANNEL)
++		return NULL;
++
++	ch_idx = ep->num_channels++;
++
++prepare:
++	service = &ep->services[ch_idx];
++	memset(service, 0, sizeof(*service));
++	return service;
++}
++
++bool afk_service_get(struct apple_epic_service *service)
++{
++	bool acquired = false;
++	unsigned long flags;
++
++	spin_lock_irqsave(&service->lock, flags);
++	if (service->enabled && !service->torndown) {
++		service->external_users++;
++		acquired = true;
++	}
++	spin_unlock_irqrestore(&service->lock, flags);
++
++	return acquired;
++}
++
++void afk_service_put(struct apple_epic_service *service)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&service->lock, flags);
++	if (WARN_ON(!service->external_users)) {
++		spin_unlock_irqrestore(&service->lock, flags);
++		return;
++	}
++
++	service->external_users--;
++	afk_epic_try_retire_locked(service);
++	spin_unlock_irqrestore(&service->lock, flags);
++}
++
++void afk_service_request_retirement(struct apple_epic_service *service)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&service->lock, flags);
++	if (service->ops && service->ops->reusable)
++		service->retirement_requested = true;
++	afk_epic_try_retire_locked(service);
++	spin_unlock_irqrestore(&service->lock, flags);
++}
++
+ static void afk_recv_handle_init(struct apple_dcp_afkep *ep, u32 channel,
+ 				 u8 *payload, size_t payload_size)
+ {
+ 	char name[32];
+ 	s64 epic_unit = -1;
+-	u32 ch_idx;
++	struct apple_epic_service *service;
+ 	const char *service_name = name;
+ 	const char *epic_name = NULL, *epic_class = NULL;
+ 	const struct apple_epic_service_ops *ops;
+@@ -259,12 +367,6 @@
+ 		return;
+ 	}
+ 
+-	if (ep->num_channels >= AFK_MAX_CHANNEL) {
+-		dev_err(ep->dcp->dev, "AFK[ep:%02x]: too many enabled services!\n",
+-			ep->endpoint);
+-		return;
+-	}
+-
+ 	strscpy(name, payload, sizeof(name));
+ 
+ 	/*
+@@ -305,19 +407,24 @@
+ 		goto free;
+ 	}
+ 
+-	ch_idx = ep->num_channels++;
+-	spin_lock_init(&ep->services[ch_idx].lock);
+-	ep->services[ch_idx].enabled = true;
+-	ep->services[ch_idx].torndown = false;
+-	ep->services[ch_idx].ops = ops;
+-	ep->services[ch_idx].ep = ep;
+-	ep->services[ch_idx].channel = channel;
+-	ep->services[ch_idx].cmd_tag = 0;
+-	ops->init(&ep->services[ch_idx], epic_name, epic_class, epic_unit);
++	service = afk_epic_prepare_service(ep);
++	if (!service) {
++		dev_err(ep->dcp->dev,
++			"AFK[ep:%02x]: too many enabled services!\n",
++			ep->endpoint);
++		goto free;
++	}
++
++	spin_lock_init(&service->lock);
++	service->enabled = true;
++	service->ops = ops;
++	service->ep = ep;
++	service->channel = channel;
++	ops->init(service, epic_name, epic_class, epic_unit);
+ 	dev_info(ep->dcp->dev, "AFK[ep:%02x]: new service %s on channel %d\n",
+ 		 ep->endpoint, service_name, channel);
+ 
+-	afk_populate_service_debugfs(&ep->services[ch_idx]);
++	afk_populate_service_debugfs(service);
+ 
+ free:
+ 	kfree(epic_name);
+@@ -413,7 +520,7 @@
+ 		txlen = service->cmds[idx].txlen;
+ 		rxbuf_dma = service->cmds[idx].rxbuf_dma;
+ 		txbuf_dma = service->cmds[idx].txbuf_dma;
+-		bitmap_release_region(service->cmd_map, idx, 0);
++		afk_epic_release_command_locked(service, idx);
+ 	} else {
+ 		rxbuf = txbuf = NULL;
+ 		rxlen = txlen = 0;
+@@ -918,9 +1025,9 @@
+ 	cmd.txlen = cpu_to_le32(payload_len);
+ 
+ 	spin_lock_irqsave(&service->lock, flags);
+-	idx = bitmap_find_free_region(service->cmd_map, MAX_PENDING_CMDS, 0);
++	idx = afk_epic_reserve_command_locked(service);
+ 	if (idx < 0) {
+-		ret = -ENOSPC;
++		ret = idx;
+ 		goto err_unlock;
+ 	}
+ 
+@@ -940,13 +1047,15 @@
+ 	service->cmds[idx].completion = &completion;
+ 	init_completion(&completion);
+ 
+-	spin_unlock_irqrestore(&service->lock, flags);
+-
+ 	ret = afk_send_epic(service->ep, service->channel, tag,
+ 			    EPIC_TYPE_COMMAND, EPIC_CAT_COMMAND, type, &cmd,
+ 			    sizeof(cmd));
+-	if (ret)
+-		goto err_free_cmd;
++	if (ret) {
++		afk_epic_release_command_locked(service, idx);
++		goto err_unlock;
++	}
++
++	spin_unlock_irqrestore(&service->lock, flags);
+ 
+ 	ret = wait_for_completion_timeout(&completion,
+ 					  msecs_to_jiffies(MSEC_PER_SEC));
+@@ -973,9 +1082,8 @@
+ 	if (output && output_len)
+ 		memcpy(output, rxbuf, output_len);
+ 
+-err_free_cmd:
+ 	spin_lock_irqsave(&service->lock, flags);
+-	bitmap_release_region(service->cmd_map, idx, 0);
++	afk_epic_release_command_locked(service, idx);
+ err_unlock:
+ 	spin_unlock_irqrestore(&service->lock, flags);
+ 	dma_free_coherent(ep->dcp->dev, payload_len, txbuf, txbuf_dma);
+--- a/drivers/gpu/drm/apple/afk.h
++++ b/drivers/gpu/drm/apple/afk.h
+@@ -43,10 +43,12 @@
+ 	DECLARE_BITMAP(cmd_map, MAX_PENDING_CMDS);
+ 	u8 cmd_tag;
+ 	spinlock_t lock;
++	u32 external_users;
+ 
+ 	u32 channel;
+ 	bool enabled;
+ 	bool torndown;
++	bool retirement_requested;
+ 
+ 	void *cookie;
+ 
+@@ -60,6 +62,7 @@
+ 
+ struct apple_epic_service_ops {
+ 	const char name[32];
++	bool reusable;
+ 
+ 	void (*init)(struct apple_epic_service *service, const char *name,
+ 			      const char *class, s64 unit);
+@@ -191,6 +194,9 @@
+ 				 const struct apple_epic_service_ops *ops);
+ int afk_start(struct apple_dcp_afkep *ep);
+ void afk_shutdown(struct apple_dcp_afkep *ep);
++bool afk_service_get(struct apple_epic_service *service);
++void afk_service_put(struct apple_epic_service *service);
++void afk_service_request_retirement(struct apple_epic_service *service);
+ int afk_receive_message(struct apple_dcp_afkep *ep, u64 message);
+ int afk_send_epic(struct apple_dcp_afkep *ep, u32 channel, u16 tag,
+ 		  enum epic_type etype, enum epic_category ecat, u8 stype,
+--- a/drivers/gpu/drm/apple/epic/dpavservep.c
++++ b/drivers/gpu/drm/apple/epic/dpavservep.c
+@@ -18,17 +18,27 @@
+ 			  const char *class, s64 unit)
+ {
+ 	struct apple_dcp *dcp = service->ep->dcp;
++	bool registered = false;
++	unsigned long flags;
++
+ 	trace_dcpavserv_init(dcp, unit);
+ 
+ 	if (unit == 0 && name && !strcmp(name, "dcpav-service-epic")) {
+-		if (dcp->dcpavserv.enabled) {
++		spin_lock_irqsave(&dcp->dcpavserv.lock, flags);
++		if (!dcp->dcpavserv.enabled && !dcp->dcpavserv.service) {
++			dcp->dcpavserv.service = service;
++			dcp->dcpavserv.enabled = true;
++			service->cookie = &dcp->dcpavserv;
++			registered = true;
++		}
++		spin_unlock_irqrestore(&dcp->dcpavserv.lock, flags);
++
++		if (!registered) {
+ 			dev_err(dcp->dev,
+ 				"DCPAVSERV: unit %lld already exists\n", unit);
+ 			return;
+ 		}
+-		dcp->dcpavserv.service = service;
+-		dcp->dcpavserv.enabled = true;
+-		service->cookie = &dcp->dcpavserv;
++
+ 		complete(&dcp->dcpavserv.enable_completion);
+ 	}
+ }
+@@ -36,14 +46,25 @@
+ static void dcpavserv_teardown(struct apple_epic_service *service)
+ {
+ 	struct apple_dcp *dcp = service->ep->dcp;
+-	service->enabled = false;
++	bool detached = false;
++	unsigned long flags;
+ 
+-	if (dcp->dcpavserv.enabled) {
++	spin_lock_irqsave(&dcp->dcpavserv.lock, flags);
++	if (dcp->dcpavserv.service == service) {
+ 		dcp->dcpavserv.enabled = false;
+ 		dcp->dcpavserv.service = NULL;
++		detached = true;
++	}
++	spin_lock(&service->lock);
++	if (service->cookie == &dcp->dcpavserv)
+ 		service->cookie = NULL;
++	spin_unlock(&service->lock);
++	spin_unlock_irqrestore(&dcp->dcpavserv.lock, flags);
++
++	if (detached)
+ 		reinit_completion(&dcp->dcpavserv.enable_completion);
+-	}
++
++	afk_service_request_retirement(service);
+ }
+ 
+ static void dcpdpserv_init(struct apple_epic_service *service, const char *name,
+@@ -53,7 +74,26 @@
+ 
+ static void dcpdpserv_teardown(struct apple_epic_service *service)
+ {
+-	service->enabled = false;
++	afk_service_request_retirement(service);
++}
++
++struct apple_epic_service *dcpavserv_get(struct dcpavserv *dcpavserv)
++{
++	struct apple_epic_service *service = NULL;
++	unsigned long flags;
++
++	spin_lock_irqsave(&dcpavserv->lock, flags);
++	if (dcpavserv->enabled && dcpavserv->service &&
++	    afk_service_get(dcpavserv->service))
++		service = dcpavserv->service;
++	spin_unlock_irqrestore(&dcpavserv->lock, flags);
++
++	return service;
++}
++
++void dcpavserv_put(struct apple_epic_service *service)
++{
++	afk_service_put(service);
+ }
+ 
+ struct dcpavserv_status_report {
+@@ -195,12 +235,14 @@
+ static const struct apple_epic_service_ops dpavservep_ops[] = {
+ 	{
+ 		.name = "dcpav-service-epic",
++		.reusable = true,
+ 		.init = dcpavserv_init,
+ 		.teardown = dcpavserv_teardown,
+ 		.report = dcpavserv_report,
+ 	},
+ 	{
+ 		.name = "dcpdp-service-epic",
++		.reusable = true,
+ 		.init = dcpdpserv_init,
+ 		.teardown = dcpdpserv_teardown,
+ 		.report = dcpdpserv_report,
+@@ -213,6 +255,7 @@
+ 	int ret;
+ 
+ 	init_completion(&dcp->dcpavserv.enable_completion);
++	spin_lock_init(&dcp->dcpavserv.lock);
+ 
+ 	dcp->dcpavservep = afk_init(dcp, DPAVSERV_ENDPOINT, dpavservep_ops);
+ 	if (IS_ERR(dcp->dcpavservep))
+--- a/drivers/gpu/drm/apple/epic/dpavservep.h
++++ b/drivers/gpu/drm/apple/epic/dpavservep.h
+@@ -5,6 +5,7 @@
+ #define _DRM_APPLE_EPIC_DPAVSERV_H
+ 
+ #include <linux/completion.h>
++#include <linux/spinlock.h>
+ #include <linux/types.h>
+ 
+ struct drm_edid;
+@@ -12,11 +13,14 @@
+ 
+ struct dcpavserv {
+ 	bool enabled;
++	spinlock_t lock;
+ 	struct completion enable_completion;
+ 	u32 unit;
+ 	struct apple_epic_service *service;
+ };
+ 
+ const struct drm_edid *dcpavserv_copy_edid(struct apple_epic_service *service);
++struct apple_epic_service *dcpavserv_get(struct dcpavserv *dcpavserv);
++void dcpavserv_put(struct apple_epic_service *service);
+ 
+ #endif /* _DRM_APPLE_EPIC_DPAVSERV_H */
+--- a/drivers/gpu/drm/apple/iomfb.c
++++ b/drivers/gpu/drm/apple/iomfb.c
+@@ -364,15 +364,20 @@
+ 		drm_mode_probed_add(connector, mode);
+ 	}
+ 
+-	if (dcp->nr_modes && dcp->dcpavserv.enabled &&
+-	    !apple_connector->drm_edid) {
++	if (dcp->nr_modes && !apple_connector->drm_edid) {
+ 		const struct drm_edid *edid;
+-		edid = dcpavserv_copy_edid(dcp->dcpavserv.service);
+-		if (IS_ERR_OR_NULL(edid)) {
+-			dev_info(dcp->dev, "copy_edid failed: %pe\n", edid);
+-		} else {
+-			drm_edid_free(apple_connector->drm_edid);
+-			apple_connector->drm_edid = edid;
++		struct apple_epic_service *service;
++
++		service = dcpavserv_get(&dcp->dcpavserv);
++		if (service) {
++			edid = dcpavserv_copy_edid(service);
++			dcpavserv_put(service);
++			if (IS_ERR_OR_NULL(edid)) {
++				dev_info(dcp->dev, "copy_edid failed: %pe\n", edid);
++			} else {
++				drm_edid_free(apple_connector->drm_edid);
++				apple_connector->drm_edid = edid;
++			}
+ 		}
+ 	}
+ 	if (dcp->nr_modes && apple_connector->drm_edid)
+
