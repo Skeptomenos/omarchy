@@ -107,7 +107,7 @@ Execution uses the full `self-correction-loop`. Work on one slice at a time. Run
   Exit criteria:
   - No unresolved disputed claim remains. Accepted unverifiable physical observations have explicit user provenance.
   Evidence: [Release independent verification](../evidence/dev-147-final-independent-verification-2026-09-02.md) classified two repository claims as VERIFIED, zero as DISPUTED, and eight Slice 3 hardware or privileged claims as UNVERIFIABLE HERE. The eight claims remain accepted with David's explicit physical and command-output provenance.
-- [ ] Slice 6: migrate the live installation from format 1 to format 2.
+- [x] Slice 6: migrate the live installation from format 1 to format 2.
   Goal: replace the legacy mutable-checkout rollback dependency with the accepted root-owned rollback entrypoint without changing the tested display bytes.
   Probe first:
   - Confirm exact legacy and accepted script identities, J413/T8112, kernel `7.1.6-1-1-ARCH`, MagSafe power, at least 50 percent battery, no package operation, and the accepted image and boot identities.
@@ -117,12 +117,13 @@ Execution uses the full `self-correction-loop`. Work on one slice at a time. Run
   - [x] Verify the legacy image and guard are absent, the exact pre-preparation boot is restored, and rollback evidence is retained. Evidence: [live format-1 rollback](../evidence/dev-147-live-format1-rollback-2026-09-02.md) records the absent image and guard, accepted boot SHA-256, external Type-C state, power, and host health.
   - [x] Stage the accepted format-2 release from the sealed bundle at `b45948e12`. Evidence: the user-run clean-environment command reported `PREPARATION PASS` for the accepted image path.
   - [x] Verify the root-owned mode-0700 rollback entrypoint, strict 16-field state, image, guard, recovery assets, and unchanged protected boot inputs. Evidence: [live format-2 preparation](../evidence/dev-147-live-format2-preparation-2026-09-02.md) records the transaction's protected-state verification and the independent public post-check.
-  - [ ] Activate through the preserved runner. Reconnect the monitor only after the activation result is reviewed.
+  - [x] Activate through the preserved runner. Reconnect the monitor only after the activation result is reviewed. Evidence: the user-run root-owned entrypoint reported `ACTIVATION PASS`; [live format-2 activation](../evidence/dev-147-live-format2-activation-2026-09-02.md) records the script contract and public post-check.
   Validation:
   - Legacy rollback, format-2 preparation, and activation must each report PASS once. Stop after any other result.
   - Candidate boot and image hashes must match the already tested bytes. GRUB, the default image, W, and the installed module must remain unchanged.
   Exit criteria:
   - The accepted image remains available, the active boot remains the accepted candidate, and rollback no longer depends on a developer checkout.
+  Evidence: Format-2 preparation and activation both passed. The accepted candidate image and boot identity remain installed. The bound root-owned entrypoint now owns future rollback.
   Assumption: The current format-1 state still matches the accepted `6dbcc24ad` release and has not drifted.
   Verify: Let the exact legacy script validate the protected state before it changes any file. Do not attempt conversion with the format-2 parser.
 - [ ] FINAL: verify the migrated live state and reconcile DEV-147.
@@ -169,6 +170,7 @@ Monitor USB data, monitor-only overnight charging, greeter focus, and automatic-
 - 2026-09-02: Release independent verification PASS. A fresh-context verifier classified the two repository and upstream-handoff claims as VERIFIED, zero claims as DISPUTED, and the eight Slice 3 hardware or privileged claims as UNVERIFIABLE HERE. David's exact sudo output and physical observations remain their explicit accepted provenance. Repeated focused, metadata, syntax, and diff gates passed. The aggregate suite completed all 236 shell files and retained only the three recorded unrelated package failures. The exact legacy rollback checkout is preserved at commit `6dbcc24ad` with integration-script SHA-256 `6c93c39a97b8e0d42f5f2be262907759713e9718146f40a41e23ab4123c34a17`. This closes the release gate, not the pending live format-2 migration. Evidence: [release independent verification](../evidence/dev-147-final-independent-verification-2026-09-02.md).
 - 2026-09-02: Slice 6 legacy rollback PASS. David disconnected all external USB-C cables, kept MagSafe connected, and ran the exact format-1 rollback implementation once. The script retained `rolled-back-20260901T215143Z`. A read-only check finds the legacy candidate image and guard absent while active `boot.bin` remains the accepted candidate bytes. The external Type-C controller paths are clear. MagSafe is online, the battery is Full/100%, and no failed unit, package lock, or package job exists. Do not reboot before format-2 preparation. Evidence: [live format-1 rollback](../evidence/dev-147-live-format1-rollback-2026-09-02.md).
 - 2026-09-02: Slice 6 format-2 preparation PASS. David ran the accepted hardened integration with the sealed bundle. The transaction verified and published strict format-2 state plus its root-owned checksummed rollback runner. Public checks confirm the accepted boot SHA, candidate image metadata, package-guard hash, new EFI recovery guide, clear external Type-C paths, Full/100% battery, external power, and no failed unit or package operation. Keep USB-C disconnected and do not reboot before activation through the preserved runner. Evidence: [live format-2 preparation](../evidence/dev-147-live-format2-preparation-2026-09-02.md).
+- 2026-09-02: Slice 6 complete. Activation through the preserved root-owned entrypoint reported PASS. Its pre-mutation checks validated the strict state, runner checksum and mode, backups, recovery guide, image, guard, boot identity, host, power, and external-port safety. The public post-check retains accepted boot and image metadata, a healthy internal output, Full/100% battery, no failed unit or package operation, and no fatal display pattern. No migration reboot is needed because the display payload bytes did not change. Evidence: [live format-2 activation](../evidence/dev-147-live-format2-activation-2026-09-02.md).
 
 ## Discoveries (LIVING)
 
@@ -240,6 +242,9 @@ Monitor USB data, monitor-only overnight charging, greeter focus, and automatic-
   **Date:** 2026-09-02
 - **Decision:** Accept the eight independently unrepeatable Slice 3 claims with explicit user provenance.
   **Rationale:** They require root-only state or physical display actions. The fresh-context verifier found no dispute, the saved outputs identify the tested boot and native modes, and David supplied each physical result. Repeating the accepted hardware matrix would add risk without closing an evidence gap.
+  **Date:** 2026-09-02
+- **Decision:** Do not reboot only to verify the format-2 migration.
+  **Rationale:** The active boot and candidate image remain the exact bytes already tested on both monitors. The migration changes protected transaction state and rollback durability. Its executable coverage is the integration test plus one live preparation and activation, not another identical display boot.
   **Date:** 2026-09-02
 
 ## Follow-ups
