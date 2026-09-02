@@ -23,6 +23,7 @@ readonly M2DP_IMAGE_PATH="/boot/initramfs-linux-asahi-m2-displayport.img"
 readonly M2DP_ACTIVE_BOOT_PATH="/boot/efi/m1n1/boot.bin"
 readonly M2DP_HOOK_PATH="/etc/pacman.d/hooks/05-omarchy-m2-displayport-guard.hook"
 readonly M2DP_STATE_PARENT="/var/lib/omarchy/m2-displayport"
+readonly M2DP_ROLLBACK_NAME="rollback.sh"
 
 m2dp_die() {
   printf 'REFUSED: %s\n' "$*" >&2
@@ -106,6 +107,21 @@ m2dp_verify_file() {
   actual=$(m2dp_clean sha256sum -- "$path") || return 1
   [[ ${actual%% *} == "$expected_sha" ]] || {
     m2dp_die "file checksum mismatch: $path"
+    return 1
+  }
+}
+
+m2dp_verify_owned_file() {
+  local path="$1"
+  local expected_sha="$2"
+  local expected_size="$3"
+  local expected_uid="$4"
+  local expected_mode="$5"
+  local actual_uid actual_mode
+  m2dp_verify_file "$path" "$expected_sha" "$expected_size" || return 1
+  read -r actual_uid actual_mode <<<"$(m2dp_clean stat -c '%u %a' -- "$path")"
+  [[ $actual_uid == "$expected_uid" && $actual_mode == "$expected_mode" ]] || {
+    m2dp_die "wrong file owner or mode: $path"
     return 1
   }
 }
@@ -331,9 +347,11 @@ m2dp_write_state() {
   local hook_sha="$6"
   local changed="$7"
   local hook_parent_created="$8"
+  local rollback_sha="$9"
+  local rollback_size="${10}"
   local backup_name="boot.bin.pre-omarchy-m2-displayport-$timestamp"
   printf '%s\n' \
-    'format=1' \
+    'format=2' \
     "timestamp=$timestamp" \
     "kernel_release=$M2DP_KERNEL_RELEASE" \
     "previous_boot_sha256=$previous_sha" \
@@ -346,6 +364,8 @@ m2dp_write_state() {
     "hook_sha256=$hook_sha" \
     "hook_parent_created=$hook_parent_created" \
     "active_boot_changed=$changed" \
+    "rollback_sha256=$rollback_sha" \
+    "rollback_size=$rollback_size" \
     "efi_backup_name=$backup_name" >"$destination"
   m2dp_clean chmod 0600 "$destination"
 }
@@ -354,6 +374,7 @@ m2dp_write_recovery_guide() {
   local destination="$1"
   local timestamp="$2"
   local previous_sha="$3"
+  local rollback_sha="$4"
   local backup_name="boot.bin.pre-omarchy-m2-displayport-$timestamp"
   printf '%s\n' \
     'Omarchy M2 DisplayPort recovery' \
@@ -362,7 +383,8 @@ m2dp_write_recovery_guide() {
     "EFI backup: m1n1/$backup_name" \
     '' \
     'Linux rollback:' \
-    'sudo /usr/bin/bash /path/to/integration.sh rollback' \
+    "Rollback entrypoint SHA-256: $rollback_sha" \
+    "sudo /usr/bin/bash $M2DP_STATE_PARENT/active/$M2DP_ROLLBACK_NAME rollback" \
     '' \
     'macOS or macOS Recovery Terminal:' \
     'Mount the Linux EFI System Partition read-write.' \
@@ -390,6 +412,9 @@ m2dp_stage_files() (
   local expected_build_id="$9"
   local hook_template="${10}"
   local expected_previous_sha="${11}"
+  local rollback_source="${12}"
+  local rollback_sha="${13}"
+  local rollback_size="${14}"
   local system_uid active_boot image_path hook_path state_parent active_state staging_state
   local efi_dir efi_backup recovery_guide hook_sha hook_size previous_sha previous_size changed
   local recovery_sha recovery_size
@@ -412,6 +437,7 @@ m2dp_stage_files() (
     m2dp_die "package guard differs from the accepted release"
     return 1
   }
+  m2dp_verify_file "$rollback_source" "$rollback_sha" "$rollback_size" || return 1
   active_boot=$(m2dp_path "$root" "$M2DP_ACTIVE_BOOT_PATH")
   image_path=$(m2dp_path "$root" "$M2DP_IMAGE_PATH")
   hook_path=$(m2dp_path "$root" "$M2DP_HOOK_PATH")
@@ -486,8 +512,10 @@ m2dp_stage_files() (
     m2dp_clean mkdir -m 0755 -- "$hook_parent"
     hook_parent_created=1
   fi
-  m2dp_write_state "$staging_state/state.env" "$timestamp" "$previous_sha" "$previous_size" "$previous_mode" "$hook_sha" "$changed" "$hook_parent_created"
-  m2dp_write_recovery_guide "$staging_state/recovery.txt" "$timestamp" "$previous_sha"
+  m2dp_copy_new "$rollback_source" "$staging_state/$M2DP_ROLLBACK_NAME" "$rollback_sha" "$rollback_size" 0700
+  m2dp_verify_owned_file "$staging_state/$M2DP_ROLLBACK_NAME" "$rollback_sha" "$rollback_size" "$system_uid" 700
+  m2dp_write_state "$staging_state/state.env" "$timestamp" "$previous_sha" "$previous_size" "$previous_mode" "$hook_sha" "$changed" "$hook_parent_created" "$rollback_sha" "$rollback_size"
+  m2dp_write_recovery_guide "$staging_state/recovery.txt" "$timestamp" "$previous_sha" "$rollback_sha"
   recovery_sha=$(m2dp_clean sha256sum -- "$staging_state/recovery.txt")
   recovery_sha=${recovery_sha%% *}
   recovery_size=$(m2dp_clean stat -c '%s' -- "$staging_state/recovery.txt")
@@ -512,6 +540,7 @@ m2dp_stage_files() (
   m2dp_clean sync -f "$staging_state/state.env"
   m2dp_clean sync -f "$staging_state/pre-install-boot.bin"
   m2dp_clean sync -f "$staging_state/candidate-boot.bin"
+  m2dp_clean sync -f "$staging_state/$M2DP_ROLLBACK_NAME"
   m2dp_clean sync -f "$staging_state/RESULT"
   m2dp_clean sync -f "$efi_backup"
   m2dp_clean sync -f "$recovery_guide"
@@ -536,6 +565,8 @@ m2dp_reset_state_fields() {
   M2DP_STATE_HOOK_SHA=""
   M2DP_STATE_HOOK_PARENT_CREATED=""
   M2DP_STATE_BOOT_CHANGED=""
+  M2DP_STATE_ROLLBACK_SHA=""
+  M2DP_STATE_ROLLBACK_SIZE=""
   M2DP_STATE_EFI_BACKUP_NAME=""
 }
 
@@ -565,12 +596,14 @@ m2dp_read_state() {
       hook_sha256) M2DP_STATE_HOOK_SHA="$value" ;;
       hook_parent_created) M2DP_STATE_HOOK_PARENT_CREATED="$value" ;;
       active_boot_changed) M2DP_STATE_BOOT_CHANGED="$value" ;;
+      rollback_sha256) M2DP_STATE_ROLLBACK_SHA="$value" ;;
+      rollback_size) M2DP_STATE_ROLLBACK_SIZE="$value" ;;
       efi_backup_name) M2DP_STATE_EFI_BACKUP_NAME="$value" ;;
       *) return 1 ;;
     esac
   done <"$path"
-  (( count == 14 )) || return 1
-  [[ $M2DP_STATE_FORMAT == "1" && $M2DP_STATE_KERNEL == "$M2DP_KERNEL_RELEASE" &&
+  (( count == 16 )) || return 1
+  [[ $M2DP_STATE_FORMAT == "2" && $M2DP_STATE_KERNEL == "$M2DP_KERNEL_RELEASE" &&
     $M2DP_STATE_TIMESTAMP =~ ^[0-9]{8}T[0-9]{6}Z$ &&
     $M2DP_STATE_PREVIOUS_SHA =~ ^[0-9a-f]{64}$ && $M2DP_STATE_CANDIDATE_BOOT_SHA =~ ^[0-9a-f]{64}$ &&
     $M2DP_STATE_CANDIDATE_IMAGE_SHA =~ ^[0-9a-f]{64}$ && $M2DP_STATE_HOOK_SHA =~ ^[0-9a-f]{64}$ &&
@@ -578,6 +611,7 @@ m2dp_read_state() {
     $M2DP_STATE_CANDIDATE_BOOT_SIZE =~ ^[1-9][0-9]*$ &&
     $M2DP_STATE_CANDIDATE_IMAGE_SIZE =~ ^[1-9][0-9]*$ && $M2DP_STATE_HOOK_PARENT_CREATED =~ ^[01]$ &&
     $M2DP_STATE_BOOT_CHANGED =~ ^[01]$ &&
+    $M2DP_STATE_ROLLBACK_SHA =~ ^[0-9a-f]{64}$ && $M2DP_STATE_ROLLBACK_SIZE =~ ^[1-9][0-9]*$ &&
     $M2DP_STATE_EFI_BACKUP_NAME == "boot.bin.pre-omarchy-m2-displayport-$M2DP_STATE_TIMESTAMP" ]] || return 1
 }
 
@@ -586,7 +620,7 @@ m2dp_activate_files() (
   umask 077
   local root="$1"
   local expected_uid="$2"
-  local active_boot image_path hook_path state_parent active_state efi_backup recovery_guide lock_path
+  local active_boot image_path hook_path state_parent active_state efi_backup recovery_guide lock_path rollback_entrypoint
   local boot_tmp result_tmp current_sha current_size hook_size recovery_sha recovery_size result result_size
   active_boot=$(m2dp_path "$root" "$M2DP_ACTIVE_BOOT_PATH")
   image_path=$(m2dp_path "$root" "$M2DP_IMAGE_PATH")
@@ -600,6 +634,7 @@ m2dp_activate_files() (
     return 1
   }
   efi_backup="${active_boot%/*}/$M2DP_STATE_EFI_BACKUP_NAME"
+  rollback_entrypoint="$active_state/$M2DP_ROLLBACK_NAME"
   recovery_guide="${active_boot%/*}/RECOVERY-OMARCHY-M2-DISPLAYPORT-$M2DP_STATE_TIMESTAMP.txt"
   boot_tmp="${active_boot%/*}/.boot.bin.omarchy-m2-displayport-$M2DP_STATE_TIMESTAMP.tmp"
   result_tmp="$active_state/.RESULT.tmp"
@@ -612,6 +647,7 @@ m2dp_activate_files() (
   }
   m2dp_verify_file "$active_state/pre-install-boot.bin" "$M2DP_STATE_PREVIOUS_SHA" "$M2DP_STATE_PREVIOUS_SIZE" || return 1
   m2dp_verify_file "$active_state/candidate-boot.bin" "$M2DP_STATE_CANDIDATE_BOOT_SHA" "$M2DP_STATE_CANDIDATE_BOOT_SIZE" || return 1
+  m2dp_verify_owned_file "$rollback_entrypoint" "$M2DP_STATE_ROLLBACK_SHA" "$M2DP_STATE_ROLLBACK_SIZE" "$expected_uid" 700 || return 1
   m2dp_verify_file "$efi_backup" "$M2DP_STATE_PREVIOUS_SHA" "$M2DP_STATE_PREVIOUS_SIZE" || return 1
   m2dp_regular_file "$active_state/recovery.txt" || return 1
   recovery_sha=$(m2dp_clean sha256sum -- "$active_state/recovery.txt")
@@ -644,9 +680,11 @@ m2dp_activate_files() (
   m2dp_clean sync -f "$active_state/RESULT"
   m2dp_clean sync -f "$efi_backup"
   m2dp_clean sync -f "$recovery_guide"
+  m2dp_clean sync -f "$rollback_entrypoint"
   m2dp_verify_file "$active_state/pre-install-boot.bin" "$M2DP_STATE_PREVIOUS_SHA" "$M2DP_STATE_PREVIOUS_SIZE"
   m2dp_verify_file "$efi_backup" "$M2DP_STATE_PREVIOUS_SHA" "$M2DP_STATE_PREVIOUS_SIZE"
   m2dp_verify_file "$recovery_guide" "$recovery_sha" "$recovery_size"
+  m2dp_verify_owned_file "$rollback_entrypoint" "$M2DP_STATE_ROLLBACK_SHA" "$M2DP_STATE_ROLLBACK_SIZE" "$expected_uid" 700
   m2dp_verify_file "$active_boot" "$current_sha" "$current_size"
   if (( M2DP_STATE_BOOT_CHANGED == 1 )) && [[ $current_sha == "$M2DP_STATE_PREVIOUS_SHA" ]]; then
     if [[ -e $boot_tmp || -L $boot_tmp ]]; then
@@ -681,7 +719,7 @@ m2dp_rollback_files() (
   umask 077
   local root="$1"
   local expected_uid="$2"
-  local active_boot image_path hook_path state_parent active_state rolled_state efi_backup
+  local active_boot image_path hook_path state_parent active_state rolled_state efi_backup rollback_entrypoint
   local current_sha current_size hook_size boot_tmp stage_boot_tmp result result_size
   active_boot=$(m2dp_path "$root" "$M2DP_ACTIVE_BOOT_PATH")
   image_path=$(m2dp_path "$root" "$M2DP_IMAGE_PATH")
@@ -695,6 +733,7 @@ m2dp_rollback_files() (
   }
   rolled_state="$state_parent/rolled-back-$M2DP_STATE_TIMESTAMP"
   efi_backup="${active_boot%/*}/$M2DP_STATE_EFI_BACKUP_NAME"
+  rollback_entrypoint="$active_state/$M2DP_ROLLBACK_NAME"
   boot_tmp="${active_boot%/*}/.boot.bin.omarchy-m2-displayport-rollback-$M2DP_STATE_TIMESTAMP.tmp"
   stage_boot_tmp="${active_boot%/*}/.boot.bin.omarchy-m2-displayport-$M2DP_STATE_TIMESTAMP.tmp"
   m2dp_absent "$rolled_state" || return 1
@@ -709,6 +748,7 @@ m2dp_rollback_files() (
   }
   m2dp_verify_file "$active_state/pre-install-boot.bin" "$M2DP_STATE_PREVIOUS_SHA" "$M2DP_STATE_PREVIOUS_SIZE" || return 1
   m2dp_verify_file "$active_state/candidate-boot.bin" "$M2DP_STATE_CANDIDATE_BOOT_SHA" "$M2DP_STATE_CANDIDATE_BOOT_SIZE" || return 1
+  m2dp_verify_owned_file "$rollback_entrypoint" "$M2DP_STATE_ROLLBACK_SHA" "$M2DP_STATE_ROLLBACK_SIZE" "$expected_uid" 700 || return 1
   m2dp_verify_file "$efi_backup" "$M2DP_STATE_PREVIOUS_SHA" "$M2DP_STATE_PREVIOUS_SIZE" || return 1
   if [[ -e $stage_boot_tmp || -L $stage_boot_tmp ]]; then
     m2dp_verify_file "$stage_boot_tmp" "$M2DP_STATE_CANDIDATE_BOOT_SHA" "$M2DP_STATE_CANDIDATE_BOOT_SIZE" || return 1
@@ -897,18 +937,23 @@ m2dp_stage_live() {
   local bundle_uid="$2"
   local timestamp="$3"
   local hook_template="$4"
-  local active_boot_sha
+  local rollback_source="$5"
+  local active_boot_sha rollback_sha rollback_size
   m2dp_verify_live_host
   m2dp_verify_live_safety
   active_boot_sha=$(m2dp_clean sha256sum -- "$M2DP_ACTIVE_BOOT_PATH")
   active_boot_sha=${active_boot_sha%% *}
+  rollback_sha=$(m2dp_clean sha256sum -- "$rollback_source") || return 1
+  rollback_sha=${rollback_sha%% *}
+  rollback_size=$(m2dp_clean stat -c '%s' -- "$rollback_source") || return 1
   m2dp_boot_input_supported "$active_boot_sha" || {
     m2dp_die "active boot.bin is neither the supported stock bundle nor the accepted candidate"
     return 1
   }
   m2dp_stage_files / "$bundle" "$timestamp" "$bundle_uid" \
     "$M2DP_BOOT_SHA256" "$M2DP_IMAGE_SHA256" "$M2DP_IMAGE_SIZE" \
-    "$M2DP_MODULE_SHA256" "$M2DP_MODULE_BUILD_ID" "$hook_template" "$active_boot_sha"
+    "$M2DP_MODULE_SHA256" "$M2DP_MODULE_BUILD_ID" "$hook_template" "$active_boot_sha" \
+    "$rollback_source" "$rollback_sha" "$rollback_size"
 }
 
 m2dp_verify_live_release_state() {
@@ -949,7 +994,7 @@ m2dp_usage() {
     'Usage:' \
     '  sudo /usr/bin/bash integration.sh stage --bundle ABSOLUTE_DIRECTORY' \
     '  sudo /usr/bin/bash integration.sh activate' \
-    '  sudo /usr/bin/bash integration.sh rollback' \
+    '  sudo /usr/bin/bash /var/lib/omarchy/m2-displayport/active/rollback.sh rollback' \
     '' \
     'This experimental path supports only Apple J413/T8112 on linux-asahi 7.1.6-1-1-ARCH.' \
     'It stages a non-default image and never changes GRUB, the default image, W, or the stock module.' \
@@ -965,7 +1010,7 @@ m2dp_main() {
   }
   m2dp_check_environment || return 1
   local action="${1:-}"
-  local bundle="" timestamp hook_template sudo_uid
+  local bundle="" timestamp hook_template rollback_source sudo_uid
   case "$action" in
     stage)
       [[ $# == 3 && $2 == "--bundle" ]] || {
@@ -980,8 +1025,9 @@ m2dp_main() {
       }
       timestamp=$(m2dp_clean date -u +%Y%m%dT%H%M%SZ)
       hook_template=$(m2dp_clean realpath -e -- "${BASH_SOURCE[0]%/*}/05-omarchy-m2-displayport-guard.hook")
+      rollback_source=$(m2dp_clean realpath -e -- "${BASH_SOURCE[0]}")
       m2dp_with_operation_lock /run/omarchy-m2-displayport 0 \
-        m2dp_with_writable_esp m2dp_stage_live "$bundle" "$sudo_uid" "$timestamp" "$hook_template"
+        m2dp_with_writable_esp m2dp_stage_live "$bundle" "$sudo_uid" "$timestamp" "$hook_template" "$rollback_source"
       ;;
     activate)
       [[ $# == 1 ]] || {

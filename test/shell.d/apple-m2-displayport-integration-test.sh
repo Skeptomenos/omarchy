@@ -19,6 +19,16 @@ umask 077
 expected_module_sha=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 expected_build_id=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
 
+stage_files_from() {
+  local rollback_source="$1"
+  local rollback_sha rollback_size
+  shift
+  rollback_sha=$(sha256sum "$rollback_source")
+  rollback_sha=${rollback_sha%% *}
+  rollback_size=$(stat -c '%s' "$rollback_source")
+  m2dp_stage_files "$@" "$rollback_source" "$rollback_sha" "$rollback_size"
+}
+
 expect_refusal() {
   local description="$1"
   shift
@@ -33,6 +43,11 @@ hostile_output=$(/usr/bin/env 'BASH_FUNC_printf%%=() { /usr/bin/printf "PWNED\n"
 [[ $hostile_output != *PWNED* && $hostile_output == *'run this command with sudo /usr/bin/bash'* ]] ||
   fail "integration entrypoint retained an exported function"
 pass "integration entrypoint re-executes without exported functions"
+
+usage_output=$(m2dp_usage)
+[[ $usage_output == *'/var/lib/omarchy/m2-displayport/active/rollback.sh rollback'* ]] ||
+  fail "usage does not use the preserved rollback entrypoint"
+pass "usage selects the preserved rollback entrypoint"
 
 expect_refusal "sourced environment check rejects an exported function" \
   /usr/bin/env 'BASH_FUNC_hostile%%=() { :; }' /usr/bin/bash -c \
@@ -155,18 +170,24 @@ module_before=$(sha256sum "$root/usr/lib/modules/7.1.6-1-1-ARCH/kernel/drivers/u
 grub_before=$(sha256sum "$root/boot/grub.cfg")
 previous_boot_sha=$(sha256sum "$root/boot/efi/m1n1/boot.bin")
 previous_boot_sha=${previous_boot_sha%% *}
+reviewed_rollback_source="$test_root/reviewed-integration.sh"
+cp "$integration" "$reviewed_rollback_source"
+chmod 0600 "$reviewed_rollback_source"
+reviewed_rollback_sha=$(sha256sum "$reviewed_rollback_source")
+reviewed_rollback_sha=${reviewed_rollback_sha%% *}
+reviewed_rollback_size=$(stat -c '%s' "$reviewed_rollback_source")
 
 bad_hook="$test_root/changed-package-guard.hook"
 cp "$hook_template" "$bad_hook"
 printf '\n' >>"$bad_hook"
-expect_refusal "changed package guard is refused before staging" m2dp_stage_files \
+expect_refusal "changed package guard is refused before staging" stage_files_from "$reviewed_rollback_source" \
   "$root" "$bundle" 20260901T225900Z "$EUID" \
   "$expected_boot_sha" "$expected_image_sha" "$expected_image_size" \
   "$expected_module_sha" "$expected_build_id" "$bad_hook" "$previous_boot_sha"
 [[ ! -e $root/boot/initramfs-linux-asahi-m2-displayport.img ]] || fail "changed guard staged an image"
 pass "package guard is pinned to exact reviewed bytes"
 
-expect_refusal "changed active boot after release gate is refused" m2dp_stage_files \
+expect_refusal "changed active boot after release gate is refused" stage_files_from "$reviewed_rollback_source" \
   "$root" "$bundle" 20260901T225901Z "$EUID" \
   "$expected_boot_sha" "$expected_image_sha" "$expected_image_size" \
   "$expected_module_sha" "$expected_build_id" "$hook_template" \
@@ -174,7 +195,7 @@ expect_refusal "changed active boot after release gate is refused" m2dp_stage_fi
 [[ ! -e $root/boot/initramfs-linux-asahi-m2-displayport.img ]] || fail "changed boot staged an image"
 pass "active boot is rechecked inside the staging transaction"
 
-m2dp_stage_files "$root" "$bundle" 20260901T230000Z "$EUID" \
+stage_files_from "$reviewed_rollback_source" "$root" "$bundle" 20260901T230000Z "$EUID" \
   "$expected_boot_sha" "$expected_image_sha" "$expected_image_size" \
   "$expected_module_sha" "$expected_build_id" "$hook_template" "$previous_boot_sha"
 
@@ -186,6 +207,16 @@ grep -Fxq "previous_boot_sha256=$previous_boot_sha" \
   "$root/var/lib/omarchy/m2-displayport/active/state.env" || fail "rollback manifest pins previous boot"
 grep -Fxq 'active_boot_changed=1' \
   "$root/var/lib/omarchy/m2-displayport/active/state.env" || fail "changed boot is recorded"
+rollback_entrypoint="$root/var/lib/omarchy/m2-displayport/active/rollback.sh"
+cmp -s "$reviewed_rollback_source" "$rollback_entrypoint" || fail "reviewed rollback entrypoint is not preserved"
+grep -Fxq "rollback_sha256=$reviewed_rollback_sha" \
+  "$root/var/lib/omarchy/m2-displayport/active/state.env" || fail "rollback manifest does not bind entrypoint checksum"
+grep -Fxq "rollback_size=$reviewed_rollback_size" \
+  "$root/var/lib/omarchy/m2-displayport/active/state.env" || fail "rollback manifest does not bind entrypoint size"
+[[ $(stat -c '%u %a' "$rollback_entrypoint") == "$EUID 700" ]] || fail "rollback entrypoint ownership or mode is unsafe"
+grep -Fxq 'sudo /usr/bin/bash /var/lib/omarchy/m2-displayport/active/rollback.sh rollback' \
+  "$root/var/lib/omarchy/m2-displayport/active/recovery.txt" || fail "recovery guide does not use preserved rollback entrypoint"
+pass "preparation preserves and binds a root-owned rollback entrypoint"
 cmp -s "$root/boot/efi/m1n1/boot.bin.pre-omarchy-m2-displayport-20260901T230000Z" \
   "$root/var/lib/omarchy/m2-displayport/active/pre-install-boot.bin" || fail "both rollback backups match"
 [[ $(sha256sum "$root/boot/initramfs-linux-asahi.img") == "$default_before" ]] || fail "default image changed"
@@ -203,13 +234,18 @@ grep -Fxq 'STAGED' "$root/var/lib/omarchy/m2-displayport/active/RESULT" || fail 
 [[ ! -e $stage_boot_tmp ]] || fail "activation retained a staged boot temporary"
 pass "activation recovers a prepared boot temporary and publishes the staged phase"
 
-expect_refusal "second staging refuses every existing output" m2dp_stage_files \
+expect_refusal "second staging refuses every existing output" stage_files_from "$reviewed_rollback_source" \
   "$root" "$bundle" 20260901T230001Z "$EUID" \
   "$expected_boot_sha" "$expected_image_sha" "$expected_image_size" \
   "$expected_module_sha" "$expected_build_id" "$hook_template" "$expected_boot_sha"
 pass "staging never overwrites an installed candidate"
 
-m2dp_rollback_files "$root" "$EUID"
+printf '\n' >>"$reviewed_rollback_source"
+[[ $(sha256sum "$rollback_entrypoint") == "$reviewed_rollback_sha  $rollback_entrypoint" ]] ||
+  fail "changed source checkout altered preserved rollback entrypoint"
+rm "$reviewed_rollback_source"
+/usr/bin/bash -c 'source "$1"; m2dp_rollback_files "$2" "$3"' bash \
+  "$rollback_entrypoint" "$root" "$EUID"
 grep -Fxq 'pre-install boot' "$root/boot/efi/m1n1/boot.bin" || fail "rollback restores previous boot"
 [[ ! -e $root/boot/initramfs-linux-asahi-m2-displayport.img ]] || fail "rollback removes candidate image"
 [[ ! -e $root/etc/pacman.d/hooks/05-omarchy-m2-displayport-guard.hook ]] || fail "rollback removes package guard"
@@ -220,13 +256,16 @@ grep -Fxq 'pre-install boot' "$root/boot/efi/m1n1/boot.bin" || fail "rollback re
   fail "EFI recovery backup is retained"
 [[ $(sha256sum "$root/boot/initramfs-linux-asahi.img") == "$default_before" ]] || fail "default image changed during rollback"
 [[ $(sha256sum "$root/boot/initramfs-linux-asahi-dpalt.img") == "$w_before" ]] || fail "W changed during rollback"
+[[ -f $root/var/lib/omarchy/m2-displayport/rolled-back-20260901T230000Z/rollback.sh ]] ||
+  fail "rollback evidence does not retain its entrypoint"
+pass "root-owned rollback survives a changed and absent source checkout"
 pass "rollback restores exact pre-install boot and retains recovery evidence"
 
 drift_root="$test_root/drift-root"
 drift_bundle="$test_root/drift-bundle"
 make_root "$drift_root"
 drift_boot_sha=$(make_bundle "$drift_bundle")
-m2dp_stage_files "$drift_root" "$drift_bundle" 20260901T230100Z "$EUID" \
+stage_files_from "$integration" "$drift_root" "$drift_bundle" 20260901T230100Z "$EUID" \
   "$drift_boot_sha" "$expected_image_sha" "$expected_image_size" \
   "$expected_module_sha" "$expected_build_id" "$hook_template" "$previous_boot_sha"
 printf 'drift\n' >>"$drift_root/etc/pacman.d/hooks/05-omarchy-m2-displayport-guard.hook"
@@ -236,12 +275,41 @@ expect_refusal "changed package guard blocks rollback before mutation" m2dp_roll
 [[ -f $drift_root/boot/initramfs-linux-asahi-m2-displayport.img ]] || fail "failed rollback removed image"
 pass "package-hook drift fails closed"
 
+rollback_drift_root="$test_root/rollback-drift-root"
+rollback_drift_bundle="$test_root/rollback-drift-bundle"
+make_root "$rollback_drift_root"
+rollback_drift_boot_sha=$(make_bundle "$rollback_drift_bundle")
+stage_files_from "$integration" "$rollback_drift_root" "$rollback_drift_bundle" 20260901T230150Z "$EUID" \
+  "$rollback_drift_boot_sha" "$expected_image_sha" "$expected_image_size" \
+  "$expected_module_sha" "$expected_build_id" "$hook_template" "$previous_boot_sha"
+rollback_drift_entrypoint="$rollback_drift_root/var/lib/omarchy/m2-displayport/active/rollback.sh"
+rollback_drift_sha=$(sha256sum "$rollback_drift_entrypoint")
+rollback_drift_sha=${rollback_drift_sha%% *}
+rollback_drift_size=$(stat -c '%s' "$rollback_drift_entrypoint")
+rollback_drift_boot_before=$(sha256sum "$rollback_drift_root/boot/efi/m1n1/boot.bin")
+chmod 0744 "$rollback_drift_entrypoint"
+expect_refusal "unsafe rollback entrypoint mode blocks rollback before mutation" \
+  m2dp_rollback_files "$rollback_drift_root" "$EUID"
+[[ $(sha256sum "$rollback_drift_root/boot/efi/m1n1/boot.bin") == "$rollback_drift_boot_before" ]] ||
+  fail "unsafe rollback entrypoint mode changed boot"
+chmod 0700 "$rollback_drift_entrypoint"
+expect_refusal "wrong rollback entrypoint owner is refused" m2dp_verify_owned_file \
+  "$rollback_drift_entrypoint" "$rollback_drift_sha" "$rollback_drift_size" "$(( EUID + 1 ))" 700
+printf '\n' >>"$rollback_drift_entrypoint"
+expect_refusal "changed rollback entrypoint blocks rollback before mutation" \
+  m2dp_rollback_files "$rollback_drift_root" "$EUID"
+[[ $(sha256sum "$rollback_drift_root/boot/efi/m1n1/boot.bin") == "$rollback_drift_boot_before" ]] ||
+  fail "changed rollback entrypoint changed boot"
+[[ -f $rollback_drift_root/boot/initramfs-linux-asahi-m2-displayport.img ]] ||
+  fail "changed rollback entrypoint removed image"
+pass "rollback entrypoint integrity, ownership, and mode fail closed"
+
 same_root="$test_root/same-root"
 same_bundle="$test_root/same-bundle"
 make_root "$same_root"
 same_boot_sha=$(make_bundle "$same_bundle")
 cp "$same_bundle/candidate-boot.bin" "$same_root/boot/efi/m1n1/boot.bin"
-m2dp_stage_files "$same_root" "$same_bundle" 20260901T230200Z "$EUID" \
+stage_files_from "$integration" "$same_root" "$same_bundle" 20260901T230200Z "$EUID" \
   "$same_boot_sha" "$expected_image_sha" "$expected_image_size" \
   "$expected_module_sha" "$expected_build_id" "$hook_template" "$same_boot_sha"
 grep -Fxq 'active_boot_changed=0' \
@@ -256,7 +324,7 @@ missing_hook_bundle="$test_root/missing-hook-bundle"
 make_root "$missing_hook_root"
 rmdir "$missing_hook_root/etc/pacman.d/hooks"
 missing_hook_boot_sha=$(make_bundle "$missing_hook_bundle")
-m2dp_stage_files "$missing_hook_root" "$missing_hook_bundle" 20260901T230300Z "$EUID" \
+stage_files_from "$integration" "$missing_hook_root" "$missing_hook_bundle" 20260901T230300Z "$EUID" \
   "$missing_hook_boot_sha" "$expected_image_sha" "$expected_image_size" \
   "$expected_module_sha" "$expected_build_id" "$hook_template" "$previous_boot_sha"
 grep -Fxq 'hook_parent_created=1' \
