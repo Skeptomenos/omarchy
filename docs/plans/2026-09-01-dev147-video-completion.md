@@ -65,7 +65,7 @@ Execution uses the full `self-correction-loop`. Work on one slice at a time. Run
   - A reviewed staging package can create a fresh candidate without changing the saved default or overwriting W.
   Assumption: the known-good W ingredients can be reconstructed from reviewed source and current package inputs without importing the M1-specific installer.
   Verify: compare the reconstructed archive, module indexes, DTB delta, build IDs, configuration, and firmware routing with W before staging.
-- [ ] Slice 3: stage and validate the integrated candidate.
+- [x] Slice 3: stage and validate the integrated candidate.
   Goal: prove the fork workflow, not only the hand-built W artifact.
   Probe first:
   - Recheck protected inputs and exact rollback paths in one user-run staging preflight.
@@ -76,11 +76,12 @@ Execution uses the full `self-correction-loop`. Work on one slice at a time. Run
   - [x] Boot `/boot/initramfs-linux-asahi-m2-displayport.img` once with the external monitor disconnected.
   - [x] Verify the internal panel and system first, then attach LG27 and verify native video. Evidence: [integrated candidate LG27](../evidence/dev-147-integrated-candidate-lg27-2026-09-02.md) records David's physical image after about five to six seconds and native 4K60 state.
   - [x] Switch once from LG27 to LG35 and verify native video. Evidence: [integrated candidate LG35 switch](../evidence/dev-147-integrated-candidate-lg35-switch-2026-09-02.md) records David's physical image after about five seconds and native 3440×1440/99.982 Hz state.
-  - [ ] Confirm that the internal panel physically shows a normal image after the LG35 switch. Linux is responsive and the internal DRM and compositor output is active.
+  - [x] Confirm that the internal panel physically shows a normal image after the LG35 switch. Evidence: [integrated candidate internal confirmation](../evidence/dev-147-integrated-candidate-internal-confirmation-2026-09-02.md) records David's normal physical panel and responsive system plus the same-boot dual-output snapshot.
   Validation:
   - Candidate identity is distinct and complete. Both displays and Linux remain healthy. Stock, W, defaults, backups, and recovery files remain unchanged.
   Exit criteria:
   - Candidate reproduces mandatory W video acceptance and its rollback is ready.
+  Evidence: Candidate boot `fa500274-a4fd-49e3-a84a-82ec4948b8e3` passed internal-only startup, LG27 attach at 4K60, LG35 switch at 3440×1440/99.982 Hz, physical internal-panel health, and system responsiveness. The three dated integrated-candidate evidence records retain the exact observations and software state.
   Assumption: staging does not trigger unrelated package hooks or rebuild the saved default image.
   Verify: capture protected pre/post hashes and package logs around the exact staging transaction.
 - [ ] Slice 4: integrate the accepted opt-in path into `quattro-arm`.
@@ -134,6 +135,7 @@ Monitor USB data, monitor-only overnight charging, greeter focus, and automatic-
 - 2026-09-01 21:51Z: Slice 3 preparation PASS. David ran the reviewed clean-environment sudo command with only MagSafe attached. `/boot/initramfs-linux-asahi-m2-displayport.img` is root-owned, mode 0600, and exactly 19,184,210 bytes. The package guard is root-owned, mode 0644, and matches SHA-256 `469820ad7cfd015a22cff979b0aa70d62e82dcc7cc05951dca92f40cd660f2bd`. Active `boot.bin` stayed unchanged at the accepted candidate SHA-256 `203ab7027536c8d16f373d02c1f6346a5c34cfe095a9dafd0cfe37d2b354090c`. The EFI backup matches it exactly, and the recovery guide is present. Candidate destinations were absent before preparation. Afterward, no package lock, systemd job, failed unit, or external USB-C partner was present; MagSafe remained online and the battery Full/100%. The root-private state is intentionally unreadable without privilege and will be revalidated by activation. Do not reboot before the separate activation gate.
 - 2026-09-02: Integrated-candidate LG27 video PASS on boot `fa500274-a4fd-49e3-a84a-82ec4948b8e3`. David selected `/boot/initramfs-linux-asahi-m2-displayport.img`; loaded TIPD build ID `50ee94a5f8dbae780c676a73b611a7ad5197e47a` proves the new image. Internal-only startup was healthy. David attached LG27 and reported an image after about five to six seconds. Read-only state confirms LG27 at 3840×2160/59.997 Hz and eDP-1 at 2560×1664/60 Hz, both DPMS on. One autonomous xHCI/DCP reset removed HPD at 509.696 seconds and restored the 4K modeset by 519.330 seconds. Video remained active afterward. The LG USB hub did not return and belongs to DEV-163. No fatal pattern occurred. The retained `disablehooks=encrypt` command-line token qualifies this result but does not change candidate identity. Evidence: [integrated candidate LG27](../evidence/dev-147-integrated-candidate-lg27-2026-09-02.md).
 - 2026-09-02: Integrated-candidate LG35 switch video PASS on the same identified boot. David disconnected LG27, connected LG35, and reported an image after about five seconds. The kernel completed the new native 3440×1440/99.982 Hz modeset about 2.5 seconds after link setup began. The internal output remains active at 2560×1664/60 Hz, Linux is responsive, power remains healthy, zero units failed, and no fatal kernel pattern appeared. Physical internal-panel confirmation remains the final Slice 3 input. Evidence: [integrated candidate LG35 switch](../evidence/dev-147-integrated-candidate-lg35-switch-2026-09-02.md).
+- 2026-09-02: Slice 3 complete. David confirms that the physical built-in screen works normally after the LG35 switch and that Linux remains responsive. A same-boot snapshot at 1,575 seconds retains eDP-1 at 2560×1664/60 Hz and DP-1 at 3440×1440/99.982 Hz, both connected, enabled, and DPMS on, with zero failed units and zero fatal patterns. The candidate now reproduces the mandatory W video cases on both tested monitors. Suspend, stale hot-switch identity, USB data, and the retained boot argument remain explicit limitations. Evidence: [integrated candidate internal confirmation](../evidence/dev-147-integrated-candidate-internal-confirmation-2026-09-02.md).
 
 ## Discoveries (LIVING)
 
@@ -183,6 +185,9 @@ Monitor USB data, monitor-only overnight charging, greeter focus, and automatic-
   **Date:** 2026-09-01
 - **Decision:** Separate preparation from boot activation.
   **Rationale:** Preparation can publish the image, recovery assets, state, and update guard while leaving the active boot chain unchanged. A short, separate activation gate limits the time in a mixed boot state before the attended reboot.
+  **Date:** 2026-09-02
+- **Decision:** Accept the integrated candidate for opt-in fork integration with explicit limitations.
+  **Rationale:** Internal-only startup, both tested monitors, one same-boot switch, the internal panel, and Linux responsiveness passed. The known suspend failure blocks default-on release, while stale monitor identity, USB data, and the retained boot argument do not invalidate the accepted video path.
   **Date:** 2026-09-02
 
 ## Follow-ups
