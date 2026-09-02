@@ -100,12 +100,13 @@ Execution uses the full `self-correction-loop`. Work on one slice at a time. Run
   Exit criteria:
   - A small submission-ready evidence update exists. Sending it still requires David's approval.
   Evidence: [Upstream handoff](../research/dev-147-upstream-handoff-2026-09-02.md) records current Omarchy Mac PR #289, the repository license and contribution-guide check, Asahi's prohibitive AI policy, the recommended maintainer-first route, and the exact unsent comment draft. Local draft PR [#1](https://github.com/Skeptomenos/omarchy-mac/pull/1) remains unmerged.
-- [ ] FINAL: independent verification.
+- [x] FINAL: independent verification.
   Goal: re-derive every completed claim from repository state, saved evidence, and the final accepted hardware results.
   Validation:
   - A fresh-context verifier classifies each completed claim as VERIFIED, DISPUTED, or UNVERIFIABLE HERE and reruns the final validation gate.
   Exit criteria:
   - No unresolved disputed claim remains. Accepted unverifiable physical observations have explicit user provenance.
+  Evidence: [Final independent verification](../evidence/dev-147-final-independent-verification-2026-09-02.md) classified two repository claims as VERIFIED, zero as DISPUTED, and eight Slice 3 hardware or privileged claims as UNVERIFIABLE HERE. The eight claims remain accepted with David's explicit physical and command-output provenance.
 
 ## Validation
 
@@ -141,6 +142,7 @@ Monitor USB data, monitor-only overnight charging, greeter focus, and automatic-
 - 2026-09-02: Slice 4 complete at `b45948e129a5197d7174aa2c4c870134b03fdff6`. Release hardening stores the exact integration script as a root-owned mode-0700 rollback entrypoint, binds its checksum and size in strict 16-field format-2 state, and verifies it before activation or rollback. A red probe showed that the earlier workflow lost rollback when the source checkout disappeared; the fixed test changes and removes the source copy and then passes rollback from preserved state. The feature guide now owns the accepted hardware matrix and explicit suspend, stale-identity, USB-data, boot-argument, package-update, rollback, and Recovery Terminal limits. The focused test and all feature gates pass. Boundary QA found no DEV-147 regression. The aggregate suite exits 1 for three unrelated package tests; independent review passes with no blocker. The branch is pushed and ready for a draft release decision.
 - 2026-09-02: Local draft PR [Skeptomenos/omarchy-mac#1](https://github.com/Skeptomenos/omarchy-mac/pull/1) now targets `quattro-arm`. It discloses material AI assistance and preserves the experimental boundary. No merge or deployment occurred.
 - 2026-09-02: Slice 5 complete without upstream communication. Omarchy Mac PR #289 remains open with changes requested and does not enable DisplayPort. The repository has no detected contribution guide and uses MIT. The prepared handoff recommends one factual maintainer-first comment before any code PR. Asahi Linux's current policy expressly forbids materially LLM-assisted contributions, so no Asahi code, documentation, comment, issue, or patch submission can come from this work. The exact Omarchy Mac draft comment is saved but unsent. Evidence: [upstream handoff](../research/dev-147-upstream-handoff-2026-09-02.md).
+- 2026-09-02: FINAL independent verification PASS. A fresh-context verifier classified the two repository and upstream-handoff claims as VERIFIED, zero claims as DISPUTED, and the eight Slice 3 hardware or privileged claims as UNVERIFIABLE HERE. David's exact sudo output and physical observations remain their explicit accepted provenance. Repeated focused, metadata, syntax, and diff gates passed. The aggregate suite completed all 236 shell files and retained only the three recorded unrelated package failures. The exact legacy rollback checkout is preserved at commit `6dbcc24ad` with integration-script SHA-256 `6c93c39a97b8e0d42f5f2be262907759713e9718146f40a41e23ab4123c34a17`. Evidence: [final independent verification](../evidence/dev-147-final-independent-verification-2026-09-02.md).
 
 ## Discoveries (LIVING)
 
@@ -209,6 +211,9 @@ Monitor USB data, monitor-only overnight charging, greeter focus, and automatic-
   **Date:** 2026-09-02
 - **Decision:** Do not contribute this work to Asahi Linux.
   **Rationale:** Asahi's current policy expressly forbids materially LLM-assisted code, documentation, and engineering decisions in any project contribution. This session falls inside that boundary.
+  **Date:** 2026-09-02
+- **Decision:** Accept the eight independently unrepeatable Slice 3 claims with explicit user provenance.
+  **Rationale:** They require root-only state or physical display actions. The fresh-context verifier found no dispute, the saved outputs identify the tested boot and native modes, and David supplied each physical result. Repeating the accepted hardware matrix would add risk without closing an evidence gap.
   **Date:** 2026-09-02
 
 ## Follow-ups
