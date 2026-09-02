@@ -1,7 +1,10 @@
-# DEV-147 final independent verification — 2026-09-02
+# DEV-147 release independent verification — 2026-09-02
 
 **Result:** PASS
 **Scope:** The ten checkboxes completed after the earlier independent QA marker
+
+This gate verifies the accepted release implementation and handoff. It does
+not claim that the live legacy format-1 installation has migrated to format 2.
 
 ## Classification
 

@@ -100,13 +100,37 @@ Execution uses the full `self-correction-loop`. Work on one slice at a time. Run
   Exit criteria:
   - A small submission-ready evidence update exists. Sending it still requires David's approval.
   Evidence: [Upstream handoff](../research/dev-147-upstream-handoff-2026-09-02.md) records current Omarchy Mac PR #289, the repository license and contribution-guide check, Asahi's prohibitive AI policy, the recommended maintainer-first route, and the exact unsent comment draft. Local draft PR [#1](https://github.com/Skeptomenos/omarchy-mac/pull/1) remains unmerged.
-- [x] FINAL: independent verification.
+- [x] Release gate: independent verification.
   Goal: re-derive every completed claim from repository state, saved evidence, and the final accepted hardware results.
   Validation:
   - A fresh-context verifier classifies each completed claim as VERIFIED, DISPUTED, or UNVERIFIABLE HERE and reruns the final validation gate.
   Exit criteria:
   - No unresolved disputed claim remains. Accepted unverifiable physical observations have explicit user provenance.
-  Evidence: [Final independent verification](../evidence/dev-147-final-independent-verification-2026-09-02.md) classified two repository claims as VERIFIED, zero as DISPUTED, and eight Slice 3 hardware or privileged claims as UNVERIFIABLE HERE. The eight claims remain accepted with David's explicit physical and command-output provenance.
+  Evidence: [Release independent verification](../evidence/dev-147-final-independent-verification-2026-09-02.md) classified two repository claims as VERIFIED, zero as DISPUTED, and eight Slice 3 hardware or privileged claims as UNVERIFIABLE HERE. The eight claims remain accepted with David's explicit physical and command-output provenance.
+- [ ] Slice 6: migrate the live installation from format 1 to format 2.
+  Goal: replace the legacy mutable-checkout rollback dependency with the accepted root-owned rollback entrypoint without changing the tested display bytes.
+  Probe first:
+  - Confirm exact legacy and accepted script identities, J413/T8112, kernel `7.1.6-1-1-ARCH`, MagSafe power, at least 50 percent battery, no package operation, and the accepted image and boot identities.
+  Implementation:
+  - [ ] David disconnects every USB-C cable while MagSafe stays connected.
+  - [ ] Roll back format 1 with the exact detached `6dbcc24ad` implementation. Do not reboot between rollback and the reviewed format-2 preparation.
+  - [ ] Verify the legacy image and guard are absent, the exact pre-preparation boot is restored, and rollback evidence is retained.
+  - [ ] Stage the accepted format-2 release from the sealed bundle at `b45948e12`.
+  - [ ] Verify the root-owned mode-0700 rollback entrypoint, strict 16-field state, image, guard, recovery assets, and unchanged protected boot inputs.
+  - [ ] Activate through the preserved runner. Reconnect the monitor only after the activation result is reviewed.
+  Validation:
+  - Legacy rollback, format-2 preparation, and activation must each report PASS once. Stop after any other result.
+  - Candidate boot and image hashes must match the already tested bytes. GRUB, the default image, W, and the installed module must remain unchanged.
+  Exit criteria:
+  - The accepted image remains available, the active boot remains the accepted candidate, and rollback no longer depends on a developer checkout.
+  Assumption: The current format-1 state still matches the accepted `6dbcc24ad` release and has not drifted.
+  Verify: Let the exact legacy script validate the protected state before it changes any file. Do not attempt conversion with the format-2 parser.
+- [ ] FINAL: verify the migrated live state and reconcile DEV-147.
+  Goal: prove that the hardened rollback path owns the live experiment and close the issue at the correct experimental boundary.
+  Validation:
+  - Review the three user-run PASS results, run a bounded read-only system check, and confirm the accepted candidate bytes and limitations remain unchanged.
+  Exit criteria:
+  - Format-2 state is active, the machine remains healthy, the plan and DEV-147 contain the migration result, and no open DEV-147 action remains.
 
 ## Validation
 
@@ -142,7 +166,7 @@ Monitor USB data, monitor-only overnight charging, greeter focus, and automatic-
 - 2026-09-02: Slice 4 complete at `b45948e129a5197d7174aa2c4c870134b03fdff6`. Release hardening stores the exact integration script as a root-owned mode-0700 rollback entrypoint, binds its checksum and size in strict 16-field format-2 state, and verifies it before activation or rollback. A red probe showed that the earlier workflow lost rollback when the source checkout disappeared; the fixed test changes and removes the source copy and then passes rollback from preserved state. The feature guide now owns the accepted hardware matrix and explicit suspend, stale-identity, USB-data, boot-argument, package-update, rollback, and Recovery Terminal limits. The focused test and all feature gates pass. Boundary QA found no DEV-147 regression. The aggregate suite exits 1 for three unrelated package tests; independent review passes with no blocker. The branch is pushed and ready for a draft release decision.
 - 2026-09-02: Local draft PR [Skeptomenos/omarchy-mac#1](https://github.com/Skeptomenos/omarchy-mac/pull/1) now targets `quattro-arm`. It discloses material AI assistance and preserves the experimental boundary. No merge or deployment occurred.
 - 2026-09-02: Slice 5 complete without upstream communication. Omarchy Mac PR #289 remains open with changes requested and does not enable DisplayPort. The repository has no detected contribution guide and uses MIT. The prepared handoff recommends one factual maintainer-first comment before any code PR. Asahi Linux's current policy expressly forbids materially LLM-assisted contributions, so no Asahi code, documentation, comment, issue, or patch submission can come from this work. The exact Omarchy Mac draft comment is saved but unsent. Evidence: [upstream handoff](../research/dev-147-upstream-handoff-2026-09-02.md).
-- 2026-09-02: FINAL independent verification PASS. A fresh-context verifier classified the two repository and upstream-handoff claims as VERIFIED, zero claims as DISPUTED, and the eight Slice 3 hardware or privileged claims as UNVERIFIABLE HERE. David's exact sudo output and physical observations remain their explicit accepted provenance. Repeated focused, metadata, syntax, and diff gates passed. The aggregate suite completed all 236 shell files and retained only the three recorded unrelated package failures. The exact legacy rollback checkout is preserved at commit `6dbcc24ad` with integration-script SHA-256 `6c93c39a97b8e0d42f5f2be262907759713e9718146f40a41e23ab4123c34a17`. Evidence: [final independent verification](../evidence/dev-147-final-independent-verification-2026-09-02.md).
+- 2026-09-02: Release independent verification PASS. A fresh-context verifier classified the two repository and upstream-handoff claims as VERIFIED, zero claims as DISPUTED, and the eight Slice 3 hardware or privileged claims as UNVERIFIABLE HERE. David's exact sudo output and physical observations remain their explicit accepted provenance. Repeated focused, metadata, syntax, and diff gates passed. The aggregate suite completed all 236 shell files and retained only the three recorded unrelated package failures. The exact legacy rollback checkout is preserved at commit `6dbcc24ad` with integration-script SHA-256 `6c93c39a97b8e0d42f5f2be262907759713e9718146f40a41e23ab4123c34a17`. This closes the release gate, not the pending live format-2 migration. Evidence: [release independent verification](../evidence/dev-147-final-independent-verification-2026-09-02.md).
 
 ## Discoveries (LIVING)
 
