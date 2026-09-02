@@ -6,6 +6,7 @@
 **Integration branch:** `codex/dev-147-m2-displayport-opt-in`
 **Linear:** `DEV-147`
 **Started:** 2026-09-01
+**Reconciled:** 2026-09-02
 
 ---
 
@@ -73,7 +74,9 @@ Execution uses the full `self-correction-loop`. Work on one slice at a time. Run
   - [x] Verify the prepared image, package guard, backups, recovery guide, and root-owned state while the active `boot.bin` remains unchanged.
   - [x] David runs the separate activation command only immediately before the attended reboot.
   - [x] Boot `/boot/initramfs-linux-asahi-m2-displayport.img` once with the external monitor disconnected.
-  - [ ] Verify the internal panel and system first. Then attach LG27 and verify native video. Run one LG35 switch only after the first monitor passes. LG27 video has passed; physical post-attach internal confirmation and the LG35 switch remain.
+  - [x] Verify the internal panel and system first, then attach LG27 and verify native video. Evidence: [integrated candidate LG27](../evidence/dev-147-integrated-candidate-lg27-2026-09-02.md) records David's physical image after about five to six seconds and native 4K60 state.
+  - [x] Switch once from LG27 to LG35 and verify native video. Evidence: [integrated candidate LG35 switch](../evidence/dev-147-integrated-candidate-lg35-switch-2026-09-02.md) records David's physical image after about five seconds and native 3440×1440/99.982 Hz state.
+  - [ ] Confirm that the internal panel physically shows a normal image after the LG35 switch. Linux is responsive and the internal DRM and compositor output is active.
   Validation:
   - Candidate identity is distinct and complete. Both displays and Linux remain healthy. Stock, W, defaults, backups, and recovery files remain unchanged.
   Exit criteria:
@@ -130,6 +133,7 @@ Monitor USB data, monitor-only overnight charging, greeter focus, and automatic-
 - 2026-09-02: Independent QA and review passed. The focused integration suite, 454-command metadata gate, Bash syntax, whitespace, documentation links, bundle validation, and 14-field rollback-state verification passed. The repository-wide suite reached all 236 shell test files. DEV-147 passed; three unrelated package-coverage tests failed only because this isolated worktree has no `omarchy-pkgs` checkout. Commit `6dbcc24adbf7bfe435b1c64b0ec5c6ff5eed0f09` is pushed to `Skeptomenos/omarchy-mac:codex/dev-147-m2-displayport-opt-in`.
 - 2026-09-01 21:51Z: Slice 3 preparation PASS. David ran the reviewed clean-environment sudo command with only MagSafe attached. `/boot/initramfs-linux-asahi-m2-displayport.img` is root-owned, mode 0600, and exactly 19,184,210 bytes. The package guard is root-owned, mode 0644, and matches SHA-256 `469820ad7cfd015a22cff979b0aa70d62e82dcc7cc05951dca92f40cd660f2bd`. Active `boot.bin` stayed unchanged at the accepted candidate SHA-256 `203ab7027536c8d16f373d02c1f6346a5c34cfe095a9dafd0cfe37d2b354090c`. The EFI backup matches it exactly, and the recovery guide is present. Candidate destinations were absent before preparation. Afterward, no package lock, systemd job, failed unit, or external USB-C partner was present; MagSafe remained online and the battery Full/100%. The root-private state is intentionally unreadable without privilege and will be revalidated by activation. Do not reboot before the separate activation gate.
 - 2026-09-02: Integrated-candidate LG27 video PASS on boot `fa500274-a4fd-49e3-a84a-82ec4948b8e3`. David selected `/boot/initramfs-linux-asahi-m2-displayport.img`; loaded TIPD build ID `50ee94a5f8dbae780c676a73b611a7ad5197e47a` proves the new image. Internal-only startup was healthy. David attached LG27 and reported an image after about five to six seconds. Read-only state confirms LG27 at 3840×2160/59.997 Hz and eDP-1 at 2560×1664/60 Hz, both DPMS on. One autonomous xHCI/DCP reset removed HPD at 509.696 seconds and restored the 4K modeset by 519.330 seconds. Video remained active afterward. The LG USB hub did not return and belongs to DEV-163. No fatal pattern occurred. The retained `disablehooks=encrypt` command-line token qualifies this result but does not change candidate identity. Evidence: [integrated candidate LG27](../evidence/dev-147-integrated-candidate-lg27-2026-09-02.md).
+- 2026-09-02: Integrated-candidate LG35 switch video PASS on the same identified boot. David disconnected LG27, connected LG35, and reported an image after about five seconds. The kernel completed the new native 3440×1440/99.982 Hz modeset about 2.5 seconds after link setup began. The internal output remains active at 2560×1664/60 Hz, Linux is responsive, power remains healthy, zero units failed, and no fatal kernel pattern appeared. Physical internal-panel confirmation remains the final Slice 3 input. Evidence: [integrated candidate LG35 switch](../evidence/dev-147-integrated-candidate-lg35-switch-2026-09-02.md).
 
 ## Discoveries (LIVING)
 
@@ -147,6 +151,12 @@ Monitor USB data, monitor-only overnight charging, greeter focus, and automatic-
   **Evidence:** Resume reaches external `dcp_dptx_connect`, then `prepareLink()` fails with `0xe00002ed`; the native modeset returns `80000104` with the pipe disabled. Cable removal is required before the internal login becomes usable again.
 - **Finding:** The accepted prototype can be reconstructed from the official Asahi source and retained matching build inputs.
   **Evidence:** Stock boot reconstruction is byte-identical. The patched DTB and candidate boot are byte-identical to the prototype. The rebuilt TIPD module has identical runtime content after removing debug data and the build-ID note.
+- **Finding:** The integrated candidate supports a same-boot switch between both accepted LG monitors at their native modes.
+  **Evidence:** LG27 ran at 3840×2160/59.997 Hz. After one physical switch, LG35 produced a visible image in about five seconds and ran at 3440×1440/99.982 Hz. The internal DRM output stayed enabled and Linux stayed responsive.
+- **Finding:** A physical monitor switch re-enumerated the LG USB hub after the earlier autonomous reset did not.
+  **Evidence:** The LG35 switch identified the `0bda:5411` hub and `043e:9a39` USB Controls before HPD asserted. This difference belongs to DEV-163 and does not block video acceptance.
+- **Finding:** Native mode selection changes correctly during the integrated-candidate monitor switch, but exported monitor identity stays stale.
+  **Evidence:** DCP and DRM changed to the LG35's 14-mode set and 3440×1440/99.982 Hz output. The exported EDID and Hyprland description still identify the prior LG27 4K display. This repeats a known prototype metadata limitation and does not invalidate the physically confirmed LG35 image.
 
 ## Decision Log (LIVING)
 
