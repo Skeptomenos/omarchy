@@ -84,13 +84,14 @@ Execution uses the full `self-correction-loop`. Work on one slice at a time. Run
   Evidence: Candidate boot `fa500274-a4fd-49e3-a84a-82ec4948b8e3` passed internal-only startup, LG27 attach at 4K60, LG35 switch at 3440×1440/99.982 Hz, physical internal-panel health, and system responsiveness. The three dated integrated-candidate evidence records retain the exact observations and software state.
   Assumption: staging does not trigger unrelated package hooks or rebuild the saved default image.
   Verify: capture protected pre/post hashes and package logs around the exact staging transaction.
-- [ ] Slice 4: integrate the accepted opt-in path into `quattro-arm`.
+- [x] Slice 4: integrate the accepted opt-in path into `quattro-arm`.
   Goal: make the tested feature available from the Apple Silicon fork with clear limits and recovery instructions.
   Validation:
   - Focused tests, `./test/all`, `bin/omarchy commands --check`, entrypoint syntax checks, diff hygiene, and independent review pass, or pre-existing unrelated failures are recorded precisely.
   - The release documentation states supported model/kernel, experimental status, suspend result, update behavior, install, uninstall, rollback, and recovery boundaries.
   Exit criteria:
   - The atomic fork change is reviewed, pushed, and ready for David's release decision. Deployment remains separate until approved.
+  Evidence: Commit [`b45948e12`](https://github.com/Skeptomenos/omarchy-mac/commit/b45948e129a5197d7174aa2c4c870134b03fdff6) is pushed on `codex/dev-147-m2-displayport-opt-in`. The focused integration test, 454-command metadata gate, entrypoint syntax, documentation links, whitespace, and no-code-comments checks passed. Independent review passed. Boundary QA found no DEV-147 failure; the aggregate suite remains red only for three precisely recorded unrelated package tests.
 - [ ] Slice 5: prepare the upstream handoff.
   Goal: share tested M2 replication evidence without duplicating or misrepresenting upstream work.
   Validation:
@@ -136,6 +137,7 @@ Monitor USB data, monitor-only overnight charging, greeter focus, and automatic-
 - 2026-09-02: Integrated-candidate LG27 video PASS on boot `fa500274-a4fd-49e3-a84a-82ec4948b8e3`. David selected `/boot/initramfs-linux-asahi-m2-displayport.img`; loaded TIPD build ID `50ee94a5f8dbae780c676a73b611a7ad5197e47a` proves the new image. Internal-only startup was healthy. David attached LG27 and reported an image after about five to six seconds. Read-only state confirms LG27 at 3840×2160/59.997 Hz and eDP-1 at 2560×1664/60 Hz, both DPMS on. One autonomous xHCI/DCP reset removed HPD at 509.696 seconds and restored the 4K modeset by 519.330 seconds. Video remained active afterward. The LG USB hub did not return and belongs to DEV-163. No fatal pattern occurred. The retained `disablehooks=encrypt` command-line token qualifies this result but does not change candidate identity. Evidence: [integrated candidate LG27](../evidence/dev-147-integrated-candidate-lg27-2026-09-02.md).
 - 2026-09-02: Integrated-candidate LG35 switch video PASS on the same identified boot. David disconnected LG27, connected LG35, and reported an image after about five seconds. The kernel completed the new native 3440×1440/99.982 Hz modeset about 2.5 seconds after link setup began. The internal output remains active at 2560×1664/60 Hz, Linux is responsive, power remains healthy, zero units failed, and no fatal kernel pattern appeared. Physical internal-panel confirmation remains the final Slice 3 input. Evidence: [integrated candidate LG35 switch](../evidence/dev-147-integrated-candidate-lg35-switch-2026-09-02.md).
 - 2026-09-02: Slice 3 complete. David confirms that the physical built-in screen works normally after the LG35 switch and that Linux remains responsive. A same-boot snapshot at 1,575 seconds retains eDP-1 at 2560×1664/60 Hz and DP-1 at 3440×1440/99.982 Hz, both connected, enabled, and DPMS on, with zero failed units and zero fatal patterns. The candidate now reproduces the mandatory W video cases on both tested monitors. Suspend, stale hot-switch identity, USB data, and the retained boot argument remain explicit limitations. Evidence: [integrated candidate internal confirmation](../evidence/dev-147-integrated-candidate-internal-confirmation-2026-09-02.md).
+- 2026-09-02: Slice 4 complete at `b45948e129a5197d7174aa2c4c870134b03fdff6`. Release hardening stores the exact integration script as a root-owned mode-0700 rollback entrypoint, binds its checksum and size in strict 16-field format-2 state, and verifies it before activation or rollback. A red probe showed that the earlier workflow lost rollback when the source checkout disappeared; the fixed test changes and removes the source copy and then passes rollback from preserved state. The feature guide now owns the accepted hardware matrix and explicit suspend, stale-identity, USB-data, boot-argument, package-update, rollback, and Recovery Terminal limits. The focused test and all feature gates pass. Boundary QA found no DEV-147 regression. The aggregate suite exits 1 for three unrelated package tests; independent review passes with no blocker. The branch is pushed and ready for a draft release decision.
 
 ## Discoveries (LIVING)
 
@@ -159,6 +161,10 @@ Monitor USB data, monitor-only overnight charging, greeter focus, and automatic-
   **Evidence:** The LG35 switch identified the `0bda:5411` hub and `043e:9a39` USB Controls before HPD asserted. This difference belongs to DEV-163 and does not block video acceptance.
 - **Finding:** Native mode selection changes correctly during the integrated-candidate monitor switch, but exported monitor identity stays stale.
   **Evidence:** DCP and DRM changed to the LG35's 14-mode set and 3440×1440/99.982 Hz output. The exported EDID and Hyprland description still identify the prior LG27 4K display. This repeats a known prototype metadata limitation and does not invalidate the physically confirmed LG35 image.
+- **Finding:** The first integration left Linux rollback dependent on the mutable source checkout.
+  **Evidence:** Independent review showed that an Omarchy update or removed worktree could make the format-1 rollback script unavailable. The format-2 fix preserves and binds the exact rollback implementation under root-owned state, and the regression test passes after the source copy changes and disappears.
+- **Finding:** The accepted live installation still uses legacy format-1 state.
+  **Evidence:** It was prepared and activated before the format-2 rollback fix. The new strict parser correctly refuses the old 14-field state. The live installation must use the exact `6dbcc24ad` implementation for rollback before any fresh format-2 preparation.
 
 ## Decision Log (LIVING)
 
@@ -188,6 +194,12 @@ Monitor USB data, monitor-only overnight charging, greeter focus, and automatic-
   **Date:** 2026-09-02
 - **Decision:** Accept the integrated candidate for opt-in fork integration with explicit limitations.
   **Rationale:** Internal-only startup, both tested monitors, one same-boot switch, the internal panel, and Linux responsiveness passed. The known suspend failure blocks default-on release, while stale monitor identity, USB data, and the retained boot argument do not invalidate the accepted video path.
+  **Date:** 2026-09-02
+- **Decision:** Preserve the exact rollback implementation in root-owned state for every new preparation.
+  **Rationale:** Package hooks can block boot-package drift, but they cannot ensure that a developer checkout survives an Omarchy source update. A checksummed state-local entrypoint keeps rollback available and fail-closed.
+  **Date:** 2026-09-02
+- **Decision:** Do not parse or migrate the active format-1 state with the new format-2 script.
+  **Rationale:** Strict refusal is safer than an in-place privileged state conversion. Use the exact legacy implementation to roll back first, then perform a fresh preparation with the accepted release.
   **Date:** 2026-09-02
 
 ## Follow-ups
