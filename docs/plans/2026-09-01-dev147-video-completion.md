@@ -92,13 +92,14 @@ Execution uses the full `self-correction-loop`. Work on one slice at a time. Run
   Exit criteria:
   - The atomic fork change is reviewed, pushed, and ready for David's release decision. Deployment remains separate until approved.
   Evidence: Commit [`b45948e12`](https://github.com/Skeptomenos/omarchy-mac/commit/b45948e129a5197d7174aa2c4c870134b03fdff6) is pushed on `codex/dev-147-m2-displayport-opt-in`. The focused integration test, 454-command metadata gate, entrypoint syntax, documentation links, whitespace, and no-code-comments checks passed. Independent review passed. Boundary QA found no DEV-147 failure; the aggregate suite remains red only for three precisely recorded unrelated package tests.
-- [ ] Slice 5: prepare the upstream handoff.
+- [x] Slice 5: prepare the upstream handoff.
   Goal: share tested M2 replication evidence without duplicating or misrepresenting upstream work.
   Validation:
   - Recheck existing Omarchy Mac PR #289, repository license and contribution terms, and recipient policy.
   - Keep AI provenance, original authorship, successful cases, failures, and untested limits explicit.
   Exit criteria:
   - A small submission-ready evidence update exists. Sending it still requires David's approval.
+  Evidence: [Upstream handoff](../research/dev-147-upstream-handoff-2026-09-02.md) records current Omarchy Mac PR #289, the repository license and contribution-guide check, Asahi's prohibitive AI policy, the recommended maintainer-first route, and the exact unsent comment draft. Local draft PR [#1](https://github.com/Skeptomenos/omarchy-mac/pull/1) remains unmerged.
 - [ ] FINAL: independent verification.
   Goal: re-derive every completed claim from repository state, saved evidence, and the final accepted hardware results.
   Validation:
@@ -138,6 +139,8 @@ Monitor USB data, monitor-only overnight charging, greeter focus, and automatic-
 - 2026-09-02: Integrated-candidate LG35 switch video PASS on the same identified boot. David disconnected LG27, connected LG35, and reported an image after about five seconds. The kernel completed the new native 3440×1440/99.982 Hz modeset about 2.5 seconds after link setup began. The internal output remains active at 2560×1664/60 Hz, Linux is responsive, power remains healthy, zero units failed, and no fatal kernel pattern appeared. Physical internal-panel confirmation remains the final Slice 3 input. Evidence: [integrated candidate LG35 switch](../evidence/dev-147-integrated-candidate-lg35-switch-2026-09-02.md).
 - 2026-09-02: Slice 3 complete. David confirms that the physical built-in screen works normally after the LG35 switch and that Linux remains responsive. A same-boot snapshot at 1,575 seconds retains eDP-1 at 2560×1664/60 Hz and DP-1 at 3440×1440/99.982 Hz, both connected, enabled, and DPMS on, with zero failed units and zero fatal patterns. The candidate now reproduces the mandatory W video cases on both tested monitors. Suspend, stale hot-switch identity, USB data, and the retained boot argument remain explicit limitations. Evidence: [integrated candidate internal confirmation](../evidence/dev-147-integrated-candidate-internal-confirmation-2026-09-02.md).
 - 2026-09-02: Slice 4 complete at `b45948e129a5197d7174aa2c4c870134b03fdff6`. Release hardening stores the exact integration script as a root-owned mode-0700 rollback entrypoint, binds its checksum and size in strict 16-field format-2 state, and verifies it before activation or rollback. A red probe showed that the earlier workflow lost rollback when the source checkout disappeared; the fixed test changes and removes the source copy and then passes rollback from preserved state. The feature guide now owns the accepted hardware matrix and explicit suspend, stale-identity, USB-data, boot-argument, package-update, rollback, and Recovery Terminal limits. The focused test and all feature gates pass. Boundary QA found no DEV-147 regression. The aggregate suite exits 1 for three unrelated package tests; independent review passes with no blocker. The branch is pushed and ready for a draft release decision.
+- 2026-09-02: Local draft PR [Skeptomenos/omarchy-mac#1](https://github.com/Skeptomenos/omarchy-mac/pull/1) now targets `quattro-arm`. It discloses material AI assistance and preserves the experimental boundary. No merge or deployment occurred.
+- 2026-09-02: Slice 5 complete without upstream communication. Omarchy Mac PR #289 remains open with changes requested and does not enable DisplayPort. The repository has no detected contribution guide and uses MIT. The prepared handoff recommends one factual maintainer-first comment before any code PR. Asahi Linux's current policy expressly forbids materially LLM-assisted contributions, so no Asahi code, documentation, comment, issue, or patch submission can come from this work. The exact Omarchy Mac draft comment is saved but unsent. Evidence: [upstream handoff](../research/dev-147-upstream-handoff-2026-09-02.md).
 
 ## Discoveries (LIVING)
 
@@ -200,6 +203,12 @@ Monitor USB data, monitor-only overnight charging, greeter focus, and automatic-
   **Date:** 2026-09-02
 - **Decision:** Do not parse or migrate the active format-1 state with the new format-2 script.
   **Rationale:** Strict refusal is safer than an in-place privileged state conversion. Use the exact legacy implementation to roll back first, then perform a fresh preparation with the accepted release.
+  **Date:** 2026-09-02
+- **Decision:** Ask Omarchy Mac maintainers whether they want enablement before opening an upstream code PR.
+  **Rationale:** Their existing diagnostics PR is still under requested changes and explicitly excludes enablement. A small factual hardware-evidence comment gives maintainers a low-cost scope decision before a large experimental workflow enters review.
+  **Date:** 2026-09-02
+- **Decision:** Do not contribute this work to Asahi Linux.
+  **Rationale:** Asahi's current policy expressly forbids materially LLM-assisted code, documentation, and engineering decisions in any project contribution. This session falls inside that boundary.
   **Date:** 2026-09-02
 
 ## Follow-ups
