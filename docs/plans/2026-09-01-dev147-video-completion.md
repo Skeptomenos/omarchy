@@ -132,6 +132,7 @@ Execution uses the full `self-correction-loop`. Work on one slice at a time. Run
   - Review the three user-run PASS results, run a bounded read-only system check, and confirm the accepted candidate bytes and limitations remain unchanged.
   Exit criteria:
   - Format-2 state is active, the machine remains healthy, the plan and DEV-147 contain the migration result, and no open DEV-147 action remains.
+  Evidence in progress: [Live format-2 independent verification](../evidence/dev-147-live-format2-independent-verification-2026-09-02.md) reports one VERIFIED claim, zero DISPUTED claims, six UNVERIFIABLE HERE claims accepted with explicit user provenance, and no item to reopen. Final plan and Linear reconciliation remain.
 
 ## Validation
 
@@ -171,6 +172,7 @@ Monitor USB data, monitor-only overnight charging, greeter focus, and automatic-
 - 2026-09-02: Slice 6 legacy rollback PASS. David disconnected all external USB-C cables, kept MagSafe connected, and ran the exact format-1 rollback implementation once. The script retained `rolled-back-20260901T215143Z`. A read-only check finds the legacy candidate image and guard absent while active `boot.bin` remains the accepted candidate bytes. The external Type-C controller paths are clear. MagSafe is online, the battery is Full/100%, and no failed unit, package lock, or package job exists. Do not reboot before format-2 preparation. Evidence: [live format-1 rollback](../evidence/dev-147-live-format1-rollback-2026-09-02.md).
 - 2026-09-02: Slice 6 format-2 preparation PASS. David ran the accepted hardened integration with the sealed bundle. The transaction verified and published strict format-2 state plus its root-owned checksummed rollback runner. Public checks confirm the accepted boot SHA, candidate image metadata, package-guard hash, new EFI recovery guide, clear external Type-C paths, Full/100% battery, external power, and no failed unit or package operation. Keep USB-C disconnected and do not reboot before activation through the preserved runner. Evidence: [live format-2 preparation](../evidence/dev-147-live-format2-preparation-2026-09-02.md).
 - 2026-09-02: Slice 6 complete. Activation through the preserved root-owned entrypoint reported PASS. Its pre-mutation checks validated the strict state, runner checksum and mode, backups, recovery guide, image, guard, boot identity, host, power, and external-port safety. The public post-check retains accepted boot and image metadata, a healthy internal output, Full/100% battery, no failed unit or package operation, and no fatal display pattern. No migration reboot is needed because the display payload bytes did not change. Evidence: [live format-2 activation](../evidence/dev-147-live-format2-activation-2026-09-02.md).
+- 2026-09-02: Final format-2 independent verification PASS. A fresh-context verifier classified one external-port safety claim as VERIFIED, zero claims as DISPUTED, and six historical privileged or root-private claims as UNVERIFIABLE HERE. David's exact three PASS outputs remain their explicit provenance. Focused integration, 454-command metadata, parser-selective syntax, changed-script syntax, and diff gates passed. The aggregate suite retained only the three known unrelated package failures across all 236 shell files. No item re-enters the plan. Evidence: [live format-2 independent verification](../evidence/dev-147-live-format2-independent-verification-2026-09-02.md).
 
 ## Discoveries (LIVING)
 
@@ -245,6 +247,9 @@ Monitor USB data, monitor-only overnight charging, greeter focus, and automatic-
   **Date:** 2026-09-02
 - **Decision:** Do not reboot only to verify the format-2 migration.
   **Rationale:** The active boot and candidate image remain the exact bytes already tested on both monitors. The migration changes protected transaction state and rollback durability. Its executable coverage is the integration test plus one live preparation and activation, not another identical display boot.
+  **Date:** 2026-09-02
+- **Decision:** Accept the six independently unrepeatable Slice 6 claims with explicit user provenance.
+  **Rationale:** They are past sudo transactions or live root-private state. The user supplied each exact PASS result. The accepted scripts verify the protected inputs before mutation, the public results match, and the fresh-context verifier found no contradiction or item to reopen.
   **Date:** 2026-09-02
 
 ## Follow-ups
