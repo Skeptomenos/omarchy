@@ -16,7 +16,9 @@ The preserved `/boot/initramfs-linux-asahi-dpalt.img` image, called W, has produ
 
 The earlier [prototype plan](dev-147-m2-displayport.md) retains the complete investigation and is superseded for active execution by this plan. Monitor downstream USB-data loss is separate from video. [DEV-163](https://linear.app/helmus/issue/DEV-163/lg-monitor-usb-hub-disappears-while-displayport-video-remains-active) and the [USB PM plan](2026-08-31-dev147-usb-pm-recurrence.md) own that follow-up. USB hub enumeration, a mouse through the monitor, and USB control-transfer tracing do not block DEV-147.
 
-The saved boot default remains unchanged. A manual GRUB edit selects W for one boot. The active prototype DTB is not removed by an ordinary reboot. Kernel updates can invalidate the patched module, DTB, and image as a matched set. Full rollback has not been rehearsed.
+The saved boot default remains unchanged. A manual GRUB edit selects W for one boot. The active prototype DTB is not removed by an ordinary reboot. Kernel updates can invalidate the patched module, DTB, and image as a matched set. The format-1 rollback and format-2 activation paths have passed once. The accepted format-2 rollback remains prepared but has not been invoked.
+
+Repeated external link generations expose a second reliability limit. Endpoint `0x28` stores at most 16 AFK services. The current allocator never reuses disabled entries, so eight two-service display generations can exhaust the table and leave a detected monitor blank until reboot. [AFK service-slot exhaustion](../evidence/dev-147-afk-service-exhaustion-2026-09-02.md) owns the failed-boot and recovery evidence.
 
 ## Approach
 
@@ -126,13 +128,30 @@ Execution uses the full `self-correction-loop`. Work on one slice at a time. Run
   Evidence: Format-2 preparation and activation both passed. The accepted candidate image and boot identity remain installed. The bound root-owned entrypoint now owns future rollback.
   Assumption: The current format-1 state still matches the accepted `6dbcc24ad` release and has not drifted.
   Verify: Let the exact legacy script validate the protected state before it changes any file. Do not attempt conversion with the format-2 parser.
-- [ ] FINAL: verify the migrated live state and reconcile DEV-147.
-  Goal: prove that the hardened rollback path owns the live experiment and close the issue at the correct experimental boundary.
+- [ ] Slice 7: keep DisplayPort usable across repeated AFK service generations.
+  Goal: let one supported external monitor reconnect for more than eight link generations without exhausting endpoint `0x28` or requiring a reboot.
+  Probe first:
+  - Add an offline lifecycle harness that drives at least ten two-service announce and teardown generations against the service allocator.
+  - Confirm that the unmodified allocator rejects generation nine after 16 slots even when endpoint-specific teardown disabled every prior service.
+  Implementation:
+  - Reuse only disabled service entries. Preserve enabled torn-down entries until their late command replies complete and their endpoint owner disables them.
+  - Reset all per-service command, cookie, and debugfs state before a disabled slot is reused.
+  - Keep the accepted image and active boot unchanged. Build a separate non-default control and candidate pair from the exact accepted source and inputs.
+  Validation:
+  - The lifecycle probe fails on the accepted source and passes after the smallest allocation change.
+  - The Apple DRM driver builds from the sealed source, and control/candidate inspection proves that only the reviewed AFK change differs.
+  - After an attended candidate reboot, one supported monitor completes at least ten controlled reconnect generations. Every generation must regain native video, retain a healthy internal display, and leave Linux responsive with zero service-capacity errors.
+  Exit criteria:
+  - The offline probe, build, artifact comparison, independent review, and attended generation test pass. Recovery assets remain unchanged and ready.
+  Assumption: endpoint-specific teardown sets `enabled=false` only after the service no longer needs late command replies, so disabled entries are safe reuse candidates.
+  Verify: exercise immediate teardown, teardown with an outstanding reply, reply completion, delayed disable, and slot reuse ordering in the lifecycle harness before building a candidate.
+- [ ] FINAL: verify the migrated live state and reliable reconnect boundary, then reconcile DEV-147.
+  Goal: prove that the hardened rollback path owns the live experiment and that one supported monitor no longer exhausts AFK service slots.
   Validation:
   - Review the three user-run PASS results, run a bounded read-only system check, and confirm the accepted candidate bytes and limitations remain unchanged.
   Exit criteria:
-  - Format-2 state is active, the machine remains healthy, the plan and DEV-147 contain the migration result, and no open DEV-147 action remains.
-  Evidence in progress: [Live format-2 independent verification](../evidence/dev-147-live-format2-independent-verification-2026-09-02.md) reports one VERIFIED claim, zero DISPUTED claims, six UNVERIFIABLE HERE claims accepted with explicit user provenance, and no item to reopen. Final plan and Linear reconciliation remain.
+  - Format-2 state is active, the machine remains healthy, Slice 7 passes, the plan and DEV-147 contain the migration and reliability results, and no open DEV-147 action remains.
+  Evidence in progress: [Live format-2 independent verification](../evidence/dev-147-live-format2-independent-verification-2026-09-02.md) reports one VERIFIED claim, zero DISPUTED claims, and six UNVERIFIABLE HERE claims accepted with explicit user provenance. The later AFK exhaustion result reopens reliability work as Slice 7.
 
 ## Validation
 
@@ -173,6 +192,8 @@ Monitor USB data, monitor-only overnight charging, greeter focus, and automatic-
 - 2026-09-02: Slice 6 format-2 preparation PASS. David ran the accepted hardened integration with the sealed bundle. The transaction verified and published strict format-2 state plus its root-owned checksummed rollback runner. Public checks confirm the accepted boot SHA, candidate image metadata, package-guard hash, new EFI recovery guide, clear external Type-C paths, Full/100% battery, external power, and no failed unit or package operation. Keep USB-C disconnected and do not reboot before activation through the preserved runner. Evidence: [live format-2 preparation](../evidence/dev-147-live-format2-preparation-2026-09-02.md).
 - 2026-09-02: Slice 6 complete. Activation through the preserved root-owned entrypoint reported PASS. Its pre-mutation checks validated the strict state, runner checksum and mode, backups, recovery guide, image, guard, boot identity, host, power, and external-port safety. The public post-check retains accepted boot and image metadata, a healthy internal output, Full/100% battery, no failed unit or package operation, and no fatal display pattern. No migration reboot is needed because the display payload bytes did not change. Evidence: [live format-2 activation](../evidence/dev-147-live-format2-activation-2026-09-02.md).
 - 2026-09-02: Final format-2 independent verification PASS. A fresh-context verifier classified one external-port safety claim as VERIFIED, zero claims as DISPUTED, and six historical privileged or root-private claims as UNVERIFIABLE HERE. David's exact three PASS outputs remain their explicit provenance. Focused integration, 454-command metadata, parser-selective syntax, changed-script syntax, and diff gates passed. The aggregate suite retained only the three known unrelated package failures across all 236 shell files. No item re-enters the plan. Evidence: [live format-2 independent verification](../evidence/dev-147-live-format2-independent-verification-2026-09-02.md).
+- 2026-09-02 13:49Z: A later same-boot two-monitor attempt exposed AFK service-slot exhaustion and reopened DEV-147 reliability work. Boot `fa500274-a4fd-49e3-a84a-82ec4948b8e3` reached all 16 endpoint `0x28` slots on channels 1 through 31, then logged 14 capacity errors and 32 failed announcements while both tested monitors stayed blank. David safely recovered by disconnecting both displays and booting the same accepted candidate. Fresh boot `d930e28c-4a73-4de0-be0b-7bbfae3ceafe` has two services on channels 1 and 3, zero capacity or announcement errors, and a completed LG27 3840x2160 mode set. David confirms both displays and Linux are healthy. The format-2 migration remains accepted; only final reliability closure is reopened. Evidence: [AFK service-slot exhaustion](../evidence/dev-147-afk-service-exhaustion-2026-09-02.md).
+- 2026-09-02 13:55Z: Documentation boundary validation passed every DEV-147 test, command metadata for 455 commands, all selected Bash and Python syntax checks, local links, and diff hygiene. The aggregate suite reached all 235 shell files and remained red for three known package-checkout tests plus an unrelated Quickshell runtime assertion that counted three widget handlers for two screens. The same runtime assertion repeated once, so no further retry or out-of-scope fix was attempted.
 
 ## Discoveries (LIVING)
 
@@ -200,6 +221,8 @@ Monitor USB data, monitor-only overnight charging, greeter focus, and automatic-
   **Evidence:** Independent review showed that an Omarchy update or removed worktree could make the format-1 rollback script unavailable. The format-2 fix preserves and binds the exact rollback implementation under root-owned state, and the regression test passes after the source copy changes and disappears.
 - **Finding:** The accepted live installation still uses legacy format-1 state.
   **Evidence:** It was prepared and activated before the format-2 rollback fix. The new strict parser correctly refuses the old 14-field state. The live installation must use the exact `6dbcc24ad` implementation for rollback before any fresh format-2 preparation.
+- **Finding:** Repeated external link generations exhaust the fixed endpoint `0x28` AFK service table.
+  **Evidence:** The failed boot allocated 16 services on channels 1 through 31. Later generations produced `too many enabled services!` and rejected channel announcements through 59. A fresh reboot reset the table to channels 1 and 3 and restored native LG27 video.
 
 ## Decision Log (LIVING)
 
@@ -250,6 +273,12 @@ Monitor USB data, monitor-only overnight charging, greeter focus, and automatic-
   **Date:** 2026-09-02
 - **Decision:** Accept the six independently unrepeatable Slice 6 claims with explicit user provenance.
   **Rationale:** They are past sudo transactions or live root-private state. The user supplied each exact PASS result. The accepted scripts verify the protected inputs before mutation, the public results match, and the fresh-context verifier found no contradiction or item to reopen.
+  **Date:** 2026-09-02
+- **Decision:** Reopen DEV-147 for AFK service-slot reliability and keep the format-2 migration accepted.
+  **Rationale:** The failure is a live service-lifecycle defect in the unchanged Apple DCP driver. The migration did not change the running kernel or tested payload. A reboot cleared the failure, which isolates the regression from the installation-state change.
+  **Date:** 2026-09-02
+- **Decision:** Test slot reuse offline before another display reboot.
+  **Rationale:** A torn-down service can remain enabled while a late command reply is pending. Reusing only disabled entries is the smallest plausible fix, but the lifecycle ordering must be falsified in a harness before it reaches this machine.
   **Date:** 2026-09-02
 
 ## Follow-ups
