@@ -49,3 +49,22 @@ The accepted display image, normal image, `boot.bin`, GRUB configuration, packag
 ## Open gate
 
 David must paste the reviewed literal into a terminal. A successful run must print `AFK REUSE IMAGE STAGING PASS` and retain a `COMPLETE` transaction. Stop after any other result. Reboot and the ten-generation display test remain separate attended actions.
+
+## 2026-09-03 default-image pin correction
+
+The first live use of the 2026-09-02 literal safely reported `REFUSED: protected pin mismatch: /boot/initramfs-linux-asahi.img` before candidate publication. The candidate destination remained absent. Do not rerun that superseded literal.
+
+The publisher carried the pre-AVD default-image SHA-256 `625641095075a9a2396bc701ffd48ac58f2c8a1758e250fa3f6b55b29dcae296`. David's privileged read reports that the current root-private `/boot/initramfs-linux-asahi.img` instead has SHA-256 `c4cffb397cfbd0158d3b1423c0512e1622053d53e0c75a17f5312986276324e0`. Its 18,865,707-byte size and 2026-08-31 modification time match the documented DEV-162 Apple AVD firmware rebuild.
+
+The corrected publisher pins the post-AVD hash. A production-config regression test requires that hash and rejects the old value. No other production pin changed. The kernel patch, candidate module, candidate image, source image, and live state did not change.
+
+Corrected identities:
+
+- Publisher SHA-256: `64bbd13d2d8199257c2664c1baa10d42dd9333bb9e0f0bfc5d86de2ff1bd6d82`
+- Publisher size: 28,236 bytes
+- Bootstrap SHA-256: `ffb9ad2f6dfd22d104d7fb03d453d3ef2f060562776592c50ffebe3a89997bc5`
+- Test SHA-256: `b161a185f6b1e652837dc5c8109ad354bf38f8172665cfe6af1ce9a92b9650d2`
+- Candidate SHA-256: `ebd383c21a35d6b0eff22ffe6f144ea7790c31d7cf058a1c3afa5e39c2375acd`
+- Candidate size: 21,598,988 bytes
+
+`python3.14 -I -S -B dev/apple-dp-altmode/afk-service-reuse/test-stage-image.py` passed 21 of 21 tests. Python AST, bootstrap Bash syntax, embedded-payload equality, source and bootstrap hash binding, `git diff --check`, and the candidate/source scope check passed. Independent QA and final security review pass. The old root-owned `INCOMPLETE` transaction cannot collide with a new random transaction or overwrite the fixed destination. Final repository checks pass for 455 command metadata records and 458 command entrypoints. `./test/all` completed all 235 shell files and retained only the three known unrelated failures caused by the absent `omarchy-pkgs` checkout.

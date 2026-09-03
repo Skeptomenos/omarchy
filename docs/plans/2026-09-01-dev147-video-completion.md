@@ -6,7 +6,7 @@
 **Integration branch:** `codex/dev-147-m2-displayport-opt-in`
 **Linear:** `DEV-147`
 **Started:** 2026-09-01
-**Reconciled:** 2026-09-02
+**Reconciled:** 2026-09-03
 
 ---
 
@@ -208,6 +208,9 @@ Monitor USB data, monitor-only overnight charging, greeter focus, and automatic-
 - 2026-09-02 17:32Z: The replacement staging handoff is ready for manual execution. The literal bootstrap embeds the publisher as data, creates a fresh root-owned mode-0700 transaction on `/boot`, verifies the root-owned publisher before isolated Python execution, and keeps `INCOMPLETE` until exact no-replace publication and all final checks are durable. The focused gate passes 20 tests. It includes the real 21,598,988-byte candidate, mutable source and protected-path races, publication and completion fault boundaries, exact bwrap bootstrap controls, and collision preservation. Independent QA and security review PASS. The candidate remains unstaged. The accepted image, default image, `boot.bin`, GRUB, packages, modules, and live destination remain unchanged. Evidence: [AFK reuse staging readiness](../evidence/dev-147-afk-reuse-staging-readiness-2026-09-02.md).
 - 2026-09-02 17:36Z: Fresh-context milestone verification PASS with zero disputed claims and no item to reopen. The verifier reran the exact lifecycle and 20-test staging gates, independently spot-checked the protected ancestor attack and real candidate copy, verified all three staging hashes and the embedded payload, and found the live candidate and matching transactions absent. Historical negative-action and root-private claims remain accepted with David's approval and prior command or physical provenance. The final attended reboot and ten-generation hardware result remain open.
 - 2026-09-02 17:38Z: Final branch boundary validation completed all 235 shell test files. DEV-147 passed. Three unrelated package-ownership tests failed because this isolated worktree has no `omarchy-pkgs` checkout. The earlier transient Quickshell failure did not recur. Command metadata passed 455 commands. Entrypoint syntax passed 5 Python and 453 Bash files. The focused staging gate, documentation gate, and diff hygiene pass.
+- 2026-09-03: The first live staging attempt safely refused before publication with `protected pin mismatch: /boot/initramfs-linux-asahi.img`. The candidate destination remains absent. Read-only state shows that the live default image has the exact 18,865,707-byte metadata recorded after DEV-162 intentionally rebuilt it on 2026-08-31, while the publisher still expected the pre-AVD Gate 0 hash. One current privileged SHA-256 read is required before correcting and revalidating the handoff. Do not rerun the old bootstrap or reboot.
+- 2026-09-03: David's privileged read confirms that `/boot/initramfs-linux-asahi.img` has SHA-256 `c4cffb397cfbd0158d3b1423c0512e1622053d53e0c75a17f5312986276324e0`. Its 18,865,707-byte metadata and 2026-08-31 modification time match the documented DEV-162 Apple AVD firmware rebuild. The corrected publisher pins these post-AVD bytes and explicitly rejects the old pre-AVD hash in a new regression test. The focused staging gate passes 21 tests. Corrected SHA-256 identities are publisher `64bbd13d2d8199257c2664c1baa10d42dd9333bb9e0f0bfc5d86de2ff1bd6d82`, bootstrap `ffb9ad2f6dfd22d104d7fb03d453d3ef2f060562776592c50ffebe3a89997bc5`, and test `b161a185f6b1e652837dc5c8109ad354bf38f8172665cfe6af1ce9a92b9650d2`. The kernel patch, module, candidate image, other pins, and live state remain unchanged. Independent QA and final security review pass. The old root-owned `INCOMPLETE` transaction cannot collide with the new transaction or overwrite the fixed destination. Final repository boundary validation precedes release of the corrected literal. Evidence: [AFK reuse staging readiness correction](../evidence/dev-147-afk-reuse-staging-readiness-2026-09-02.md#2026-09-03-default-image-pin-correction).
+- 2026-09-03: Final corrected-handoff boundary PASS. The focused staging gate passes 21 of 21 tests. Python AST, bootstrap syntax, embedded-payload identity, diff hygiene, 455 command metadata records, and all 458 command entrypoints pass. The aggregate suite completed all 235 shell files and retained only the three known unrelated `omarchy-pkgs` checkout failures. The corrected literal can proceed to the separate user-run staging gate. No live state changed during validation.
 
 ## Discoveries (LIVING)
 
@@ -243,6 +246,8 @@ Monitor USB data, monitor-only overnight charging, greeter focus, and automatic-
   **Evidence:** The retained private header root contains the matching `.config`, `Module.symvers`, `vmlinux`, generated headers, and prior contained build toolchain for `7.1.6-1-1-ARCH`.
 - **Finding:** Hashing user-owned code before a later root import does not authenticate the executed bytes.
   **Evidence:** The rejected wrapper allowed pathname replacement between `sha256sum` and `source`. The accepted handoff writes embedded data into a root-owned private directory, verifies that destination, and only then executes it.
+- **Finding:** The first root publisher carried a stale protected pin for the default initramfs.
+  **Evidence:** The publisher expected the pre-AVD SHA-256 `625641095075a9a2396bc701ffd48ac58f2c8a1758e250fa3f6b55b29dcae296`. David's privileged read found the post-DEV-162 SHA-256 `c4cffb397cfbd0158d3b1423c0512e1622053d53e0c75a17f5312986276324e0` with the documented 18,865,707-byte size and 2026-08-31 modification time. The root publisher refused before creating the candidate image.
 
 ## Decision Log (LIVING)
 
@@ -306,6 +311,9 @@ Monitor USB data, monitor-only overnight charging, greeter focus, and automatic-
 - **Decision:** Accept the staging verifier's historical and root-private claims with explicit user provenance.
   **Rationale:** The fresh verifier found no contradiction and current state matches the recorded boundary. Repeating past negative actions is impossible. Privileged staging and the physical reboot remain separate future evidence gates.
   **Date:** 2026-09-02
+- **Decision:** Bind the staging publisher to the post-DEV-162 default initramfs.
+  **Rationale:** DEV-162 intentionally rebuilt the default image with Apple AVD firmware. David's privileged SHA-256 read matches that documented file's size and modification time. Keeping the pre-AVD pin would reject the valid protected state without improving rollback safety.
+  **Date:** 2026-09-03
 
 ## Follow-ups
 

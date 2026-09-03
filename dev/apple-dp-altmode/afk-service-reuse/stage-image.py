@@ -82,7 +82,7 @@ PROTECTED_PINS = (
   ),
   (
     Path("/boot/initramfs-linux-asahi.img"),
-    "625641095075a9a2396bc701ffd48ac58f2c8a1758e250fa3f6b55b29dcae296",
+    "c4cffb397cfbd0158d3b1423c0512e1622053d53e0c75a17f5312986276324e0",
   ),
   (
     Path("/boot/grub/grub.cfg"),
