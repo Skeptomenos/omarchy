@@ -86,7 +86,7 @@ PROTECTED_PINS = (
   ),
   (
     Path("/boot/grub/grub.cfg"),
-    "68c36bbbb3c530dba8647f9435252da53adf53942b37b76e399ccd234cc0f24d",
+    "57d839b9bc7d3488402a8cf7c9e45328dc0097731fc395b0514c467d06b7a327",
   ),
 )
 

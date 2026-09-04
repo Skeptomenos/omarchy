@@ -25,8 +25,11 @@ EXPECTED_SOURCE = Path(
 )
 EXPECTED_SOURCE_SHA256 = "ebd383c21a35d6b0eff22ffe6f144ea7790c31d7cf058a1c3afa5e39c2375acd"
 EXPECTED_SOURCE_SIZE = 21_598_988
+EXPECTED_ACCEPTED_IMAGE_SHA256 = "a93dd0c1b3a6c4d81bf76f2f43c7c7a2b8b7e1e0306bc487de018667f9c8c196"
 EXPECTED_DEFAULT_IMAGE_SHA256 = "c4cffb397cfbd0158d3b1423c0512e1622053d53e0c75a17f5312986276324e0"
+EXPECTED_GRUB_SHA256 = "57d839b9bc7d3488402a8cf7c9e45328dc0097731fc395b0514c467d06b7a327"
 REJECTED_PRE_AVD_DEFAULT_IMAGE_SHA256 = "625641095075a9a2396bc701ffd48ac58f2c8a1758e250fa3f6b55b29dcae296"
+REJECTED_PRE_CLEANUP_GRUB_SHA256 = "68c36bbbb3c530dba8647f9435252da53adf53942b37b76e399ccd234cc0f24d"
 EXPECTED_BOOTSTRAP_PREFIX = (
   "/usr/bin/sudo /usr/bin/env -i PATH=/usr/bin:/bin LANG=C.UTF-8 "
   "/usr/bin/bash -s <<'DEV147_ROOT_BOOTSTRAP'"
@@ -277,13 +280,20 @@ class StageImageTest(unittest.TestCase):
     tampered = payload[:-1] + bytes((payload[-1] ^ 1,))
     self.assertNotEqual(digest(tampered), expected_hash)
 
-  def test_01a_production_config_pins_post_avd_default_image(self) -> None:
+  def test_01a_production_config_pins_complete_root_baseline(self) -> None:
     module = load_publisher()
     config = module.production_config(Path("/boot/.dev147-afk-reuse-stage.test"))
     protected_pins = dict(config.protected_pins)
+    accepted_image_hash = protected_pins[
+      Path("/boot/initramfs-linux-asahi-m2-displayport.img")
+    ]
     default_image_hash = protected_pins[Path("/boot/initramfs-linux-asahi.img")]
+    grub_hash = protected_pins[Path("/boot/grub/grub.cfg")]
+    self.assertEqual(accepted_image_hash, EXPECTED_ACCEPTED_IMAGE_SHA256)
     self.assertEqual(default_image_hash, EXPECTED_DEFAULT_IMAGE_SHA256)
+    self.assertEqual(grub_hash, EXPECTED_GRUB_SHA256)
     self.assertNotEqual(default_image_hash, REJECTED_PRE_AVD_DEFAULT_IMAGE_SHA256)
+    self.assertNotEqual(grub_hash, REJECTED_PRE_CLEANUP_GRUB_SHA256)
 
   def test_02_successful_exact_publication(self) -> None:
     module = load_publisher()

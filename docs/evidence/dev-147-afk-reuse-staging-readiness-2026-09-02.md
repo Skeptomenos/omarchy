@@ -68,3 +68,26 @@ Corrected identities:
 - Candidate size: 21,598,988 bytes
 
 `python3.14 -I -S -B dev/apple-dp-altmode/afk-service-reuse/test-stage-image.py` passed 21 of 21 tests. Python AST, bootstrap Bash syntax, embedded-payload equality, source and bootstrap hash binding, `git diff --check`, and the candidate/source scope check passed. Independent QA and final security review pass. The old root-owned `INCOMPLETE` transaction cannot collide with a new random transaction or overwrite the fixed destination. Final repository checks pass for 455 command metadata records and 458 command entrypoints. `./test/all` completed all 235 shell files and retained only the three known unrelated failures caused by the absent `omarchy-pkgs` checkout.
+
+## 2026-09-04 complete root-only baseline correction
+
+The replacement live run passed the corrected post-AVD default-image pin and safely reported `REFUSED: protected pin mismatch: /boot/grub/grub.cfg` before candidate publication. The publisher still carried GRUB SHA-256 `68c36bbbb3c530dba8647f9435252da53adf53942b37b76e399ccd234cc0f24d` from Gate 0. The current 4,129-byte GRUB file was intentionally regenerated during the documented 2026-09-01 persistent boot-cleanup adoption. The candidate destination remained absent. Two root-owned `INCOMPLETE` transactions retain the failed runs.
+
+The self-correction stop rule blocked another one-pin retry. David then supplied one privileged SHA-256 read of every root-only protected file:
+
+- Accepted display image: `a93dd0c1b3a6c4d81bf76f2f43c7c7a2b8b7e1e0306bc487de018667f9c8c196`
+- Post-DEV-162 default image: `c4cffb397cfbd0158d3b1423c0512e1622053d53e0c75a17f5312986276324e0`
+- Post-cleanup GRUB configuration: `57d839b9bc7d3488402a8cf7c9e45328dc0097731fc395b0514c467d06b7a327`
+
+The accepted and default image hashes match the existing publisher. Only the GRUB pin changed. The regression now requires all three exact current hashes. It also rejects the pre-AVD default hash `625641095075a9a2396bc701ffd48ac58f2c8a1758e250fa3f6b55b29dcae296` and pre-cleanup GRUB hash `68c36bbbb3c530dba8647f9435252da53adf53942b37b76e399ccd234cc0f24d`.
+
+Current corrected identities:
+
+- Publisher SHA-256: `2bb70432f43f9ac678cd4498ed034c528305b5ef943e17a960cb39174037a48d`
+- Publisher size: 28,236 bytes
+- Bootstrap SHA-256: `1f762b213dc0b7218835e4f6c36e8db8276308bb8b7b9c3f088d274226feae73`
+- Test SHA-256: `4b216c21bc02888a4a70a7b541844331a4477f27f26dfc5cbbd9980c2a1ac633`
+- Candidate SHA-256: `ebd383c21a35d6b0eff22ffe6f144ea7790c31d7cf058a1c3afa5e39c2375acd`
+- Candidate size: 21,598,988 bytes
+
+`python3.14 -I -S -B dev/apple-dp-altmode/afk-service-reuse/test-stage-image.py` passed 21 of 21 tests. The strengthened baseline test failed on the superseded GRUB hash before the publisher change and passed after it. Independent QA reran the 21-test gate, Python AST, bootstrap syntax, exact embedded publisher hash and 28,236-byte size, `git diff --check`, 455 command metadata records, and all entrypoints: 5 Python and 453 Bash. `./test/all` completed 235 files and retained only the same three unrelated failures caused by the absent `omarchy-pkgs` checkout. Adversarial security review reported PASS with no bugs or suggestions. This correction did not stage an image or change `/boot`, boot selection, packages, loaded modules, cables, or the running system. The corrected literal is ready for one separate user-run staging attempt. Staging, reboot, and hardware validation remain pending.
