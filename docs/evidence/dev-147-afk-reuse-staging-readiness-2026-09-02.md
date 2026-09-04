@@ -91,3 +91,21 @@ Current corrected identities:
 - Candidate size: 21,598,988 bytes
 
 `python3.14 -I -S -B dev/apple-dp-altmode/afk-service-reuse/test-stage-image.py` passed 21 of 21 tests. The strengthened baseline test failed on the superseded GRUB hash before the publisher change and passed after it. Independent QA reran the 21-test gate, Python AST, bootstrap syntax, exact embedded publisher hash and 28,236-byte size, `git diff --check`, 455 command metadata records, and all entrypoints: 5 Python and 453 Bash. `./test/all` completed 235 files and retained only the same three unrelated failures caused by the absent `omarchy-pkgs` checkout. Adversarial security review reported PASS with no bugs or suggestions. This correction did not stage an image or change `/boot`, boot selection, packages, loaded modules, cables, or the running system. The corrected literal is ready for one separate user-run staging attempt. Staging, reboot, and hardware validation remain pending.
+
+## 2026-09-04 successful live staging
+
+David pasted the corrected reviewed literal once. The authenticated root publisher returned:
+
+```text
+AFK REUSE IMAGE STAGING PASS
+Candidate: /boot/initramfs-linux-asahi-m2-displayport-afk-reuse.img
+Checks retained in /boot/.dev147-afk-reuse-stage.aZBYtcbYE0
+Default boot, boot selection, boot.bin, GRUB, packages, and modules are unchanged.
+No reboot permission.
+```
+
+An independent unprivileged post-check found the same boot ID `d930e28c-4a73-4de0-be0b-7bbfae3ceafe` and kernel `7.1.6-1-1-ARCH`. The root filesystem remains ext4 with UUID `e24cf117-3c89-4392-a3b8-def187becda8`. The candidate is root-owned, group root, mode 0600, singly linked, and exactly 21,598,988 bytes. The transaction is root-owned, group root, and mode 0700. `boot.bin` remains SHA-256 `203ab7027536c8d16f373d02c1f6346a5c34cfe095a9dafd0cfe37d2b354090c`.
+
+The pinned package state remains `linux-asahi 7.1.6.asahi1-1`, `m1n1 1.6.1-1`, `mesa 26.1.8-1`, `mkinitcpio 41.1-1`, `openssl 3.6.4-1`, `coreutils 9.11-2`, `kmod 34.2-1`, and `avd-fw 0.1-1`. MagSafe is the only Type-C partner. Both external ports are clear. macsmc AC is online, and the battery is Full at 100 percent. No pacman lock, failed systemd unit, or systemd job exists.
+
+The exact candidate hash, `COMPLETE` transaction state, and protected-file post-check have authenticated publisher and David-output provenance. The independent post-check did not re-read those root-only contents. Staging is complete. The candidate remains non-default and unbooted. The next gate is the attended candidate reboot defined in the living plan. The ten-generation hardware validation remains pending.
