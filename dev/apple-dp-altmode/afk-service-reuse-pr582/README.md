@@ -38,3 +38,17 @@ negative mutations. It also runs the existing AFK lifecycle suite.
 
 This candidate is not a default image or an upstream-ready patch series. It
 does not authorize staging, loading, rebooting, cable changes, or boot changes.
+
+## Authenticated image publication
+
+`stage-image.py` publishes only the exact 21,599,177-byte combined image with SHA-256 `3207dd0ff346765f4514b34a137c1c7456c459082463355e51047216dedc2867` to the new non-default path `/boot/initramfs-linux-asahi-m2-displayport-afk-pr582.img`. It refuses an existing destination and preserves the default image, boot selection, `boot.bin`, GRUB, packages, modules, accepted candidates, format-2 rollback state, and recovery assets.
+
+`stage-image-bootstrap.txt` is the literal root handoff. It embeds the publisher, writes it into a fresh root-owned mode-0700 transaction, authenticates its protected mode, size, and hash, then executes only that root-owned copy in an empty environment. The publisher requires root ownership for every ancestor of every protected, system, destination, transaction, and recovery path. Only the exact UID-1001 source path can have user-owned ancestry. It opens that source by file descriptor, verifies it before and after the copy, publishes without replacement, verifies the destination, rechecks every protected identity before commit, syncs the records, and changes `INCOMPLETE` to `COMPLETE` only at the final commit point.
+
+Run the focused gate without privilege:
+
+```bash
+python3.14 -I -S -B dev/apple-dp-altmode/afk-service-reuse-pr582/test-stage-image.py
+```
+
+The exact publisher, 26-test gate, and literal handoff passed independent functional QA and final adversarial security review. The destination was absent at review time. A separate manual staging handoff is the next action. Do not run the literal handoff with sudo until that handoff. Sudo, staging, reboot, and cable actions remain held. Any result other than the exact staging PASS requires inspection of the retained transaction. This includes a signal delivered after the durable commit point, where `COMPLETE` can exist even if the terminal reports a non-PASS result. Do not retry, select, or boot the candidate until that transaction is reviewed.
