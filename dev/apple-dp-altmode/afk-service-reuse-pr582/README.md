@@ -45,10 +45,14 @@ does not authorize staging, loading, rebooting, cable changes, or boot changes.
 
 `stage-image-bootstrap.txt` is the literal root handoff. It embeds the publisher, writes it into a fresh root-owned mode-0700 transaction, authenticates its protected mode, size, and hash, then executes only that root-owned copy in an empty environment. The publisher requires root ownership for every ancestor of every protected, system, destination, transaction, and recovery path. Only the exact UID-1001 source path can have user-owned ancestry. It opens that source by file descriptor, verifies it before and after the copy, publishes without replacement, verifies the destination, rechecks every protected identity before commit, syncs the records, and changes `INCOMPLETE` to `COMPLETE` only at the final commit point.
 
+`stage-image-delivery.txt` is the short manual delivery. Paste its literal content into the terminal. Never execute the file by pathname. It starts the absolute system Python in an empty environment, opens the exact user-owned bootstrap with `O_NOFOLLOW`, reads at most 52,856 bytes once through one descriptor, and checks its metadata, path identity, 52,855-byte size, and SHA-256 `668f123098252bfd849d66630ec8ec08a808cc9a70d6a9a3520c07cbd55177c5`. It passes only the verified immutable bytes to `/usr/bin/bash -s`. Bash then runs the reviewed bootstrap, which requests sudo through the terminal.
+
 Run the focused gate without privilege:
 
 ```bash
 python3.14 -I -S -B dev/apple-dp-altmode/afk-service-reuse-pr582/test-stage-image.py
+
+python3.14 -I -S -B dev/apple-dp-altmode/afk-service-reuse-pr582/test-stage-image-delivery.py
 ```
 
-The exact publisher, 26-test gate, and literal handoff passed independent functional QA and final adversarial security review. The destination was absent at review time. A separate manual staging handoff is the next action. Do not run the literal handoff with sudo until that handoff. Sudo, staging, reboot, and cable actions remain held. Any result other than the exact staging PASS requires inspection of the retained transaction. This includes a signal delivered after the durable commit point, where `COMPLETE` can exist even if the terminal reports a non-PASS result. Do not retry, select, or boot the candidate until that transaction is reviewed.
+The exact publisher, 26-test gate, root bootstrap, short delivery, and four-test delivery gate passed independent functional QA and final security review. The delivery is release-ready. Its exact SHA-256 is `4099d7c6f1bf7fce4afaa3b0623e1991afc49339c628e67e75ed735c21f9347c`, and its size is 2,578 bytes. The destination was absent at review time. Manual execution is the next action. Sudo, staging, reboot, and cable actions remain held until that explicit handoff. Any result other than the exact staging PASS requires inspection of the retained transaction. This includes a signal delivered after the durable commit point, where `COMPLETE` can exist even if the terminal reports a non-PASS result. Do not retry, select, or boot the candidate until that transaction is reviewed.

@@ -1,0 +1,79 @@
+/usr/bin/env -i PATH=/usr/bin:/bin LANG=C.UTF-8 /usr/bin/python3.14 -I -S -B -c '
+import hashlib
+import os
+import stat
+import subprocess
+import sys
+
+bootstrap_path = "/home/david/o/.dev147-stage/tipd-image-code-20260829.TPjkwkTaMa/worktree/dev/apple-dp-altmode/afk-service-reuse-pr582/stage-image-bootstrap.txt"
+expected_size = 52855
+expected_sha256 = "668f123098252bfd849d66630ec8ec08a808cc9a70d6a9a3520c07cbd55177c5"
+
+def refuse(message: str) -> None:
+  print(f"REFUSED: {message}", file=sys.stderr)
+  raise SystemExit(1)
+
+def identity(metadata: os.stat_result) -> tuple[int, int, int, int, int, int, int, int, int]:
+  return (
+    metadata.st_dev,
+    metadata.st_ino,
+    metadata.st_uid,
+    metadata.st_gid,
+    stat.S_IMODE(metadata.st_mode),
+    metadata.st_nlink,
+    metadata.st_size,
+    metadata.st_mtime_ns,
+    metadata.st_ctime_ns,
+  )
+
+if not hasattr(os, "O_NOFOLLOW"):
+  refuse("O_NOFOLLOW is unavailable")
+
+try:
+  descriptor = os.open(bootstrap_path, os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW)
+except OSError as error:
+  refuse(f"cannot open bootstrap safely: {error}")
+
+try:
+  before = os.fstat(descriptor)
+  expected_identity = identity(before)
+  if not stat.S_ISREG(before.st_mode):
+    refuse("bootstrap is not a regular file")
+  if before.st_uid != 1001 or before.st_gid != 1001:
+    refuse("bootstrap owner changed")
+  if stat.S_IMODE(before.st_mode) != 0o644:
+    refuse("bootstrap mode changed")
+  if before.st_nlink != 1:
+    refuse("bootstrap link count changed")
+  if before.st_size != expected_size:
+    refuse("bootstrap size mismatch")
+  payload = bytearray()
+  while len(payload) <= expected_size:
+    chunk = os.read(descriptor, min(65536, expected_size + 1 - len(payload)))
+    if not chunk:
+      break
+    payload.extend(chunk)
+  after = os.fstat(descriptor)
+  try:
+    path_after = os.lstat(bootstrap_path)
+  except OSError as error:
+    refuse(f"cannot recheck bootstrap path: {error}")
+  if identity(after) != expected_identity:
+    refuse("bootstrap changed during read")
+  if identity(path_after) != expected_identity:
+    refuse("bootstrap path rebound during read")
+finally:
+  os.close(descriptor)
+
+immutable_bootstrap = bytes(payload)
+if len(immutable_bootstrap) != expected_size:
+  refuse("bootstrap size mismatch")
+if hashlib.sha256(immutable_bootstrap).hexdigest() != expected_sha256:
+  refuse("bootstrap SHA-256 mismatch")
+
+try:
+  result = subprocess.run(["/usr/bin/bash", "-s"], input=immutable_bootstrap, check=False)
+except OSError as error:
+  refuse(f"cannot start bootstrap: {error}")
+raise SystemExit(result.returncode)
+'

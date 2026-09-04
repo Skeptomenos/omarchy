@@ -2,7 +2,7 @@
 
 Date: 2026-09-04
 
-Status: PASS. The publisher implementation, 26-test gate, independent functional QA, and final adversarial security review pass. The destination remains absent. A separate manual staging handoff is next. Sudo, staging, reboot, and cable actions remain held until that handoff. Nothing was written to `/boot` or `/var`, and no live driver, boot, display, cable, or recovery state changed.
+Status: PASS. The publisher implementation, 26-test gate, root bootstrap, short delivery, and four-test delivery gate passed independent functional QA and final security review. The 2,578-byte delivery with SHA-256 `4099d7c6f1bf7fce4afaa3b0623e1991afc49339c628e67e75ed735c21f9347c` is release-ready. The destination remains absent. Manual execution is the next action. Sudo, staging, reboot, and cable actions remain held until that explicit handoff. Nothing was written to `/boot` or `/var`, and no live driver, boot, display, cable, or recovery state changed.
 
 ## Scope
 
@@ -20,6 +20,13 @@ Publisher artifacts:
 - `dev/apple-dp-altmode/afk-service-reuse-pr582/stage-image.py`: 36,672 bytes, SHA-256 `7b14544aacee7a88ca164de7c0a6b2cd901dd1f791752c18af41e3e3eea8939d`
 - `dev/apple-dp-altmode/afk-service-reuse-pr582/stage-image-bootstrap.txt`: 52,855 bytes, SHA-256 `668f123098252bfd849d66630ec8ec08a808cc9a70d6a9a3520c07cbd55177c5`
 - `dev/apple-dp-altmode/afk-service-reuse-pr582/test-stage-image.py`: 42,206 bytes, SHA-256 `5bdf48b6f6ae670162e37f1977be02e7ace80a5ee26cc0af2240c4fe4d3809f9`
+
+Manual delivery artifacts:
+
+- `dev/apple-dp-altmode/afk-service-reuse-pr582/stage-image-delivery.txt`: 2,578 bytes, SHA-256 `4099d7c6f1bf7fce4afaa3b0623e1991afc49339c628e67e75ed735c21f9347c`
+- `dev/apple-dp-altmode/afk-service-reuse-pr582/test-stage-image-delivery.py`: 6,607 bytes, SHA-256 `779723e1feb42eaecffad9cc8c59f0157fc9c566e0f1ba25317abf953c90f6e0`
+
+The short delivery replaces manual copying of the 52,855-byte bootstrap. Its literal content is pasted into the terminal and is never executed by pathname. It starts `/usr/bin/python3.14` through an empty `/usr/bin/env`, opens the exact bootstrap once with `O_NOFOLLOW`, performs a bounded descriptor read, and requires the accepted metadata, path identity, size, and hash. It gives only the verified immutable bytes object to `/usr/bin/bash -s` without `shell=True` or a shell-parsed argument vector. Standard output, standard error, and terminal access remain available to the reviewed bootstrap and sudo.
 
 ## Protected baseline
 
@@ -74,6 +81,16 @@ Ran 26 tests
 OK
 ```
 
+The delivery RED ran before `stage-image-delivery.txt` existed and failed all four tests with `FileNotFoundError`. The corrected focused delivery gate is:
+
+```text
+/usr/bin/python3.14 -I -S -B dev/apple-dp-altmode/afk-service-reuse-pr582/test-stage-image-delivery.py
+Ran 4 tests
+OK
+```
+
+The clean bwrap fixture reaches the reviewed bootstrap through fake sudo and preserves its exit 73 and downstream refusal marker. Equal-size tampering and a symlink-rebound bootstrap both exit 1 before fake sudo and before any transaction. The static gate proves the exact absolute Python and Bash arguments, empty environment, fixed path, size and hash, bounded `O_NOFOLLOW` descriptor flow, immutable input, no `shell=True`, Python parsing, and Bash syntax.
+
 The gate covers exact production pins and the real candidate. It also covers source replacement and file-descriptor mutation, wrong owner/group/mode/hash/size, hard links, symlinks, unsafe ancestors, non-root-owned protected ancestors at modes `0700` and `0755`, destination collision, protected-file and ancestor replacement, an ancestor swap after the prior final check, the immediate pre-commit recheck, active-state semantic and mid-copy drift, fresh kernel/package/mount drift, partial-copy signals, every publication and commit boundary, retained `INCOMPLETE` semantics, embedded-payload identity, tampering, bootstrap collision, and bootstrap signal handling.
 
 Additional offline checks at this checkpoint:
@@ -93,4 +110,6 @@ The implementation keeps the mutable user-owned source behind a file-descriptor 
 
 The first independent security review rejected the 24-test version because it did not require root ownership for every protected-path ancestor. The corrected version adds that barrier, the two negative ancestor modes, and the immediate pre-commit protected recheck. The final adversarial security review accepted the corrected implementation.
 
-Independent functional QA accepted all 26 focused tests. Final adversarial security review accepted the exact publisher, embedded payload, pins, path handling, signal behavior, and durability boundaries. The reviewed publisher is 36,672 bytes with SHA-256 `7b14544aacee7a88ca164de7c0a6b2cd901dd1f791752c18af41e3e3eea8939d`. The reviewed literal bootstrap is 52,855 bytes with SHA-256 `668f123098252bfd849d66630ec8ec08a808cc9a70d6a9a3520c07cbd55177c5`. The reviewed test is 42,206 bytes with SHA-256 `5bdf48b6f6ae670162e37f1977be02e7ace80a5ee26cc0af2240c4fe4d3809f9`. The destination remains absent. The next action is a separate manual staging handoff. Sudo, staging, reboot, and cable actions remain held until that handoff. Any result other than the exact staging PASS requires inspection of the retained transaction. This includes a signal delivered after the durable commit point, where `COMPLETE` can exist despite a non-PASS terminal result. Do not retry, select, or boot the candidate until that transaction is reviewed.
+Independent functional QA accepted all 26 publisher tests. Final adversarial security review accepted the exact publisher, embedded payload, pins, path handling, signal behavior, and durability boundaries. The reviewed publisher is 36,672 bytes with SHA-256 `7b14544aacee7a88ca164de7c0a6b2cd901dd1f791752c18af41e3e3eea8939d`. The reviewed root bootstrap is 52,855 bytes with SHA-256 `668f123098252bfd849d66630ec8ec08a808cc9a70d6a9a3520c07cbd55177c5`. The reviewed publisher test is 42,206 bytes with SHA-256 `5bdf48b6f6ae670162e37f1977be02e7ace80a5ee26cc0af2240c4fe4d3809f9`.
+
+The short 2,578-byte delivery has SHA-256 `4099d7c6f1bf7fce4afaa3b0623e1991afc49339c628e67e75ed735c21f9347c`. Its 6,607-byte focused test has SHA-256 `779723e1feb42eaecffad9cc8c59f0157fc9c566e0f1ba25317abf953c90f6e0`. Independent QA and final security review accepted these exact bytes. The delivery is release-ready. The destination remains absent. Manual execution is the next action. Sudo, staging, reboot, and cable actions remain held until that explicit handoff. Any result other than the exact staging PASS requires inspection of the retained transaction. This includes a signal delivered after the durable commit point, where `COMPLETE` can exist despite a non-PASS terminal result. Do not retry, select, or boot the candidate until that transaction is reviewed.
