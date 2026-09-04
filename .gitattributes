@@ -1,1 +1,2 @@
 dev/apple-dp-altmode/afk-service-reuse/afk-service-reuse.patch -whitespace
+dev/apple-dp-altmode/afk-service-reuse-pr582/pr582-timeout.patch -whitespace

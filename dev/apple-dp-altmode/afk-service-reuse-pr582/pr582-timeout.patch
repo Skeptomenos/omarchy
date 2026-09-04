@@ -1,0 +1,21 @@
+Subject: [PATCH] drm/apple: do not latch crashed on a poweroff swap timeout
+
+Keep the clear-swap timeout control flow but leave the permanent crash flag
+for the RTKit crash callback. Warn when the clear swap does not complete.
+
+Timeout semantics by Francisco Vargas <haripako@gmail.com>.
+
+---
+--- a/drivers/gpu/drm/apple/iomfb_template.c
++++ b/drivers/gpu/drm/apple/iomfb_template.c
+@@ -930,7 +930,9 @@ void DCP_FW_NAME(iomfb_poweroff)(struct apple_dcp *dcp)
+ 	swap_id = cookie->swap_id;
+ 	kref_put(&cookie->refcount, release_swap_cookie);
+ 	if (ret <= 0) {
+-		dcp->crashed = true;
++		dev_warn(dcp->dev,
++			 "%s: timed out waiting for the poweroff clear swap; continuing\n",
++			 __func__);
+ 		return;
+ 	}
+ 
