@@ -1,0 +1,299 @@
+{
+  "assessment_date": "2026-09-04",
+  "scope": "Source-only proposed stack; not a release, kernel build, module ABI check, or hardware acceptance.",
+  "linux_repository": "https://github.com/AsahiLinux/linux.git",
+  "local_research_commit": "cfcc45d92661a7539c0290babe3220f87ac14e31",
+  "baseline_linux_commit": "e2e1930a9595bffafad92cec2b5504525efb9cd4",
+  "upstream_pins": {
+    "asahi": "77cb8f24c2381a8abb7272d7bbdec548d6426a8a",
+    "fairydust": "b8810ad6442699f610984f3eceea2e3234a50b77",
+    "asahi-wip-7.2": "236788cd2602a24c703fe7bdaddaf73ef77d2027",
+    "asahi-wip": "ca9a850f237f98949996eefb8980371a5d58c886",
+    "bits/200-dcp": "52f0b76aaae7b9a1cc2100f4a9b33257b450d5c0",
+    "bits/270-thunderbolt": "d7a0d0e6d0828d5e51f0968dfd0b8ac310abfc56"
+  },
+  "fairydust_comparison": {
+    "ahead_by": 11,
+    "behind_by": 0,
+    "commits": [
+      {
+        "sha": "9b65351d9cf850ec8273f138f04480dc1e93f15a",
+        "subject": "usb: typec: tipd: Track data_status changes for CD321x"
+      },
+      {
+        "sha": "d02d57a6c830ed5f2934490aa6bb35df0db4d376",
+        "subject": "usb: typec: tipd: HACK: Use drm oob hotplug event"
+      },
+      {
+        "sha": "8b222e1e4b9a61c02131a6d919116640d1bda3dc",
+        "subject": "arm64: dts: apple: t8103: Add dp-altmode dts hacks"
+      },
+      {
+        "sha": "ebbd5c7f8baa1570238f02b29bee2c610a19c893",
+        "subject": "HACK: arm64: dts: apple: t8103: Mark ps_atc1_common as always on"
+      },
+      {
+        "sha": "f216a6e787f89b7545e28494f624e0ce997900ea",
+        "subject": "arm64: dts: apple: t8112: Add dp-altmode dts hacks"
+      },
+      {
+        "sha": "1069f56d6225fbd16cea99d5e9988163465f207b",
+        "subject": "HACK: arm64: dts: apple: t8112: Mark ps_atc1_common as always on"
+      },
+      {
+        "sha": "c2bd52189d068cea7dacc3716b26d596a17a6dcc",
+        "subject": "arm64: dts: apple: t60xx: j[34]1[46]: Add dp-altmode hacks"
+      },
+      {
+        "sha": "681a8a38e75f47c17874e009a2dad6a6355e59d0",
+        "subject": "HACK: arm64: dts: apple: t60xx: j[34]1[46]: Mark ps_atc1_common as always on"
+      },
+      {
+        "sha": "43f070b68d4978b2a726fe5b5876a648b217cef0",
+        "subject": "arm64: dts: apple: t60xx: j[34]75: Add dp-altmode hacks"
+      },
+      {
+        "sha": "d3d85a8e5390b42652a52283fb2a03bff014a038",
+        "subject": "HACK: arm64: dts: apple: t60xx: j[34]75: Mark ps_atc1_common as always on"
+      },
+      {
+        "sha": "b8810ad6442699f610984f3eceea2e3234a50b77",
+        "subject": "arm64: dts: apple: t6020-j474s: Add dp-altmode hacks"
+      }
+    ]
+  },
+  "recommended_source_stack": {
+    "base": "b8810ad6442699f610984f3eceea2e3234a50b77",
+    "apply_in_order": [
+      "dev/apple-dp-altmode/afk-service-reuse/afk-service-reuse.patch",
+      "dev/apple-dp-altmode/afk-service-reuse-pr582/pr582-timeout.patch"
+    ],
+    "timeout_proposal": {
+      "url": "https://github.com/AsahiLinux/linux/pull/582",
+      "commit": "6b70d02bcb5758a625d8bcedbff340cf544a4496",
+      "author": "Francisco Vargas",
+      "state_at_assessment": "open"
+    },
+    "build_and_hardware_validated": false
+  },
+  "patch_inventory": [
+    {
+      "path": "dev/apple-dp-altmode/afk-service-reuse-pr582/pr582-timeout.patch",
+      "sha256": "dcf1f6c9fa083e47aeb15e284b4e7004cb853902c653e472c3dc73a7eb7eccb1",
+      "decision": "keep_once_upstream_proposal"
+    },
+    {
+      "path": "dev/apple-dp-altmode/afk-service-reuse/afk-service-reuse.patch",
+      "sha256": "9b52faf901123ab4f9a0a486c2f7ba5718259dcb0ef68e4aebc9ce3d23a19e2c",
+      "decision": "keep_experimental"
+    },
+    {
+      "path": "dev/apple-dp-altmode/contributions/pr289-partner-absence.patch",
+      "sha256": "424ec77fe795b310861502fe5adf6ae077fbd0e53a318f4b331f0651f7ca49c8",
+      "decision": "defer_userspace_diagnostic"
+    },
+    {
+      "path": "dev/apple-dp-altmode/pr582/pr582-upstream.patch",
+      "sha256": "58413a7a58c2084f87ecded07f959dc7acec871633fbc23d8e3630367c662b6b",
+      "decision": "keep_provenance_no_duplicate_application"
+    },
+    {
+      "path": "dev/apple-dp-altmode/t8112-j413-dp-altmode.patch",
+      "sha256": "47ca9e5a8c059f9d16ed6da873edc5984ad3cc1a474ce4ac6e2fef4a6c9a1928",
+      "decision": "replace_with_fairydust"
+    },
+    {
+      "path": "dev/apple-dp-altmode/tipd-cd321x-hpd.patch",
+      "sha256": "beec457a467680f5d78d3814559041b517673be5ef5a5245533f2442a2c3a663",
+      "decision": "replace_with_fairydust"
+    },
+    {
+      "path": "dev/apple-dp-altmode/usbdiag/kernel/usbdiag1.patch",
+      "sha256": "bbcb693057e7534308cc6eddad4306db6d4f72834c8226fb9612756c8adb8c48",
+      "decision": "exclude_superseded_diagnostic"
+    },
+    {
+      "path": "dev/apple-dp-altmode/usbdiag/kernel/usbdiag2.patch",
+      "sha256": "1bebc07def173e439d6ff2ceab3242f1578c498f1f9c200418408d6726100d88",
+      "decision": "defer_diagnostic_only"
+    }
+  ],
+  "source_composition": {
+    "fairydust": {
+      "patches": [
+        {
+          "patch": "afk-service-reuse.patch",
+          "sha256": "9b52faf901123ab4f9a0a486c2f7ba5718259dcb0ef68e4aebc9ce3d23a19e2c",
+          "check_exit": 0,
+          "stderr": ""
+        },
+        {
+          "patch": "pr582-timeout.patch",
+          "sha256": "dcf1f6c9fa083e47aeb15e284b4e7004cb853902c653e472c3dc73a7eb7eccb1",
+          "check_exit": 0,
+          "stderr": ""
+        }
+      ],
+      "base_files": {
+        "drivers/gpu/drm/apple/afk.c": "f7621b5a3abea4b18fb1c4db7fab59d58711161d903729bdb948b49f33cdbdc2",
+        "drivers/gpu/drm/apple/afk.h": "0fb2178303a27bcf48f836e091dea11dd1608b5aa8ceb37373581a07b846cf68",
+        "drivers/gpu/drm/apple/epic/dpavservep.c": "4befdad91d6ad90035f84c5ed78688c97210a1c8a8f0d8c85ffadab7cc747291",
+        "drivers/gpu/drm/apple/epic/dpavservep.h": "cb3360528d7a08c693aa0e540f47d5d4c98af0b33f90f85f120105aa9f085d26",
+        "drivers/gpu/drm/apple/iomfb.c": "9b0e7d0952f87f9c1b3c6483f00071ecc7480d58e9570382c2323b8dcd0da12e",
+        "drivers/gpu/drm/apple/iomfb_template.c": "616b8a453e78cdb8dc957514e2175b535b9f57e90f7446d30ee9d24a765084d3"
+      },
+      "combined_files": {
+        "drivers/gpu/drm/apple/afk.c": "5ec8d6206ad84a2ea11c2f078dd8e8afb360a5449fd6aae7d2f37ec9c11af248",
+        "drivers/gpu/drm/apple/afk.h": "59e5dfedf1f0075fa5831dc8c7489c384f397c8913f391d72b9dc1bc9c034937",
+        "drivers/gpu/drm/apple/epic/dpavservep.c": "b0cc5e55815d3accf2ce7bf7235259e3a4092a80481b79f48280cfa7f3727ba9",
+        "drivers/gpu/drm/apple/epic/dpavservep.h": "84e83119e270676efe9aeb1abfd83f404e8a80912ce81908aa4c358725146319",
+        "drivers/gpu/drm/apple/iomfb.c": "076c2624cb9f74fa1a97126cc398359447a3b469d9e713200b7c093735650d9f",
+        "drivers/gpu/drm/apple/iomfb_template.c": "724bf5061a067e982491336c97ece851857751f55d24a7572a861b4f6911e5a8"
+      },
+      "lifecycle": [
+        {
+          "mode": "stock",
+          "exit": 1,
+          "stdout": "",
+          "stderr": "CAPACITY: generation=8 member=0 slots=16\n"
+        },
+        {
+          "mode": "unsafe",
+          "exit": 1,
+          "stdout": "",
+          "stderr": "UNSAFE_REUSE: disabled pending slot erased\n"
+        },
+        {
+          "mode": "unsafe-send",
+          "exit": 1,
+          "stdout": "",
+          "stderr": "UNSAFE_SEND: post-teardown command stranded retirement\n"
+        },
+        {
+          "mode": "unsafe-race",
+          "exit": 1,
+          "stdout": "",
+          "stderr": "UNSAFE_RACE: teardown transitioned between reserve and send\n"
+        },
+        {
+          "mode": "candidate",
+          "exit": 0,
+          "stdout": "PASS: AFK opted-in quiescent service-slot reuse lifecycle\n",
+          "stderr": ""
+        }
+      ],
+      "harness_sha256": "394f14849cc9861e435f2896d819ef422d0090d99ab2bc7b68cde1e65fbc733f",
+      "combined_diff": {
+        "local_path": "/home/david/o/.dev147-stage/upstream-assessment-20260904/fairydust-combined.patch",
+        "sha256": "fd7483c9e65ae5ad440508a397e7c75968681da1c44fe3293915dfa1074b100c",
+        "files_changed": 6,
+        "insertions": 215,
+        "deletions": 47
+      }
+    },
+    "asahi-wip-7.2": {
+      "patches": [
+        {
+          "patch": "afk-service-reuse.patch",
+          "sha256": "9b52faf901123ab4f9a0a486c2f7ba5718259dcb0ef68e4aebc9ce3d23a19e2c",
+          "check_exit": 0,
+          "stderr": ""
+        },
+        {
+          "patch": "pr582-timeout.patch",
+          "sha256": "dcf1f6c9fa083e47aeb15e284b4e7004cb853902c653e472c3dc73a7eb7eccb1",
+          "check_exit": 0,
+          "stderr": ""
+        }
+      ],
+      "base_files": {
+        "drivers/gpu/drm/apple/afk.c": "f7621b5a3abea4b18fb1c4db7fab59d58711161d903729bdb948b49f33cdbdc2",
+        "drivers/gpu/drm/apple/afk.h": "0fb2178303a27bcf48f836e091dea11dd1608b5aa8ceb37373581a07b846cf68",
+        "drivers/gpu/drm/apple/epic/dpavservep.c": "4befdad91d6ad90035f84c5ed78688c97210a1c8a8f0d8c85ffadab7cc747291",
+        "drivers/gpu/drm/apple/epic/dpavservep.h": "cb3360528d7a08c693aa0e540f47d5d4c98af0b33f90f85f120105aa9f085d26",
+        "drivers/gpu/drm/apple/iomfb.c": "5a07936bcea460b3d1e26e36f94b80bb9102c9d479a1a2eeb6b75f1acc17314a",
+        "drivers/gpu/drm/apple/iomfb_template.c": "169c82b6b4b9d246585e2188f02fe4bb2c5a08fd7a01af16328f94d87deeb389"
+      },
+      "combined_files": {
+        "drivers/gpu/drm/apple/afk.c": "5ec8d6206ad84a2ea11c2f078dd8e8afb360a5449fd6aae7d2f37ec9c11af248",
+        "drivers/gpu/drm/apple/afk.h": "59e5dfedf1f0075fa5831dc8c7489c384f397c8913f391d72b9dc1bc9c034937",
+        "drivers/gpu/drm/apple/epic/dpavservep.c": "b0cc5e55815d3accf2ce7bf7235259e3a4092a80481b79f48280cfa7f3727ba9",
+        "drivers/gpu/drm/apple/epic/dpavservep.h": "84e83119e270676efe9aeb1abfd83f404e8a80912ce81908aa4c358725146319",
+        "drivers/gpu/drm/apple/iomfb.c": "8499b3ee85e213d6aad0351f60566a2d2047572fe48ca469acd6e140dfb8e540",
+        "drivers/gpu/drm/apple/iomfb_template.c": "5091fe5eb092c8391488f0a3a3dcbd6323a9e786a7dc921d037eaa18c5abddae"
+      },
+      "lifecycle": [
+        {
+          "mode": "stock",
+          "exit": 1,
+          "stdout": "",
+          "stderr": "CAPACITY: generation=8 member=0 slots=16\n"
+        },
+        {
+          "mode": "unsafe",
+          "exit": 1,
+          "stdout": "",
+          "stderr": "UNSAFE_REUSE: disabled pending slot erased\n"
+        },
+        {
+          "mode": "unsafe-send",
+          "exit": 1,
+          "stdout": "",
+          "stderr": "UNSAFE_SEND: post-teardown command stranded retirement\n"
+        },
+        {
+          "mode": "unsafe-race",
+          "exit": 1,
+          "stdout": "",
+          "stderr": "UNSAFE_RACE: teardown transitioned between reserve and send\n"
+        },
+        {
+          "mode": "candidate",
+          "exit": 0,
+          "stdout": "PASS: AFK opted-in quiescent service-slot reuse lifecycle\n",
+          "stderr": ""
+        }
+      ],
+      "harness_sha256": "394f14849cc9861e435f2896d819ef422d0090d99ab2bc7b68cde1e65fbc733f",
+      "combined_diff": {
+        "local_path": "/home/david/o/.dev147-stage/upstream-assessment-20260904/asahi-wip-7.2-combined.patch",
+        "sha256": "14f910faca540ab78326d502c6c987c42c4690c9d9d96ca6635185a5eaf68b57",
+        "files_changed": 6,
+        "insertions": 215,
+        "deletions": 47
+      }
+    },
+    "limits": "Source-only six-file composition and extracted-function C harness. No complete kernel build, DTB build, ABI check, or hardware test. Historical source pins unchanged."
+  },
+  "local_evidence_directory": "/home/david/o/.dev147-stage/upstream-assessment-20260904",
+  "repository_checks": {
+    "all": {
+      "command": "./test/all",
+      "exit": 1,
+      "summary": "4 of 235 shell test files failed; 1 of 2 suites failed.",
+      "failures": {
+        "test/shell.d/config-test.sh": "Missing omarchy-pkgs checkout",
+        "test/shell.d/unowned-system-paths-test.sh": "Missing omarchy-pkgs checkout",
+        "test/shell.d/zram-package-contract-test.sh": "Missing omarchy-pkgs checkout",
+        "test/shell.d/runtime-smoke-test.sh": "Expected one IPC handler registration per screen; saw 3 for 2 screens."
+      }
+    },
+    "commands": {
+      "command": "bin/omarchy commands --check",
+      "exit": 0,
+      "summary": "Command metadata check passed (455 commands)"
+    },
+    "syntax": {
+      "command": "Shebang-aware bash -n / Python ast.parse loop over bin/omarchy-*",
+      "exit": 0
+    },
+    "all_log_sha256": "53c5ecf4f3c685c7b45877dfdad23b09c8fcc54cd700a79b040e349a249a31b5"
+  },
+  "independent_source_verification": {
+    "verdict": "PASS",
+    "method": "Fresh immutable raw downloads; verify base hashes; sequential apply and combined hashes; rebuild existing extracted-function harness and run all five modes; verify eight patch Git blobs and six remote pins.",
+    "results_path": "/home/david/o/.dev147-stage/upstream-assessment-20260904/independent-results.json",
+    "results_sha256": "e11e3de6e75380035415f26016e09b2ce755225b28a4f5eb0d29fa92084916ff",
+    "scope": "Source gate only. Full repository suite still has the four recorded failures. No complete kernel build or hardware test."
+  }
+}
