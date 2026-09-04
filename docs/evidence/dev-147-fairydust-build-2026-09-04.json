@@ -1,0 +1,747 @@
+{
+  "date": "2026-09-04",
+  "scope": "Offline build; no boot or hardware acceptance",
+  "build_root": "/home/david/Work/dev147-fairydust-build",
+  "candidate": "artifacts/candidate-7.1.12-dev147-fairydust1",
+  "module_tree": "artifacts/root/lib/modules/7.1.12-dev147-fairydust1",
+  "candidate_manifest_sha256": "9bfc5623fad46ad8c26d6e09d96db26fbc52e1618acb4c207866b7f28451b32f",
+  "candidate_manifest": "5175f41bb2d25abce49f6a844cdbe9233a4d090de34fa9aadcf6512c87590079  Image\n5d4db157c1152be293651653d198235ebde9981704ff3445392da0ebb7c5d4fc  Module.symvers\n773655b7ac151a040b656497fa6fd6e0f1b7ce8000b2dbe5de863b7db4edaf20  System.map\n3cbb6c45f0a9e2809d19a7cecff4ad3ddd86fb30d33dd68da038bed78a4e1612  build-command.sh\n678853acf4d664a96a4b1a69bba53d3a22ed419d9bf18bb7bcd322956ce849c6  config\n9db6d11eb893f4f141a49f93d3482441c5cdc53186ebf18471f8dde26951fa6d  kernelrelease.txt\na40792e3e4c5350e53f9feeb1611ff70d4e25c3f34c11177675b171fdaf727cd  modules.order\na0802e020d869594d697b335dc1bac172aad75d9c51dec3c1736d70921544d08  modules.sha256\n294404c63e61c796cde15da35ef4ecfd37ea4fcc3d1390efa028c174ea1976bd  patches/0001-fix-drm-apple-reuse-quiescent-dpav-AFK-services.patch\nc9b0f02195a764dd710b55f4c8b64e852520d6236b470e738f3f125e8e2c91ce  patches/0002-fix-drm-apple-avoid-permanent-crash-state-on-clear-s.patch\nb451b04e1d9aa5ec36844154d8248a02992f16cd4188c15e2439e25f10689b09  source-commit.txt\nf7a4c6e8eb1958b557fc7a91c43640ce7e8ce3f82699c54fe33411ea9b995345  source-config-receipt.json\nf6d2340ba4d9e3264d31a4ba89400236b5c68cb4ccfc75763dc0c634a4e03d04  source.bundle\n9831d42f9c271ce35dd3e32b5c8298e1c13849568853aea0779f40bb67377b80  t8112-j413.dtb\neb47270937aca1745483e29c10a9b780dc59d07c96cc8b437173ddfd7c50aa75  tool-receipt.json\n",
+  "receipts": {
+    "logs/source-config-receipt.json": {
+      "sha256": "f7a4c6e8eb1958b557fc7a91c43640ce7e8ce3f82699c54fe33411ea9b995345",
+      "data": {
+        "base": "b8810ad6442699f610984f3eceea2e3234a50b77",
+        "head": "83604c8b18e4673ed91e1172aef9aebeb0af20ce",
+        "branch": "codex/dev147-fairydust",
+        "commits": [
+          "83604c8b18e4673ed91e1172aef9aebeb0af20ce fix(drm/apple): avoid permanent crash state on clear-swap timeout",
+          "e951d214930f4329063df48f2081274e95b55302 fix(drm/apple): reuse quiescent dpav AFK services"
+        ],
+        "source_clean": true,
+        "selected_source_sha256": "5ec8d6206ad84a2ea11c2f078dd8e8afb360a5449fd6aae7d2f37ec9c11af248  drivers/gpu/drm/apple/afk.c\n59e5dfedf1f0075fa5831dc8c7489c384f397c8913f391d72b9dc1bc9c034937  drivers/gpu/drm/apple/afk.h\nb0cc5e55815d3accf2ce7bf7235259e3a4092a80481b79f48280cfa7f3727ba9  drivers/gpu/drm/apple/epic/dpavservep.c\n84e83119e270676efe9aeb1abfd83f404e8a80912ce81908aa4c358725146319  drivers/gpu/drm/apple/epic/dpavservep.h\n076c2624cb9f74fa1a97126cc398359447a3b469d9e713200b7c093735650d9f  drivers/gpu/drm/apple/iomfb.c\n724bf5061a067e982491336c97ece851857751f55d24a7572a861b4f6911e5a8  drivers/gpu/drm/apple/iomfb_template.c\n",
+        "config_input": "/proc/config.gz",
+        "live_config_sha256": "701d1270a36cb57047558ab78e7d825900cc76935e42fd96003c319d1b9050e4",
+        "config_sha256": "678853acf4d664a96a4b1a69bba53d3a22ed419d9bf18bb7bcd322956ce849c6",
+        "kernelrelease": "7.1.12-dev147-fairydust1",
+        "build_command_sha256": "3cbb6c45f0a9e2809d19a7cecff4ad3ddd86fb30d33dd68da038bed78a4e1612",
+        "gcc": "gcc (GCC) 16.1.1 20260430",
+        "rustc": "rustc 1.98.0 (88d9e12ae 2026-08-18) (Arch Linux rust 1:1.98.0-1)\nbinary: rustc\ncommit-hash: 88d9e12ae178fab0fb5cc050a94da85685d449ea\ncommit-date: 2026-08-18\nhost: aarch64-unknown-linux-gnu\nrelease: 1.98.0\nLLVM version: 22.1.8",
+        "clang": "clang version 22.1.8",
+        "ld": "GNU ld (GNU Binutils) 2.46.0",
+        "afk_harness": {
+          "stock": {
+            "expected_exit": 1,
+            "exit": 1,
+            "stdout": "",
+            "stderr": "CAPACITY: generation=8 member=0 slots=16\n"
+          },
+          "unsafe": {
+            "expected_exit": 1,
+            "exit": 1,
+            "stdout": "",
+            "stderr": "UNSAFE_REUSE: disabled pending slot erased\n"
+          },
+          "unsafe-send": {
+            "expected_exit": 1,
+            "exit": 1,
+            "stdout": "",
+            "stderr": "UNSAFE_SEND: post-teardown command stranded retirement\n"
+          },
+          "unsafe-race": {
+            "expected_exit": 1,
+            "exit": 1,
+            "stdout": "",
+            "stderr": "UNSAFE_RACE: teardown transitioned between reserve and send\n"
+          },
+          "candidate": {
+            "expected_exit": 0,
+            "exit": 0,
+            "stdout": "PASS: AFK opted-in quiescent service-slot reuse lifecycle\n",
+            "stderr": ""
+          }
+        },
+        "small_target_command": "timeout --signal=INT --kill-after=15s 280s ./build-command.sh prepare rust/core.o rust/kernel.o apple/t8112-j413.dtb",
+        "small_target_exit": 0,
+        "full_build_command": "timeout --signal=INT --kill-after=15s 280s ./build-command.sh Image modules apple/t8112-j413.dtb",
+        "full_build_status": "pass",
+        "RUST_LOG": "warn",
+        "full_build_exit": 0,
+        "built_modules": 1862
+      }
+    },
+    "logs/build-chunks.json": {
+      "sha256": "31d46799086bbc991510cf97ae3c6167e390ac7e1652a817d3c5710c1dc086d1",
+      "data": [
+        {
+          "chunk": 1,
+          "log": "build-001.log",
+          "exit": 124,
+          "result": "planned 280-second checkpoint; no compiler errors; resumable object progress preserved"
+        },
+        {
+          "chunk": 2,
+          "log": "build-002.log",
+          "exit": 124,
+          "result": "planned 280-second checkpoint; no compiler errors; Asahi GPU and Apple display objects built"
+        },
+        {
+          "chunk": 3,
+          "log": "build-003.log",
+          "exit": 124,
+          "result": "planned 280-second checkpoint; no compiler errors; resumable object progress preserved"
+        },
+        {
+          "chunk": 4,
+          "log": "build-004.log",
+          "exit": 124,
+          "result": "planned 280-second checkpoint; no compiler errors; resumable object progress preserved"
+        },
+        {
+          "chunk": 5,
+          "log": "build-005.log",
+          "exit": 0,
+          "result": "Image, all modules and J413 DTB complete; no compiler errors; 1862 modules"
+        }
+      ]
+    },
+    "logs/staging-receipt.json": {
+      "sha256": "e585a084083d27fb3ef1bdb193f73bb78f5015bfaed871ab5f9253c6793765c0",
+      "data": {
+        "modules_install_exit": 0,
+        "modules_install_command": "./build-command.sh INSTALL_MOD_PATH=/home/david/Work/dev147-fairydust-build/artifacts/root INSTALL_MOD_STRIP= DEPMOD=true modules_install",
+        "depmod_exit": 0,
+        "depmod_command": "depmod -b /home/david/Work/dev147-fairydust-build/artifacts/root -e -F /home/david/Work/dev147-fairydust-build/build/System.map 7.1.12-dev147-fairydust1",
+        "depmod_diagnostics_bytes": 0,
+        "modules": 1862,
+        "modules_byte_identity": "PASS",
+        "builtin_metadata_identity": "PASS",
+        "candidate": "/home/david/Work/dev147-fairydust-build/artifacts/candidate-7.1.12-dev147-fairydust1"
+      }
+    },
+    "tools/receipt.json": {
+      "sha256": "eb47270937aca1745483e29c10a9b780dc59d07c96cc8b437173ddfd7c50aa75",
+      "data": {
+        "keyring_sha256": "6ce771e853f04a38a5b533cb33e61f877b9b06b58b6db051eb8a15d737a2332f",
+        "transport_note": "Default mirror uses HTTP; HTTPS alias certificate rejected. All downloads authenticated by installed-keyring signature and local sync-db SHA256 before extraction.",
+        "packages": [
+          {
+            "name": "bc",
+            "version": "1.08.2-1",
+            "url": "http://mirror.archlinuxarm.org/aarch64/extra/bc-1.08.2-1-aarch64.pkg.tar.xz",
+            "sha256": "46eb4cdf9e195db632780ca4185c686dd7acb37699b4b7ee35c3e8244100d354",
+            "signature_valid": true
+          },
+          {
+            "name": "dtc",
+            "version": "1:1.8.1-1",
+            "url": "http://mirror.archlinuxarm.org/aarch64/extra/dtc-1:1.8.1-1-aarch64.pkg.tar.xz",
+            "sha256": "c60faaee0f149ef74fc9feb9aba5cc564d971e021c5bff523568ae0fb257a319",
+            "signature_valid": true
+          },
+          {
+            "name": "pahole",
+            "version": "1:1.31-2",
+            "url": "http://mirror.archlinuxarm.org/aarch64/extra/pahole-1:1.31-2-aarch64.pkg.tar.xz",
+            "sha256": "d9aa45da6e009f655a528faca1bcd9eab4e1ab521a9e467476aae8d32bbc087b",
+            "signature_valid": true
+          },
+          {
+            "name": "rust-bindgen",
+            "version": "0.72.1-3",
+            "url": "http://mirror.archlinuxarm.org/aarch64/extra/rust-bindgen-0.72.1-3-aarch64.pkg.tar.xz",
+            "sha256": "15290af1a1eeecb5cc8bb09e95e7cf3724c460f34c5f3b6a2b0855efdf0fa37f",
+            "signature_valid": true
+          },
+          {
+            "name": "rust-src",
+            "version": "1:1.98.0-1",
+            "url": "http://mirror.archlinuxarm.org/aarch64/extra/rust-src-1:1.98.0-1-aarch64.pkg.tar.xz",
+            "sha256": "efe8a1bbf4674d0bcd58be47e8933834a69ad47f9c01d0809df29f3dd706b1ce",
+            "signature_valid": true
+          }
+        ]
+      }
+    },
+    "tools/schema-tools-receipt.json": {
+      "sha256": "89e0a041c213717b89fc0f5a15fc128ed5426d0b0102134607e8e33501de61e6",
+      "data": {
+        "packages": [
+          {
+            "name": "swig",
+            "version": "4.5.0-1",
+            "url": "http://mirror.archlinuxarm.org/aarch64/extra/swig-4.5.0-1-aarch64.pkg.tar.xz",
+            "sha256": "98f7467352208ce7ef2c9769221937a6e3a44d3651837e1280fa8cda70ec066e",
+            "signature_valid": true
+          },
+          {
+            "name": "uv",
+            "version": "0.12.9-1",
+            "url": "http://mirror.archlinuxarm.org/aarch64/extra/uv-0.12.9-1-aarch64.pkg.tar.xz",
+            "sha256": "a2d3f4f003fde537c3a99dcfa0d0404b1f31da0c6f2844df094e92df161feb44",
+            "signature_valid": true
+          }
+        ]
+      }
+    },
+    "tools/schema-requirements.txt": {
+      "sha256": "4768afc77a63468cdd65dc1ce3259edd8431fafd9f227f647bccb7bd88d4ae57",
+      "data": "attrs==26.1.0\ndtschema==2026.6\njsonschema==4.26.0\njsonschema-specifications==2025.9.1\npylibfdt==1.7.2.post2\nreferencing==0.37.0\nrfc3987==1.3.8\nrpds-py==2026.6.3\nruamel-yaml==0.19.1\n"
+    },
+    "config/live-to-fairydust.diff": {
+      "sha256": "5383d0664aa800308417369935efc6d4eed75b1b1209f94d063e4e4af06de589",
+      "data": "-EROFS_FS_ONDEMAND y\n LOCALVERSION \"-ARCH\" -> \"-dev147-fairydust1\"\n RUSTC_LLVM_MAJOR_VERSION 21 -> 22\n RUSTC_LLVM_VERSION 210108 -> 220108\n RUSTC_VERSION 109301 -> 109800\n RUSTC_VERSION_TEXT \"rustc 1.93.1 (01f6ddf75 2026-02-11)\" -> \"rustc 1.98.0 (88d9e12ae 2026-08-18) (Arch Linux rust 1:1.98.0-1)\"\n+AUXILIARY_BUS y\n+EROFS_FS_PAGE_CACHE_SHARE n\n+EROFS_FS_ZIP_LZMA_DEFAULT_MAX_STREAMS 16\n+GPIO_SHARED y\n+GPIO_SHARED_PROXY m\n+HAVE_SHARED_GPIOS y\n+RUSTC_HAS_SUSPICIOUS_RUNTIME_SYMBOL_DEFINITIONS y\n"
+    },
+    "build-command.sh": {
+      "sha256": "3cbb6c45f0a9e2809d19a7cecff4ad3ddd86fb30d33dd68da038bed78a4e1612",
+      "data": "#!/bin/bash\nset -euo pipefail\n\nexport PATH=\"/home/david/Work/dev147-fairydust-build/tools/root/usr/bin:$PATH\"\nexport LD_LIBRARY_PATH=/home/david/Work/dev147-fairydust-build/tools/root/usr/lib\nexport RUST_LIB_SRC=/home/david/Work/dev147-fairydust-build/tools/root/usr/lib/rustlib/src/rust/library\nexport RUST_LOG=warn\nexport KBUILD_BUILD_USER=david\nexport KBUILD_BUILD_HOST=omarchy-air\nexport KBUILD_BUILD_TIMESTAMP=\"Mon Aug 31 18:51:31 UTC 2026\"\nexport KBUILD_BUILD_VERSION=1\n\nexec nice -n 10 make -C /home/david/Work/dev147-fairydust-build/linux O=/home/david/Work/dev147-fairydust-build/build ARCH=arm64 LOCALVERSION= -j4 \"$@\"\n"
+    },
+    "checks/dt/receipt.json": {
+      "sha256": "50481c1b6fdd9fe04f37c1d3e20946624d505bb9f00dc121ec7508645a146016",
+      "data": {
+        "board": "apple,j413 apple,t8112 apple,arm-platform",
+        "dcpext_alias": "/soc/dcp@271c00000",
+        "sio_alias": "/soc/sio@236400000",
+        "dcpext_status": "okay",
+        "sio_status": "okay",
+        "audio_status": "okay",
+        "dp_phy": "1",
+        "dp_mux": "2",
+        "connector_dp": "43",
+        "dcpext_phandle": "43",
+        "audio_dma": "5c 66",
+        "sio_phandle": "5c",
+        "atc1_always_on": true,
+        "dtb_sha256": "9831d42f9c271ce35dd3e32b5c8298e1c13849568853aea0779f40bb67377b80",
+        "schema": {
+          "preprocess_exit": 0,
+          "validate_exit": 0,
+          "finding_count": 50,
+          "log_lines": 127,
+          "clean_schema_pass": false,
+          "source_dt_binding_delta_from_upstream": false
+        },
+        "checked_values": 13,
+        "assertion_count": 11
+      }
+    },
+    "checks/bindgen/early-build-qa.json": {
+      "sha256": "cb674cba299ea8cfb0a5ff6615a835e4353e9dcb6d2bab80a4c8bf2dcb5640f6",
+      "data": {
+        "scope": "Read-only early build QA; no make against active output; independent bindgen and layout probes write only /tmp.",
+        "source_receipt_checks": {
+          "drivers/gpu/drm/apple/afk.c": true,
+          "drivers/gpu/drm/apple/afk.h": true,
+          "drivers/gpu/drm/apple/epic/dpavservep.c": true,
+          "drivers/gpu/drm/apple/epic/dpavservep.h": true,
+          "drivers/gpu/drm/apple/iomfb.c": true,
+          "drivers/gpu/drm/apple/iomfb_template.c": true,
+          "live_proc_config": true,
+          "saved_live_config": true,
+          "build_config": true,
+          "build_command": true,
+          "kernelrelease": true,
+          "no_alternates": true
+        },
+        "bindgen": {
+          "main": {
+            "exit": 0,
+            "warnings_by_cursor": {
+              "invalid": {
+                "macro definition": 19318,
+                "inclusion directive": 3248,
+                "macro expansion": 20436,
+                "StaticAssert": 63,
+                "UnexposedDecl": 76
+              },
+              "opaque": {
+                "macro expansion": 20399
+              }
+            },
+            "other": {
+              "Generating opaque type instead of self-referential typedef": 1,
+              "Guessing type of enum! Forward declarations of enums shouldn't be legal!": 10,
+              "invalid enum decl: signed: true, size: 0": 5,
+              "Type acpi_table_header has an unknown attribute that may affect layout": 1,
+              "Type release_pages_arg has an unknown attribute that may affect layout": 1,
+              "Found unknown alignment on code generation!": 1,
+              "Type snd_pcm_sync_id has an unknown attribute that may affect layout": 1
+            },
+            "unexpected_type_contexts": [],
+            "emitted_byte_identical": true,
+            "emitted_sha256": "37b71bff0f57e893f73f94e57a1c9848a718a91df1e7b742a4a1892357809b7b"
+          },
+          "helpers": {
+            "exit": 0,
+            "warnings_by_cursor": {
+              "invalid": {
+                "macro definition": 16974,
+                "inclusion directive": 2851,
+                "macro expansion": 17697,
+                "StaticAssert": 57,
+                "UnexposedDecl": 34
+              },
+              "opaque": {
+                "macro expansion": 17663
+              }
+            },
+            "other": {
+              "Generating opaque type instead of self-referential typedef": 1,
+              "unused option: --allowlist-var": 1
+            },
+            "unexpected_type_contexts": [],
+            "emitted_byte_identical": true,
+            "emitted_sha256": "285430b379e13275e47534070bb095019fa0195b8567d4991455922692a4f8aa"
+          },
+          "uapi": {
+            "exit": 0,
+            "warnings_by_cursor": {
+              "invalid": {
+                "macro definition": 16724,
+                "inclusion directive": 2469,
+                "macro expansion": 16498,
+                "StaticAssert": 62,
+                "UnexposedDecl": 25
+              },
+              "opaque": {
+                "macro expansion": 16464
+              }
+            },
+            "other": {
+              "Generating opaque type instead of self-referential typedef": 1,
+              "Guessing type of enum! Forward declarations of enums shouldn't be legal!": 4,
+              "invalid enum decl: signed: true, size: 0": 2,
+              "Type release_pages_arg has an unknown attribute that may affect layout": 1,
+              "Found unknown alignment on code generation!": 1
+            },
+            "unexpected_type_contexts": [],
+            "emitted_byte_identical": true,
+            "emitted_sha256": "afde43e4e1362e25c6657ebd25b1e96fbc14e15d8739abc2522a18b7c20a7242"
+          }
+        },
+        "layout": {
+          "types": 98,
+          "field_offsets": 15,
+          "compiler_exits": {
+            "clang": 0,
+            "gcc": 0,
+            "rust": 0
+          },
+          "all_outputs_equal": true
+        },
+        "limitations": [
+          "Size/alignment of98 types and15 field offsets is not exhaustive ABI proof or hardware acceptance.",
+          "Known forward-enum guessing remains: ten names in main/four in uapi. Five completed main enums pass C/Rust size/alignment; current Rust consumers use dma_data_direction values0..3 with existing explicit conversion.",
+          "Pinned DT/schema source unchanged; retained dt-validate output has50 findings/127 lines despite exit0.",
+          "EROFS_FS_ONDEMAND removed upstream; other reviewed required desktop/GPU/DP/SIO/audio/page config preserved."
+        ],
+        "artifact_hashes": {
+          "trace-final-results.json": "417776851556cfa92b90557c7749254f651ec5a1ab0889c8e8bc9a9bd0e777ee",
+          "layout-results.json": "c3d13336f7038d6fa1812529be6c6249166877bd2fb7ace349ef714f82c43595",
+          "layout_audit.py": "0936f86afe435d796277ec0a9aae0fb4099e779ddc8a1133e0900290af126875",
+          "source-receipt-checks.json": "b45d80240e932fd49c88c7134e96eff60826abdc5cec6b8baf49defc19006ec4",
+          "afk-harness-results.json": "76292c0bbc56fc54ebc129bfccc9de8a7dab5dfee762fd47bfad422bcb3ea2df",
+          "isolated-enum-warnings.json": "7ee8629fba2896e944f1f461cfd145740132bbfbe39bc3b786046a5da17a204e",
+          "isolated-alignment-warning.json": "981153b0b8b4adaf2ee5abbb36f6636f272d4639bba791442de501ea170a88ed",
+          "isolate_codegen.py": "86b7b1263254d6b1681fa06676162ae91adc21a872c4e0ec4255f542a06cf797",
+          "trace_passes.py": "2f258ed7bc7325c86e9c71ab9a9686c2a3c7c7047c4eacb432bc78ded999ec6c",
+          "trace_main.py": "24e58372ce18c82c921e5080a5ca0d44dd66c4b36e4459c835980b862c431166",
+          "trace_uapi.py": "36d3c3514957e57aa09b2c458b083b5a59c90a0761a9fa0c79897120f8354225",
+          "bc.signature-audit.log": "2992ae3988a454aaa7e0d1ba3734be7da992f0fdaff8504cd9d2b155c175f88e",
+          "dtc.signature-audit.log": "873723df543d144ba82242c530f8f18c03dbbc52c0412593ccaa17b72d0545b2",
+          "pahole.signature-audit.log": "0d83c60a6a80ffac6065badc56864a2380bdf4511afd6b7f5074ab4adf62ce47",
+          "rust-bindgen.signature-audit.log": "0e7d1e596c569cb06535507321009af395ec267c4b9ae53644a7befd6204903f",
+          "rust-src.signature-audit.log": "1f7a60cd0e2d82f2df1694c8c230c3bc48b7ebba73f3da4e0eac9a60830d0484"
+        },
+        "afk_harness": {
+          "stock": {
+            "exit": 1,
+            "expected_exit": 1,
+            "stdout": "",
+            "stderr": "CAPACITY: generation=8 member=0 slots=16\n"
+          },
+          "unsafe": {
+            "exit": 1,
+            "expected_exit": 1,
+            "stdout": "",
+            "stderr": "UNSAFE_REUSE: disabled pending slot erased\n"
+          },
+          "unsafe-send": {
+            "exit": 1,
+            "expected_exit": 1,
+            "stdout": "",
+            "stderr": "UNSAFE_SEND: post-teardown command stranded retirement\n"
+          },
+          "unsafe-race": {
+            "exit": 1,
+            "expected_exit": 1,
+            "stdout": "",
+            "stderr": "UNSAFE_RACE: teardown transitioned between reserve and send\n"
+          },
+          "candidate": {
+            "exit": 0,
+            "expected_exit": 0,
+            "stdout": "PASS: AFK opted-in quiescent service-slot reuse lifecycle\n",
+            "stderr": ""
+          }
+        },
+        "alignment_warning": {
+          "type": "thread_union",
+          "C_Rust_size_alignment": [
+            32768,
+            64
+          ],
+          "finding": "Isolated by nonrecursive type allowlist; native generated Rust union retains both fields and repr(align(64))."
+        },
+        "enum_warnings": {
+          "aarch64_insn_encoding_class": {
+            "exit": 0,
+            "log": "[2026-09-04T21:18:20Z WARN  bindgen::codegen] Guessing type of enum! Forward declarations of enums shouldn't be legal!\n[2026-09-04T21:18:20Z WARN  bindgen::codegen] invalid enum decl: signed: true, size: 0\n"
+          },
+          "migratetype": {
+            "exit": 0,
+            "log": "[2026-09-04T21:18:22Z WARN  bindgen::codegen] Guessing type of enum! Forward declarations of enums shouldn't be legal!\n"
+          },
+          "key_serial_t": {
+            "exit": 0,
+            "log": ""
+          },
+          "dma_data_direction": {
+            "exit": 0,
+            "log": "[2026-09-04T21:18:26Z WARN  bindgen::codegen] Guessing type of enum! Forward declarations of enums shouldn't be legal!\n"
+          },
+          "irqchip_irq_state": {
+            "exit": 0,
+            "log": "[2026-09-04T21:18:28Z WARN  bindgen::codegen] Guessing type of enum! Forward declarations of enums shouldn't be legal!\n"
+          },
+          "drm_gem_object_status": {
+            "exit": 0,
+            "log": "[2026-09-04T21:18:30Z WARN  bindgen::codegen] Guessing type of enum! Forward declarations of enums shouldn't be legal!\n"
+          },
+          "fs_value_type": {
+            "exit": 0,
+            "log": "[2026-09-04T21:18:33Z WARN  bindgen::codegen] Guessing type of enum! Forward declarations of enums shouldn't be legal!\n[2026-09-04T21:18:33Z WARN  bindgen::codegen] invalid enum decl: signed: true, size: 0\n"
+          },
+          "i2c_slave_event": {
+            "exit": 0,
+            "log": "[2026-09-04T21:18:35Z WARN  bindgen::codegen] Guessing type of enum! Forward declarations of enums shouldn't be legal!\n"
+          },
+          "gpio_lookup_flags": {
+            "exit": 0,
+            "log": "[2026-09-04T21:18:37Z WARN  bindgen::codegen] Guessing type of enum! Forward declarations of enums shouldn't be legal!\n[2026-09-04T21:18:37Z WARN  bindgen::codegen] invalid enum decl: signed: true, size: 0\n"
+          },
+          "gpiod_flags": {
+            "exit": 0,
+            "log": "[2026-09-04T21:18:39Z WARN  bindgen::codegen] Guessing type of enum! Forward declarations of enums shouldn't be legal!\n[2026-09-04T21:18:39Z WARN  bindgen::codegen] invalid enum decl: signed: true, size: 0\n"
+          },
+          "drm_mode_status": {
+            "exit": 0,
+            "log": "[2026-09-04T21:18:41Z WARN  bindgen::codegen] Guessing type of enum! Forward declarations of enums shouldn't be legal!\n[2026-09-04T21:18:41Z WARN  bindgen::codegen] invalid enum decl: signed: true, size: 0\n"
+          }
+        },
+        "package_checks": {
+          "all_archive_hashes_match_receipt_and_local_extra_syncdb": true,
+          "all_pkginfo_name_version_arch_match": true,
+          "all_gpgv_exits_zero": true,
+          "signer": "68B3537F39A313B3E574D06777193F152BDBE6A6",
+          "signer_uid": "Arch Linux ARM Build System <builder@archlinuxarm.org>",
+          "keyring_sha256": "6ce771e853f04a38a5b533cb33e61f877b9b06b58b6db051eb8a15d737a2332f",
+          "note": "Installed keyring is ASCII armored; dearmored copy in scratch required for gpgv. Original verification against armored file failed to parse; successful checks use same pinned key material."
+        }
+      }
+    },
+    "checks/final-qa/receipt-checks.json": {
+      "sha256": "13b9703805e99269d8af7feaf28c52e42cf5b8f831728acf2a05c39e5074ccfd",
+      "data": {
+        "timestamp_utc": "2026-09-04T21:28:43.497442+00:00",
+        "scope": "Final independent offline build milestone QA. No privileged install, initramfs/m1n1 construction, boot selection, or hardware testing.",
+        "source_base": "b8810ad6442699f610984f3eceea2e3234a50b77",
+        "source_head": "83604c8b18e4673ed91e1172aef9aebeb0af20ce",
+        "kernelrelease": "7.1.12-dev147-fairydust1",
+        "module_count": 1862,
+        "source_bundle_prerequisite": "b8810ad6442699f610984f3eceea2e3234a50b77",
+        "assertions": {
+          "candidate_receipt_matches_build_receipt": true,
+          "source_clean_and_exact_two_commits": true,
+          "source_files_match_receipt": true,
+          "no_object_alternates": true,
+          "config_and_build_wrapper_match_receipt": true,
+          "dt_and_bindings_unchanged_from_upstream": true,
+          "tool_archives_match_retained_receipt": true,
+          "prior_independent_bindgen_QA_evidence_hashes_match": true
+        },
+        "commands": [
+          {
+            "name": "source-head",
+            "argv": [
+              "git",
+              "-C",
+              "linux",
+              "rev-parse",
+              "HEAD"
+            ],
+            "exit": 0
+          },
+          {
+            "name": "source-clean",
+            "argv": [
+              "git",
+              "-C",
+              "linux",
+              "status",
+              "--porcelain"
+            ],
+            "exit": 0
+          },
+          {
+            "name": "source-commit-count",
+            "argv": [
+              "git",
+              "-C",
+              "linux",
+              "rev-list",
+              "--count",
+              "b8810ad6442699f610984f3eceea2e3234a50b77..HEAD"
+            ],
+            "exit": 0
+          },
+          {
+            "name": "dt-binding-delta",
+            "argv": [
+              "git",
+              "-C",
+              "linux",
+              "diff",
+              "--name-only",
+              "b8810ad6442699f610984f3eceea2e3234a50b77",
+              "HEAD",
+              "--",
+              "arch/arm64/boot/dts",
+              "Documentation/devicetree/bindings"
+            ],
+            "exit": 0
+          }
+        ],
+        "artifacts_sha256": {
+          "source.bundle": "f6d2340ba4d9e3264d31a4ba89400236b5c68cb4ccfc75763dc0c634a4e03d04",
+          "t8112-j413.dtb": "9831d42f9c271ce35dd3e32b5c8298e1c13849568853aea0779f40bb67377b80",
+          "tool-receipt.json": "eb47270937aca1745483e29c10a9b780dc59d07c96cc8b437173ddfd7c50aa75",
+          "SHA256SUMS": "9bfc5623fad46ad8c26d6e09d96db26fbc52e1618acb4c207866b7f28451b32f",
+          "Image": "5175f41bb2d25abce49f6a844cdbe9233a4d090de34fa9aadcf6512c87590079",
+          "config": "678853acf4d664a96a4b1a69bba53d3a22ed419d9bf18bb7bcd322956ce849c6",
+          "source-config-receipt.json": "f7a4c6e8eb1958b557fc7a91c43640ce7e8ce3f82699c54fe33411ea9b995345",
+          "modules.order": "a40792e3e4c5350e53f9feeb1611ff70d4e25c3f34c11177675b171fdaf727cd",
+          "kernelrelease.txt": "9db6d11eb893f4f141a49f93d3482441c5cdc53186ebf18471f8dde26951fa6d",
+          "System.map": "773655b7ac151a040b656497fa6fd6e0f1b7ce8000b2dbe5de863b7db4edaf20",
+          "source-commit.txt": "b451b04e1d9aa5ec36844154d8248a02992f16cd4188c15e2439e25f10689b09",
+          "modules.sha256": "a0802e020d869594d697b335dc1bac172aad75d9c51dec3c1736d70921544d08",
+          "Module.symvers": "5d4db157c1152be293651653d198235ebde9981704ff3445392da0ebb7c5d4fc",
+          "build-command.sh": "3cbb6c45f0a9e2809d19a7cecff4ad3ddd86fb30d33dd68da038bed78a4e1612"
+        },
+        "limitations": [
+          "source.bundle is incremental and requires upstream base commit b8810ad6442699f610984f3eceea2e3234a50b77.",
+          "Pinned commands/config enable a repeatable build procedure; a second clean bit-for-bit kernel rebuild was not performed.",
+          "Bindgen layout evidence covers 98 types and 15 field offsets; it is not exhaustive ABI or hardware proof.",
+          "Boot assembly, firmware preparation, initramfs/m1n1 integration, rollback and package guard migration remain separate.",
+          "Reconnect, monitor/audio/data/charging, both ports/orientations and suspend/power acceptance remain open.",
+          "USB4 integration and PCIe/DP tunneling remain future work."
+        ]
+      }
+    },
+    "checks/final-qa/final-qa.json": {
+      "sha256": "be679fbe0a8c044bd7010738d223d702e1ef6b3a7115455da18425f6a0dd900d",
+      "data": {
+        "timestamp_utc": "2026-09-04T21:28:43.497442+00:00",
+        "scope": "Final independent offline build milestone QA. No privileged install, initramfs/m1n1 construction, boot selection, or hardware testing.",
+        "source_base": "b8810ad6442699f610984f3eceea2e3234a50b77",
+        "source_head": "83604c8b18e4673ed91e1172aef9aebeb0af20ce",
+        "kernelrelease": "7.1.12-dev147-fairydust1",
+        "module_count": 1862,
+        "source_bundle_prerequisite": "b8810ad6442699f610984f3eceea2e3234a50b77",
+        "assertions": {
+          "candidate_receipt_matches_build_receipt": true,
+          "source_clean_and_exact_two_commits": true,
+          "source_files_match_receipt": true,
+          "no_object_alternates": true,
+          "config_and_build_wrapper_match_receipt": true,
+          "dt_and_bindings_unchanged_from_upstream": true,
+          "tool_archives_match_retained_receipt": true,
+          "prior_independent_bindgen_QA_evidence_hashes_match": true
+        },
+        "commands": [
+          {
+            "name": "offline-gate",
+            "argv": [
+              "timeout",
+              "--signal=INT",
+              "--kill-after=15s",
+              "280s",
+              "bash",
+              "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/validate-offline.sh",
+              "/home/david/Work/dev147-fairydust-build"
+            ],
+            "exit": 0,
+            "stdout": "offline-gate.stdout",
+            "stderr": "offline-gate.stderr"
+          },
+          {
+            "name": "source-bundle",
+            "argv": [
+              "git",
+              "-C",
+              "linux",
+              "bundle",
+              "verify",
+              "/home/david/Work/dev147-fairydust-build/artifacts/candidate-7.1.12-dev147-fairydust1/source.bundle"
+            ],
+            "exit": 0,
+            "stdout": "source-bundle.stdout",
+            "stderr": "source-bundle.stderr"
+          },
+          {
+            "name": "dt-schema",
+            "argv": [
+              "tools/schema-env/bin/dt-validate",
+              "-s",
+              "checks/dt/processed-schema.json",
+              "artifacts/candidate-7.1.12-dev147-fairydust1/t8112-j413.dtb"
+            ],
+            "exit": 0,
+            "finding_count": 50,
+            "log_lines": 127,
+            "clean_schema_pass": false,
+            "unchanged_from_prior_log_after_path_normalization": true
+          },
+          {
+            "name": "live-kernel",
+            "argv": [
+              "uname",
+              "-r"
+            ],
+            "exit": 0,
+            "stdout": "live-kernel.stdout"
+          },
+          {
+            "name": "dev-link",
+            "argv": [
+              "omarchy",
+              "dev",
+              "status"
+            ],
+            "exit": 0,
+            "stdout": "dev-link.stdout"
+          },
+          {
+            "name": "source-head",
+            "argv": [
+              "git",
+              "-C",
+              "linux",
+              "rev-parse",
+              "HEAD"
+            ],
+            "exit": 0
+          },
+          {
+            "name": "source-clean",
+            "argv": [
+              "git",
+              "-C",
+              "linux",
+              "status",
+              "--porcelain"
+            ],
+            "exit": 0
+          },
+          {
+            "name": "source-commit-count",
+            "argv": [
+              "git",
+              "-C",
+              "linux",
+              "rev-list",
+              "--count",
+              "b8810ad6442699f610984f3eceea2e3234a50b77..HEAD"
+            ],
+            "exit": 0
+          },
+          {
+            "name": "dt-binding-delta",
+            "argv": [
+              "git",
+              "-C",
+              "linux",
+              "diff",
+              "--name-only",
+              "b8810ad6442699f610984f3eceea2e3234a50b77",
+              "HEAD",
+              "--",
+              "arch/arm64/boot/dts",
+              "Documentation/devicetree/bindings"
+            ],
+            "exit": 0
+          }
+        ],
+        "artifacts_sha256": {
+          "source.bundle": "f6d2340ba4d9e3264d31a4ba89400236b5c68cb4ccfc75763dc0c634a4e03d04",
+          "t8112-j413.dtb": "9831d42f9c271ce35dd3e32b5c8298e1c13849568853aea0779f40bb67377b80",
+          "tool-receipt.json": "eb47270937aca1745483e29c10a9b780dc59d07c96cc8b437173ddfd7c50aa75",
+          "SHA256SUMS": "9bfc5623fad46ad8c26d6e09d96db26fbc52e1618acb4c207866b7f28451b32f",
+          "Image": "5175f41bb2d25abce49f6a844cdbe9233a4d090de34fa9aadcf6512c87590079",
+          "config": "678853acf4d664a96a4b1a69bba53d3a22ed419d9bf18bb7bcd322956ce849c6",
+          "source-config-receipt.json": "f7a4c6e8eb1958b557fc7a91c43640ce7e8ce3f82699c54fe33411ea9b995345",
+          "modules.order": "a40792e3e4c5350e53f9feeb1611ff70d4e25c3f34c11177675b171fdaf727cd",
+          "kernelrelease.txt": "9db6d11eb893f4f141a49f93d3482441c5cdc53186ebf18471f8dde26951fa6d",
+          "System.map": "773655b7ac151a040b656497fa6fd6e0f1b7ce8000b2dbe5de863b7db4edaf20",
+          "source-commit.txt": "b451b04e1d9aa5ec36844154d8248a02992f16cd4188c15e2439e25f10689b09",
+          "modules.sha256": "a0802e020d869594d697b335dc1bac172aad75d9c51dec3c1736d70921544d08",
+          "Module.symvers": "5d4db157c1152be293651653d198235ebde9981704ff3445392da0ebb7c5d4fc",
+          "build-command.sh": "3cbb6c45f0a9e2809d19a7cecff4ad3ddd86fb30d33dd68da038bed78a4e1612"
+        },
+        "verdict": "PASS",
+        "verdict_scope": "Offline build and artifact milestone only. DT schema compliance, boot and hardware acceptance are not passing claims.",
+        "final_timestamp_utc": "2026-09-04T21:29:40.679568+00:00",
+        "documentation_review": {
+          "plan": "/home/david/Work/omarchy-dev147-fairydust-build/docs/plans/2026-09-04-dev147-fairydust-build.md",
+          "evidence": "/home/david/Work/omarchy-dev147-fairydust-build/docs/evidence/dev-147-fairydust-build-2026-09-04.md",
+          "guide": "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/README.md",
+          "result": "PASS. Checked source/config and compile claims re-derived. Offline bundle and final milestone can now be checked. Thin source bundle dependency and absence of clean-room reproducibility, boot, hardware and schema-compliance claims are explicit."
+        },
+        "limits": [
+          "source.bundle is incremental and requires upstream base commit b8810ad6442699f610984f3eceea2e3234a50b77.",
+          "Pinned commands/config enable a repeatable build procedure; a second clean bit-for-bit kernel rebuild was not performed.",
+          "Bindgen layout evidence covers 98 types and 15 field offsets; it is not exhaustive ABI or hardware proof.",
+          "Boot assembly, firmware preparation, initramfs/m1n1 integration, rollback and package guard migration remain separate.",
+          "Reconnect, monitor/audio/data/charging, both ports/orientations and suspend/power acceptance remain open.",
+          "USB4 integration and PCIe/DP tunneling remain future work.",
+          "dt-validate still emits exactly the retained 50 findings across 127 lines despite exit0; these are inherited unchanged from pinned upstream DT/binding source."
+        ],
+        "supporting_logs_sha256": {
+          "receipt-checks.json": "13b9703805e99269d8af7feaf28c52e42cf5b8f831728acf2a05c39e5074ccfd",
+          "source-bundle.stdout": "c3c417a122dddc51209206f706816cb61fba5bc9f576e32d685d52a9fbeb54c6",
+          "source-clean.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "dev-link.stdout": "2b711008e12cf842f6017bf93f3119591a69a298b403514efcde1e594493cb32",
+          "source-bundle.stderr": "480223028ecccbd0b39d2cc3da4dca2bafd191c42b6e97b38c78d74f4fffd738",
+          "dev-link.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+          "offline-gate.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+          "source-commit-count.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "offline-gate.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "dev-link.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "dt-schema.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+          "source-head.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "source-clean.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "source-commit-count.stdout": "53c234e5e8472b6ac51c1ae1cab3fe06fad053beb8ebfd8977b010655bfdd3c3",
+          "live-kernel.stdout": "58b1f26236e18f2d98208a8d03c4b3c7a65691be851002ed3b3709ced09e451f",
+          "dt-schema.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "dt-binding-delta.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "source-bundle.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+          "offline-gate.stdout": "8f8e7cd15827b8d23e5fd403e9617f7950fa493d2b2a77e5472044afc0c9829b",
+          "dt-schema.stderr": "bdbe54ecd671775842b78c0a5d3a97cce18ec4ab37d1171434b2ff8e11d37590",
+          "source-head.stdout": "b451b04e1d9aa5ec36844154d8248a02992f16cd4188c15e2439e25f10689b09",
+          "dt-binding-delta.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    }
+  },
+  "verdict": "PASS",
+  "verdict_scope": "Offline source, build, artifacts and independent QA; no boot, hardware or clean DT schema acceptance"
+}

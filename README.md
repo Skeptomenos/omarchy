@@ -190,6 +190,8 @@ Consider supporting the project: [![Buy Me A Coffee](https://img.shields.io/badg
 - Upgrading from 3.x to Quattro — [docs/upgrade-to-quattro.md](docs/upgrade-to-quattro.md)
 - Apple Silicon external display prototype — [docs/apple-silicon-external-display.md](docs/apple-silicon-external-display.md)
 - DEV-147 upstream reconciliation and patch decisions — [docs/research/dev-147-upstream-reconciliation-2026-09-04.md](docs/research/dev-147-upstream-reconciliation-2026-09-04.md)
+- DEV-147 combined fairydust build plan — [docs/plans/2026-09-04-dev147-fairydust-build.md](docs/plans/2026-09-04-dev147-fairydust-build.md)
+- DEV-147 offline fairydust build evidence — [docs/evidence/dev-147-fairydust-build-2026-09-04.md](docs/evidence/dev-147-fairydust-build-2026-09-04.md)
 - DEV-147 prototype execution plan and history — [docs/plans/dev-147-m2-displayport.md](docs/plans/dev-147-m2-displayport.md)
 - DEV-147 single-reconnect evidence — [docs/evidence/dev-147-usb-reconnect-2026-08-27.md](docs/evidence/dev-147-usb-reconnect-2026-08-27.md)
 - DEV-147 USB startup investigation — [docs/research/dev-147-usb-startup-2026-08-28.md](docs/research/dev-147-usb-startup-2026-08-28.md)
