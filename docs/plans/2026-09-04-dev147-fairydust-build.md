@@ -5,7 +5,7 @@
 **Branch:** `codex/dev147-fairydust-build` in the Omarchy documentation worktree; a separate Linux branch holds the kernel changes.
 **Linear:** DEV-147; DEV-163 retains monitor USB-data failures.
 **Started:** 2026-09-04
-**Reconciled:** 2026-09-04
+**Reconciled:** 2026-09-05
 
 ## Context
 
@@ -104,7 +104,7 @@ Documentation links and `git diff --check` must pass at handoff. The preceding a
 
 ## Follow-ups
 
-- [ ] Prepare and review coherent Image/modules/DTB/initramfs/m1n1 delivery and rollback, including the existing package guard. Any privileged action is a user-run command.
+- [ ] Prepare and review coherent boot delivery and rollback, including the existing package guard. The [boot-integration continuation](2026-09-05-dev147-fairydust-boot-integration.md) owns this execution from 2026-09-05. Any privileged action is a user-run command.
 - [ ] Attended reconnect acceptance beyond the old exhaustion window, both known monitors, cold/hot attach, and healthy internal display.
 - [ ] Validate SIO/display audio, USB2/USB3 data, charging, simultaneous video/data/power, both orientations, and both ports. DEV-163 owns monitor-hub data loss.
 - [ ] Resolve second-port DP routing, suspend/resume, and power drain with measured evidence.

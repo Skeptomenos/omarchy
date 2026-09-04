@@ -48,3 +48,7 @@ The expected candidate directory is `/home/david/Work/dev147-fairydust-build/art
 The source bundle preserves the exact two local commits and requires the pinned upstream base. Reapplying the patches with different commit metadata can reproduce source bytes but changes the Git identity that this gate intentionally pins. Build recipes contain paths for this workspace; recreating it elsewhere requires explicit path updates and a new receipt.
 
 Static DT schema validation is separate from the functional graph checks. The pinned fairydust DT produces inherited schema diagnostics, including its experimental `displayport` property; the validator's zero exit does not mean those diagnostics passed. Bootloader-populated firmware parameters, initramfs/m1n1 assembly, package-guard migration, boot selection, suspend, and device behavior require later checks. An offline PASS is not a boot or hardware PASS.
+
+## Boot integration
+
+The [boot-integration continuation](../../../docs/plans/2026-09-05-dev147-fairydust-boot-integration.md) prepares the complete initramfs and m1n1 inputs. Use its [staging handoff](boot-stage/README.md) for the reviewed unselected installation. The full kernel build above remains the frozen baseline.

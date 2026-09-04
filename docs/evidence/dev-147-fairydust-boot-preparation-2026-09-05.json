@@ -1,0 +1,1379 @@
+{
+  "date": "2026-09-05",
+  "scope": "Private boot preparation and stage-only handoff; no live stage, selected boot or hardware acceptance",
+  "status": "PASS: complete author and independent offline preparation/staging gates; live staging remains unrun",
+  "output_root": "/home/david/Work/dev147-fairydust-boot-20260905",
+  "delivery_manifest_sha256": "f33054856e60d3baf5cb7630cb8d7dfc60ffa586e16456c3e7313fffe6f7c59d",
+  "source_sha256": {
+    "dev/apple-dp-altmode/fairydust/boot-bundle/bundle.sh": "9e24b336c166097b05a2a8b8d29e32874f38bd1356cc7b67b8c78449775c2285",
+    "dev/apple-dp-altmode/fairydust/boot-bundle/test-bundle.sh": "937c58d3af64e080ee49e8b2769a94c51bf0c591ac59a2e706b5a3ac582e9202",
+    "dev/apple-dp-altmode/fairydust/boot-initramfs/build-inner.sh": "6c43b5a9c8375c386eb6a19b445f774c10d934dcae869f54319ec4e4157cb183",
+    "dev/apple-dp-altmode/fairydust/boot-initramfs/build.sh": "cbaf6cdf2bc825c2895f603dd3e360158cb3ba6b68c57b05e2dfc212244d5ee7",
+    "dev/apple-dp-altmode/fairydust/boot-initramfs/test-image.sh": "1940fdfecda14dd0d870c92240b04fc3e5da731e4fbcd9a44319470c0e6477b6",
+    "dev/apple-dp-altmode/fairydust/boot-initramfs/test-startup.sh": "072c1746751b1e0346c2312b1803cb66bb0aad129a46cfd115226c30debc19b2",
+    "dev/apple-dp-altmode/fairydust/boot-initramfs/test-verify.sh": "7a5e2433c3f92f625f20878d4bc0742fc6fa1e423383ad9e6e2701f6ff8ff1b0",
+    "dev/apple-dp-altmode/fairydust/boot-initramfs/validate-image.sh": "05a8d762fb7e5d9d3febea484cc530d7b2a4fb4d7e364210882bd753f19d9feb",
+    "dev/apple-dp-altmode/fairydust/boot-initramfs/verify.sh": "669b637bdd4f6cb375ccc60303ac704d4b8f105ce95eb01cc84c89c7f774d1c6",
+    "dev/apple-dp-altmode/fairydust/boot-stage/launch.sh": "748810653d9f083113052afc0b19acc1e0b1d73ec99b4165906a46a83e856c15",
+    "dev/apple-dp-altmode/fairydust/boot-stage/stage.py": "12501982dfd4adb347103671ce5dbf9650b53b628474a434de3c458fd98ad6a7",
+    "dev/apple-dp-altmode/fairydust/boot-stage/test_full_delivery.py": "77f2f8cdf9cf2a7c64e6ad4165b366b712275a7c084c0961a8d44b6a15372674",
+    "dev/apple-dp-altmode/fairydust/boot-stage/test_stage.py": "fddaf26773bd92d3805ca3c723738f1812e4b03d355485a3548cff0b762403c3",
+    "dev/apple-dp-altmode/fairydust/test-module-tree.sh": "a41cabbf6ab2e881938030c8ffbb580922aa99f64aa80475aed45293a515a8a7",
+    "dev/apple-dp-altmode/fairydust/validate-boot.sh": "8e0b382ed82a1ab6c7b57b85c72304e6d98bd07b09e9dc38fbdf99f7703a573b",
+    "dev/apple-dp-altmode/fairydust/validate-offline.sh": "cfc1fabe76885e7399ccc765f492bf4660c37b614c8c35fde973ed5a806b7198"
+  },
+  "receipts": {
+    "delivery/receipts/kernel-source-config.json": {
+      "sha256": "f7a4c6e8eb1958b557fc7a91c43640ce7e8ce3f82699c54fe33411ea9b995345",
+      "data": {
+        "base": "b8810ad6442699f610984f3eceea2e3234a50b77",
+        "head": "83604c8b18e4673ed91e1172aef9aebeb0af20ce",
+        "branch": "codex/dev147-fairydust",
+        "commits": [
+          "83604c8b18e4673ed91e1172aef9aebeb0af20ce fix(drm/apple): avoid permanent crash state on clear-swap timeout",
+          "e951d214930f4329063df48f2081274e95b55302 fix(drm/apple): reuse quiescent dpav AFK services"
+        ],
+        "source_clean": true,
+        "selected_source_sha256": "5ec8d6206ad84a2ea11c2f078dd8e8afb360a5449fd6aae7d2f37ec9c11af248  drivers/gpu/drm/apple/afk.c\n59e5dfedf1f0075fa5831dc8c7489c384f397c8913f391d72b9dc1bc9c034937  drivers/gpu/drm/apple/afk.h\nb0cc5e55815d3accf2ce7bf7235259e3a4092a80481b79f48280cfa7f3727ba9  drivers/gpu/drm/apple/epic/dpavservep.c\n84e83119e270676efe9aeb1abfd83f404e8a80912ce81908aa4c358725146319  drivers/gpu/drm/apple/epic/dpavservep.h\n076c2624cb9f74fa1a97126cc398359447a3b469d9e713200b7c093735650d9f  drivers/gpu/drm/apple/iomfb.c\n724bf5061a067e982491336c97ece851857751f55d24a7572a861b4f6911e5a8  drivers/gpu/drm/apple/iomfb_template.c\n",
+        "config_input": "/proc/config.gz",
+        "live_config_sha256": "701d1270a36cb57047558ab78e7d825900cc76935e42fd96003c319d1b9050e4",
+        "config_sha256": "678853acf4d664a96a4b1a69bba53d3a22ed419d9bf18bb7bcd322956ce849c6",
+        "kernelrelease": "7.1.12-dev147-fairydust1",
+        "build_command_sha256": "3cbb6c45f0a9e2809d19a7cecff4ad3ddd86fb30d33dd68da038bed78a4e1612",
+        "gcc": "gcc (GCC) 16.1.1 20260430",
+        "rustc": "rustc 1.98.0 (88d9e12ae 2026-08-18) (Arch Linux rust 1:1.98.0-1)\nbinary: rustc\ncommit-hash: 88d9e12ae178fab0fb5cc050a94da85685d449ea\ncommit-date: 2026-08-18\nhost: aarch64-unknown-linux-gnu\nrelease: 1.98.0\nLLVM version: 22.1.8",
+        "clang": "clang version 22.1.8",
+        "ld": "GNU ld (GNU Binutils) 2.46.0",
+        "afk_harness": {
+          "stock": {
+            "expected_exit": 1,
+            "exit": 1,
+            "stdout": "",
+            "stderr": "CAPACITY: generation=8 member=0 slots=16\n"
+          },
+          "unsafe": {
+            "expected_exit": 1,
+            "exit": 1,
+            "stdout": "",
+            "stderr": "UNSAFE_REUSE: disabled pending slot erased\n"
+          },
+          "unsafe-send": {
+            "expected_exit": 1,
+            "exit": 1,
+            "stdout": "",
+            "stderr": "UNSAFE_SEND: post-teardown command stranded retirement\n"
+          },
+          "unsafe-race": {
+            "expected_exit": 1,
+            "exit": 1,
+            "stdout": "",
+            "stderr": "UNSAFE_RACE: teardown transitioned between reserve and send\n"
+          },
+          "candidate": {
+            "expected_exit": 0,
+            "exit": 0,
+            "stdout": "PASS: AFK opted-in quiescent service-slot reuse lifecycle\n",
+            "stderr": ""
+          }
+        },
+        "small_target_command": "timeout --signal=INT --kill-after=15s 280s ./build-command.sh prepare rust/core.o rust/kernel.o apple/t8112-j413.dtb",
+        "small_target_exit": 0,
+        "full_build_command": "timeout --signal=INT --kill-after=15s 280s ./build-command.sh Image modules apple/t8112-j413.dtb",
+        "full_build_status": "pass",
+        "RUST_LOG": "warn",
+        "full_build_exit": 0,
+        "built_modules": 1862
+      }
+    },
+    "delivery/receipts/boot-bundle.json": {
+      "sha256": "919d2cb88f6c2c9708d0cee2c2d979290aaf2216a43947bfd95044be78631038",
+      "data": {
+        "schema": 1,
+        "date": "2026-09-05",
+        "purpose": "Unselected m1n1 stage-2 bundle for J413 only",
+        "release": "7.1.12-dev147-fairydust1",
+        "source": "83604c8b18e4673ed91e1172aef9aebeb0af20ce",
+        "assembly": "m1n1.bin + t8112-j413.dtb + gzip -n -9 u-boot-nodtb.bin; no config suffix",
+        "components": {
+          "m1n1": {
+            "path": "/usr/lib/asahi-boot/m1n1.bin",
+            "size": 1114112,
+            "sha256": "9ad086536d4b4f871530ad5231bf8eea8063bbf5ff9189ae713584ed74158fdd"
+          },
+          "dtb": {
+            "path": "/home/david/Work/dev147-fairydust-boot-20260905/delivery/t8112-j413.dtb",
+            "size": 72115,
+            "sha256": "9831d42f9c271ce35dd3e32b5c8298e1c13849568853aea0779f40bb67377b80"
+          },
+          "uboot": {
+            "path": "/usr/lib/asahi-boot/u-boot-nodtb.bin",
+            "size": 639624,
+            "sha256": "ef3a78ee1820d5fb296a957e34affa4c64a14fa274e069f6fec46d125354e14c"
+          }
+        },
+        "boot_bin_sha256": "1ae29a2bfadb309562c205520d8c28e2a8df2283bc88bbfb52474e54333c3dff",
+        "config_input": "/etc/m1n1.conf absent at build",
+        "installed_packages_check": "pacman -Qkk m1n1 uboot-asahi: 16 and28 totalfiles,0altered",
+        "omitted_module_files": {
+          "build": "Only the development symlink was omitted from the new delivery copy; runtime module files are unchanged."
+        },
+        "limits": [
+          "Not booted; runtime m1n1 firmware preparation remains untested.",
+          "Only J413 DT included; not for otherhardware.",
+          "Selectedboot unchanged. Paired m1n1/GRUB activation and restore require later protected preflight."
+        ]
+      }
+    },
+    "delivery/receipts/initramfs.json": {
+      "sha256": "9cd2e89967218f898e12b512a637e1e88364b76e9ca69168096cb5d870bde376",
+      "data": {
+        "status": "PASS",
+        "image": "/home/david/Work/dev147-fairydust-boot-20260905/initramfs/run-003/initramfs-7.1.12-dev147-fairydust1.img",
+        "image_sha256": "e4e70b766e463468f01d1830a4dd1b42b0cbefb4d07463bdf7e54451ecce730a",
+        "source_commit": "83604c8b18e4673ed91e1172aef9aebeb0af20ce",
+        "kernelrelease": "7.1.12-dev147-fairydust1",
+        "offline": true,
+        "installed": false,
+        "hardware_validated": false,
+        "autodetect": false
+      }
+    },
+    "research/boot-selection-and-bundle-qa.json": {
+      "sha256": "853fc0ea77abba36ca6f4814551415e39c056dbc9368dc6a485d1fc20c0275ca",
+      "data": {
+        "schema": 1,
+        "date": "2026-09-05",
+        "scope": "Independent read-only boot selection research and boot-bundle QA. All writes are under this research directory; no system edits, sudo, package transaction, boot, or device action.",
+        "verdict": "PASS for offline bundle identity/format; no boot or hardware acceptance. Minor generic output wording correction requested.",
+        "recommendation": {
+          "now": "Retain the versioned candidate bundle unselected. Preserve the current active kernel, DT/boot.bin, GRUB configuration, and package guard.",
+          "activation": "Later coordinated activation must select both the candidate m1n1 bundle and exact candidate GRUB Linux/initrd entry. Account for saved_entry, next_entry and fallback overrides. Verify backups and hashes before and after writes.",
+          "atomicity": "Per-file replacement can use atomic rename; boot.bin and GRUB configuration across filesystems are not one atomic operation. Define recovery for interruption between writes.",
+          "rollback": "A complete rollback must restore the original m1n1 bundle and corresponding GRUB selection/configuration. macOS/Recovery can restore the FAT ESP bundle, but cannot natively write this machine's ext4 GRUB configuration. A tested route to restore both halves is still required before activation. Rebooting or selecting an old kernel under the new shared DT is not validated rollback.",
+          "forbidden_shortcut": "Do not replace the prepared DT with a raw fairydust DT through the GRUB devicetree command.",
+          "alternate_without_default_bundle_replacement": "Documented early stage-1 USB proxy can chainload a complete alternate m1n1 bundle into RAM using matching proxyclient/tools/chainload.py -r. Requires a second host, physical cable, verified proxy access, and per-Asahi-volume 1TR authentication/SIP-disabled plus verbose policy if not already enabled. This was not configured or tested here.",
+          "other_long_term_option": "A separate Asahi UEFI container/ESP can separate complete boot stacks, but requires a separate installation/storage/boot-policy operation and was not investigated as an immediate change.",
+          "ordinary_selector": "No ordinary alternate-bundle menu or GRUB override was found in pinned stage-1 flow. chainload=PARTUUID;path is parsed from appended stage-1 payload; the file loader uses internal NVMe FAT. Generic UEFI chainloading does not supply the Apple boot_args/ADT/SEPFW ABI required by m1n1.",
+          "recovery_open_work": "Design and verify recovery before activation, including an interrupted two-filesystem update. An ESP-resident selector with preserved GRUB configuration, a rescue Linux route, or a separate complete boot stack needs its own review; none is implemented or accepted here."
+        },
+        "observations": {
+          "live_stage1_version": "v1.5.2",
+          "live_stage2_version": "v1.6.1",
+          "live_uboot_version": "2026.04",
+          "live_dcpext_firmware_version": [
+            13,
+            5,
+            0
+          ],
+          "live_dcpext_firmware_compat": [
+            13,
+            5,
+            0
+          ],
+          "live_selected_dt": {
+            "sio": {
+              "alias": null
+            },
+            "dcpext": {
+              "alias": "/soc/dcp@271c00000",
+              "properties": {
+                "status": "okay",
+                "apple,connector-type": "DP",
+                "memory-region": {
+                  "byte_length": 12
+                },
+                "apple,firmware-version": {
+                  "byte_length": 12
+                },
+                "apple,firmware-compat": {
+                  "byte_length": 12
+                }
+              }
+            },
+            "sio-node": {
+              "exists": true,
+              "status": "disabled",
+              "params_exist": false,
+              "memory_region_exists": false
+            }
+          },
+          "active_boot_bin_sha256": "203ab7027536c8d16f373d02c1f6346a5c34cfe095a9dafd0cfe37d2b354090c",
+          "candidate_boot_bin_sha256": "1ae29a2bfadb309562c205520d8c28e2a8df2283bc88bbfb52474e54333c3dff",
+          "m1n1_conf_absent": true,
+          "grub_default_file": "/etc/default/grub has GRUB_DEFAULT=0 and GRUB_TIMEOUT=5; active grub.cfg is unreadable to this unprivileged lane. Main owns protected preflight.",
+          "installed_packages": "m1n1 1.6.1-1; uboot-asahi 2026.04.asahi2-1; pacman -Qkk reports 16 and28 files respectively,0 altered."
+        },
+        "sio_requirements": {
+          "dt": "J413 candidate has sio alias /soc/sio@236400000, enabled SIO and dpaudio1, DMA channel0x66. Current DT has no sio alias; SIO node disabled and no params or memory-region.",
+          "firmware": "m1n1 reads /arm-io/sio segment-ranges from the Apple DT, reserves ASC firmware as apple,asc-mem/no-map regions with iommu-addresses, and links memory-region phandles. It allocates/copies boot-specific firmware data and appends apple,sio-firmware-params key/value cells.",
+          "copy_inputs": [
+            "asio-ascwrap-tunables",
+            "map-range",
+            "dmashim",
+            "device-type",
+            "three allocated buffers"
+          ],
+          "expected_parameters_for_this_pin": "Seven copy rules each emit address-in-4KiB-pages and size parameter pairs:14 key/value pairs,28 u32 cells,112 bytes if setup completes once from this raw DT. Values and backing memory are boot-specific.",
+          "kernel": "apple-sio.c requires the parameter property and sends each pair during probe. Status=okay alone is not proof of setup because fairydust already forces it on. Verify params, memory-region/IOMMU relationships, successful probe and audio function after boot.",
+          "limit": "A saved prepared DT is not portable to a later boot because physical reservations and firmware addresses can change. Ordinary U-Boot EFI DT fixups do not recreate m1n1 SIO preparation."
+        },
+        "stack_matrix": [
+          {
+            "kernel": "current7.1.6",
+            "dt_bundle": "current",
+            "status": "Preserved current control/recovery stack."
+          },
+          {
+            "kernel": "candidate7.1.12",
+            "dt_bundle": "current",
+            "status": "Unvalidated diagnostic combination; omits selected SIO/audio/power DT changes and is not the complete candidate."
+          },
+          {
+            "kernel": "current7.1.6",
+            "dt_bundle": "candidate",
+            "status": "Unvalidated cross-version combination; do not label ordinary fallback."
+          },
+          {
+            "kernel": "candidate7.1.12",
+            "dt_bundle": "candidate",
+            "status": "Intended coherent candidate; offline checks pass, boot/runtime setup untested."
+          }
+        ],
+        "bundle_qa": {
+          "segments": {
+            "bundle_sha256": "1ae29a2bfadb309562c205520d8c28e2a8df2283bc88bbfb52474e54333c3dff",
+            "bundle_bytes": 1489431,
+            "m1n1": {
+              "offset": 0,
+              "bytes": 1114112,
+              "equals_installed": true
+            },
+            "dtb": {
+              "offset": 1114112,
+              "fdt_magic": "0xd00dfeed",
+              "fdt_totalsize": 72115,
+              "equals_accepted_dtb": true
+            },
+            "uboot_gzip": {
+              "offset": 1186227,
+              "bytes": 303204,
+              "header_hex": "1f8b0800000000000203",
+              "eof": true,
+              "unused_bytes": 0,
+              "decompressed_bytes": 639624,
+              "equals_installed": true,
+              "arm64_header_magic": "41524d64",
+              "image_size_field": 1109816
+            },
+            "m1n1_config_exists": false,
+            "gzip_version": "gzip 1.14-modified"
+          },
+          "positive_assembly": "A separate unprivileged assembly at research/independent-boot.bin matches accepted delivery byte-for-byte.",
+          "tests": {
+            "test-bundle.sh_exit": 0,
+            "negative_controls": [
+              "missing",
+              "truncated",
+              "altered",
+              "trailing",
+              "symlink",
+              "existing output"
+            ],
+            "bash_n_exit": 0,
+            "git_diff_check_exit": 0,
+            "initial_red_receipt": {
+              "exit": 1,
+              "log_sha256": "4b04c73ce2fc8e433e2dde2afd210db08f8db883bb8c24da9f9d0fdb691b30c0"
+            }
+          },
+          "source_compatibility": "m1n1 load_fdt checks apple,j413 and advances by FDT totalsize. Its gzip path consumes the exact compressed stream; decompressed U-Boot has ARM64 Image magic and image_size1109816 >= stored639624. Stage1 appends chosen settings and zero end-padding when chainloading, preserving paired ESP context.",
+          "reviewed_script_sha256": {
+            "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-bundle/bundle.sh": "9e24b336c166097b05a2a8b8d29e32874f38bd1356cc7b67b8c78449775c2285",
+            "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-bundle/test-bundle.sh": "937c58d3af64e080ee49e8b2769a94c51bf0c591ac59a2e706b5a3ac582e9202"
+          },
+          "finding": {
+            "priority": "minor accuracy",
+            "file": "dev/apple-dp-altmode/fairydust/boot-bundle/bundle.sh",
+            "line": 39,
+            "description": "Generic verify prints unselected bundle without proving selection state. Remove that phrase; actual selection is checked separately. Main acknowledged correction queued."
+          }
+        },
+        "primary_sources": [
+          {
+            "title": "Asahi m1n1 user guide",
+            "url": "https://asahilinux.org/docs/sw/m1n1-user-guide/",
+            "supports": "Payload composition, stage1/stage2 behavior, chainload.py and early proxy prerequisites."
+          },
+          {
+            "title": "Asahi boot process",
+            "url": "https://asahilinux.org/docs/alt/boot-process-guide/",
+            "supports": "Prepared DT travels through m1n1 to U-Boot to GRUB; version interactions and shared bundle constraints."
+          },
+          {
+            "title": "Asahi U-Boot guide",
+            "url": "https://asahilinux.org/docs/sw/u-boot/",
+            "supports": "U-Boot forwards DT via EFI; bundle assembly and restoring boot.bin from macOS."
+          },
+          {
+            "title": "Asahi tethered boot",
+            "url": "https://asahilinux.org/docs/sw/tethered-boot/",
+            "supports": "Supported temporary proxy workflow and explicit hardware/security-policy prerequisites."
+          },
+          {
+            "title": "m1n1 stage1 payload source",
+            "url": "https://github.com/AsahiLinux/m1n1/blob/e266c09ee50971828c6a7ba02bb7f36a24a7692e/src/payload.c#L200",
+            "supports": "Appended chainload spec and single target dispatch."
+          },
+          {
+            "title": "m1n1 SIO setup",
+            "url": "https://github.com/AsahiLinux/m1n1/blob/06a4601a351ebfd1abb6abba9a44c34e40d94776/src/kboot.c#L2189",
+            "supports": "Alias-driven firmware preparation before handoff."
+          },
+          {
+            "title": "m1n1 SIO copy rules",
+            "url": "https://github.com/AsahiLinux/m1n1/blob/06a4601a351ebfd1abb6abba9a44c34e40d94776/src/sio.c#L53",
+            "supports": "Firmware data allocation and parameter encoding."
+          },
+          {
+            "title": "U-Boot Apple board",
+            "url": "https://github.com/AsahiLinux/u-boot/blob/3b233f59d0b6b57eae5add46a6fa7787ea11388e/arch/arm/mach-apple/board.c#L992",
+            "supports": "Consumes m1n1 FDT; ft_board_setup does not implement SIO preparation."
+          },
+          {
+            "title": "Fairydust SIO reader",
+            "url": "https://github.com/AsahiLinux/linux/blob/b8810ad6442699f610984f3eceea2e3234a50b77/drivers/dma/apple-sio.c#L744",
+            "supports": "Required bootloader parameters and probe failure if absent."
+          }
+        ],
+        "source_cache_note": "Prior assessment sources/m1n1/kboot.c contains newer main/USB4 changes. This research re-downloaded the exact v1.6.1 pin; relevant SIO behavior agrees, but use these exact sources for pinned citations.",
+        "source_pins": {
+          "m1n1_stage1_v1.5.2": "e266c09ee50971828c6a7ba02bb7f36a24a7692e",
+          "m1n1_stage2_v1.6.1": "06a4601a351ebfd1abb6abba9a44c34e40d94776",
+          "uboot_asahi_v2026.04-2": "3b233f59d0b6b57eae5add46a6fa7787ea11388e"
+        },
+        "source_hashes": {
+          "m1n1/src/main.c": "645ae93fde1d2f47b857c53f8133bcd4fa6170d3d3bc55c5ecc9ee65f5c25ef6",
+          "m1n1/src/kboot.c": "8153283fa9d1e41157560d5c5cc2a688c2bfea47660815b639611d028358a018",
+          "m1n1/src/payload.c": "4100228afa891c54d40a29eb47bfe024c10aeaa25b9b2fcc12388a5a96a6dd0c",
+          "m1n1/src/sio.c": "825333cc4c3191f06e83fafcbf495e3d57e30714274060e463ae6964f5d95505",
+          "m1n1/src/start.S": "a79f7ef0ec8c20fd2f82a62525d1b7d14fca6e07e8d7cc286523cef2d99e91ff",
+          "m1n1/src/chainload.c": "d735d7e0d81d5f0873dfd87a0f9478fb4b34fb7733b4a42b01f88b648e3ec174",
+          "m1n1/proxyclient/tools/linux.py": "ca6cc975155582cdbaaa3974f97245648fde6b1e94af850409034dc607d8a3c9",
+          "m1n1/proxyclient/tools/chainload.py": "aebe6c30dc631b0fed366a65e40361b2e082af5812f1e3bde090e37de0fd2410",
+          "m1n1/rust/src/chainload.rs": "9dccbd47c16767fec49bf5b71171f2b410cba2ac0a28bcb76e3393b08755140b",
+          "m1n1-stage1/src/main.c": "49f8f139444269386030b2216b8192baf8988ff49cd0f1b101ef2c5e65ed666c",
+          "m1n1-stage1/src/payload.c": "4100228afa891c54d40a29eb47bfe024c10aeaa25b9b2fcc12388a5a96a6dd0c",
+          "m1n1-stage1/src/chainload.c": "d735d7e0d81d5f0873dfd87a0f9478fb4b34fb7733b4a42b01f88b648e3ec174",
+          "m1n1-stage1/rust/src/chainload.rs": "9dccbd47c16767fec49bf5b71171f2b410cba2ac0a28bcb76e3393b08755140b",
+          "u-boot/configs/apple_m1_defconfig": "b9d86aa3410a60ac6fd8e4ab003878ec34af5f18e7a7d3565c7a729914477393",
+          "u-boot/lib/efi_loader/efi_dt_fixup.c": "b6cbc765457b17c5e9e4e073fb58b8162f4d50da2d730a33bd8b031ae0e9097c",
+          "u-boot/lib/efi_loader/efi_fdt.c": "37aacf785dc9c84bab0f2f1dbca740b4db78f0f51282ccb4eeab25b7a33737d4",
+          "u-boot/arch/arm/mach-apple/board.c": "d88d5478736675bf5e773fdc0c7f1d29d2372587247f10f0bd688c397e1b0e27"
+        },
+        "addenda": [
+          {
+            "date": "2026-09-05",
+            "correction": "Do not infer a paired rollback route from macOS being able to restore boot.bin. GRUB configuration is on ext4. Exact activation and recovery remain open.",
+            "bundle_wording": "The writer removed the unsupported unselected claim from generic bundle verify output. Selection-state checks remain separate."
+          }
+        ]
+      }
+    },
+    "research/initramfs-qa/independent-initramfs-qa.json": {
+      "sha256": "a6ef78e083bbae8bfcb054fec1de3b82c9b7478d65c0b540af5ba84afaa15a95",
+      "data": {
+        "schema": 1,
+        "date": "2026-09-05",
+        "scope": "Independent read-only QA of accepted initramfs and its validation contract. Scratch writes only; no kernel build, boot, activation, package or system mutation.",
+        "verdict": "PASS: accepted image and corrected validation contract pass independent complete-gate rerun. No boot or hardware acceptance.",
+        "artifact": {
+          "path": "/home/david/Work/dev147-fairydust-boot-20260905/delivery/initramfs.img",
+          "size": 191153387,
+          "sha256": "e4e70b766e463468f01d1830a4dd1b42b0cbefb4d07463bdf7e54451ecce730a",
+          "expected_sha256": "e4e70b766e463468f01d1830a4dd1b42b0cbefb4d07463bdf7e54451ecce730a",
+          "kernelrelease": "7.1.12-dev147-fairydust1",
+          "source_commit": "83604c8b18e4673ed91e1172aef9aebeb0af20ce",
+          "modules": 334,
+          "embedded_firmware_files": 12,
+          "avd_firmware_files": 6
+        },
+        "tests": [
+          {
+            "command": "bash /home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-initramfs/validate-image.sh /home/david/Work/dev147-fairydust-boot-20260905/delivery/initramfs.img /home/david/Work/dev147-fairydust-build /home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa",
+            "exit_code": 0,
+            "log": "/home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa/validate-image.log"
+          },
+          {
+            "command": "bash /home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-initramfs/test-verify.sh /home/david/Work/dev147-fairydust-build /home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa",
+            "exit_code": 0,
+            "log": "/home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa/test-verify.log",
+            "negative_controls": [
+              "modified real module",
+              "missing module",
+              "empty release tree",
+              "mixed release tree"
+            ]
+          },
+          {
+            "command": "bash /home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-initramfs/test-image.sh /home/david/Work/dev147-fairydust-boot-20260905/delivery/initramfs.img /home/david/Work/dev147-fairydust-build /home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa",
+            "exit_code": 0,
+            "log": "/home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa/test-image.log",
+            "negative_controls": [
+              "truncated actual image"
+            ]
+          },
+          {
+            "command": [
+              "bash",
+              "-n",
+              "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-initramfs/build-inner.sh"
+            ],
+            "exit_code": 0
+          },
+          {
+            "command": [
+              "bash",
+              "-n",
+              "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-initramfs/build.sh"
+            ],
+            "exit_code": 0
+          },
+          {
+            "command": [
+              "bash",
+              "-n",
+              "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-initramfs/test-image.sh"
+            ],
+            "exit_code": 0
+          },
+          {
+            "command": [
+              "bash",
+              "-n",
+              "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-initramfs/test-verify.sh"
+            ],
+            "exit_code": 0
+          },
+          {
+            "command": [
+              "bash",
+              "-n",
+              "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-initramfs/validate-image.sh"
+            ],
+            "exit_code": 0
+          },
+          {
+            "command": [
+              "bash",
+              "-n",
+              "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-initramfs/verify.sh"
+            ],
+            "exit_code": 0
+          },
+          {
+            "command": "git diff --check",
+            "exit_code": 0
+          }
+        ],
+        "independent_checks": {
+          "startup_source_bytes": [
+            {
+              "file": "/init",
+              "source": "/usr/lib/initcpio/init",
+              "exists": true,
+              "bytes_match": true,
+              "sha256": "9a25937d2434df2e0cb94f5082c3deafa4fef487b59c88c64e2a584de17d807b"
+            },
+            {
+              "file": "/init_functions",
+              "source": "/usr/lib/initcpio/init_functions",
+              "exists": true,
+              "bytes_match": true,
+              "sha256": "12b72a05836f2d4a00878196330715c934032a1af4fc609babffe8f0932aef76"
+            },
+            {
+              "file": "/usr/bin/busybox",
+              "source": "/usr/lib/initcpio/busybox",
+              "exists": true,
+              "bytes_match": true,
+              "sha256": "51572718c2121981c878815cf487ab2fcc1328e63d9f6da06a4c36082c92e833"
+            },
+            {
+              "file": "/hooks/asahi",
+              "source": "/usr/lib/initcpio/hooks/asahi",
+              "exists": true,
+              "bytes_match": true,
+              "sha256": "faa37c601ca2c30da0d93e76889631fe4381c459a6ff51801066d1bacb3f5df7"
+            },
+            {
+              "file": "/hooks/udev",
+              "source": "/usr/lib/initcpio/hooks/udev",
+              "exists": true,
+              "bytes_match": true,
+              "sha256": "5f17add5ee7b6f3c329cdeb536f37e2128ed3dc6fb9e5e3a78b3c5ae74e380bc"
+            },
+            {
+              "file": "/hooks/plymouth",
+              "source": "/usr/lib/initcpio/hooks/plymouth",
+              "exists": true,
+              "bytes_match": true,
+              "sha256": "de852646e615e06d4125eb2e646d0528d1e349bd9e9877c08c5d32c43d288b6f"
+            },
+            {
+              "file": "/hooks/keymap",
+              "source": "/usr/lib/initcpio/hooks/keymap",
+              "exists": true,
+              "bytes_match": true,
+              "sha256": "da7ad12a0df385a676442823a2f00644f0e417f08bce6a64b131788d11772f35"
+            },
+            {
+              "file": "/hooks/encrypt",
+              "source": "/usr/lib/initcpio/hooks/encrypt",
+              "exists": true,
+              "bytes_match": true,
+              "sha256": "e67c30a02c82eabd6b143f51438a1d4ee106dc376c0f03cd254404b9e4c39999"
+            },
+            {
+              "file": "/usr/share/asahi-scripts/functions.sh",
+              "source": "/usr/share/asahi-scripts/functions.sh",
+              "exists": true,
+              "bytes_match": true,
+              "sha256": "296d34003111210e7222470399a8daa2933d7fd4d9104cfae7873a064860f489"
+            }
+          ],
+          "driver_closure": {
+            "nvme-apple": [
+              "builtin nvme_apple"
+            ],
+            "apple-mailbox": [
+              "builtin apple_mailbox"
+            ],
+            "apple-dart": [
+              "builtin apple_dart"
+            ],
+            "spi-apple": [
+              "builtin spi_apple"
+            ],
+            "pinctrl-apple-gpio": [
+              "builtin pinctrl_apple_gpio"
+            ],
+            "ext4": [
+              "builtin ext4"
+            ],
+            "vfat": [
+              "builtin vfat"
+            ],
+            "asahi": [
+              "builtin asahi"
+            ],
+            "xhci-plat-hcd": [
+              "insmod /home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa/image-validation.wgt3nN/extracted/lib/modules/7.1.12-dev147-fairydust1/kernel/drivers/usb/host/xhci-hcd.ko ",
+              "insmod /home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa/image-validation.wgt3nN/extracted/lib/modules/7.1.12-dev147-fairydust1/kernel/drivers/usb/host/xhci-plat-hcd.ko "
+            ],
+            "dockchannel-hid": [
+              "insmod /home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa/image-validation.wgt3nN/extracted/lib/modules/7.1.12-dev147-fairydust1/kernel/drivers/hid/dockchannel-hid/dockchannel-hid.ko "
+            ],
+            "apple-dockchannel": [
+              "builtin apple_dockchannel"
+            ],
+            "apple-rtkit-helper": [
+              "builtin apple_rtkit_helper"
+            ],
+            "appledrm": [
+              "insmod /home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa/image-validation.wgt3nN/extracted/lib/modules/7.1.12-dev147-fairydust1/kernel/drivers/usb/typec/typec.ko ",
+              "insmod /home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa/image-validation.wgt3nN/extracted/lib/modules/7.1.12-dev147-fairydust1/kernel/drivers/gpu/drm/drm_dma_helper.ko ",
+              "insmod /home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa/image-validation.wgt3nN/extracted/lib/modules/7.1.12-dev147-fairydust1/kernel/drivers/gpu/drm/apple/appledrm.ko show_notch=1 "
+            ],
+            "apple-sio": [
+              "insmod /home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa/image-validation.wgt3nN/extracted/lib/modules/7.1.12-dev147-fairydust1/kernel/drivers/dma/apple-sio.ko "
+            ],
+            "tps6598x-core": [
+              "insmod /home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa/image-validation.wgt3nN/extracted/lib/modules/7.1.12-dev147-fairydust1/kernel/drivers/usb/typec/typec.ko ",
+              "insmod /home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa/image-validation.wgt3nN/extracted/lib/modules/7.1.12-dev147-fairydust1/kernel/drivers/usb/typec/tipd/tps6598x-core.ko "
+            ],
+            "phy-apple-atc": [
+              "insmod /home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa/image-validation.wgt3nN/extracted/lib/modules/7.1.12-dev147-fairydust1/kernel/drivers/usb/typec/typec.ko ",
+              "insmod /home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa/image-validation.wgt3nN/extracted/lib/modules/7.1.12-dev147-fairydust1/kernel/drivers/soc/apple/apple-tunable.ko ",
+              "insmod /home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa/image-validation.wgt3nN/extracted/lib/modules/7.1.12-dev147-fairydust1/kernel/drivers/phy/apple/phy-apple-atc.ko "
+            ],
+            "dwc3-apple": [
+              "insmod /home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa/image-validation.wgt3nN/extracted/lib/modules/7.1.12-dev147-fairydust1/kernel/drivers/usb/gadget/udc/udc-core.ko ",
+              "insmod /home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa/image-validation.wgt3nN/extracted/lib/modules/7.1.12-dev147-fairydust1/kernel/drivers/usb/dwc3/dwc3.ko ",
+              "insmod /home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa/image-validation.wgt3nN/extracted/lib/modules/7.1.12-dev147-fairydust1/kernel/drivers/usb/dwc3/dwc3-apple.ko "
+            ],
+            "hid_apple": [
+              "insmod /home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa/image-validation.wgt3nN/extracted/lib/modules/7.1.12-dev147-fairydust1/kernel/drivers/hid/hid-apple.ko fnmode=1 "
+            ],
+            "hid_magicmouse": [
+              "insmod /home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa/image-validation.wgt3nN/extracted/lib/modules/7.1.12-dev147-fairydust1/kernel/drivers/hid/hid-magicmouse.ko "
+            ],
+            "apple-avd": [
+              "insmod /home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa/image-validation.wgt3nN/extracted/lib/modules/7.1.12-dev147-fairydust1/kernel/drivers/media/mc/mc.ko ",
+              "insmod /home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa/image-validation.wgt3nN/extracted/lib/modules/7.1.12-dev147-fairydust1/kernel/drivers/media/common/videobuf2/videobuf2-common.ko ",
+              "insmod /home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa/image-validation.wgt3nN/extracted/lib/modules/7.1.12-dev147-fairydust1/kernel/drivers/media/v4l2-core/videodev.ko ",
+              "insmod /home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa/image-validation.wgt3nN/extracted/lib/modules/7.1.12-dev147-fairydust1/kernel/drivers/media/common/videobuf2/videobuf2-v4l2.ko ",
+              "insmod /home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa/image-validation.wgt3nN/extracted/lib/modules/7.1.12-dev147-fairydust1/kernel/drivers/media/v4l2-core/v4l2-mem2mem.ko ",
+              "insmod /home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa/image-validation.wgt3nN/extracted/lib/modules/7.1.12-dev147-fairydust1/kernel/drivers/media/v4l2-core/v4l2-h264.ko ",
+              "insmod /home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa/image-validation.wgt3nN/extracted/lib/modules/7.1.12-dev147-fairydust1/kernel/drivers/media/common/videobuf2/videobuf2-memops.ko ",
+              "insmod /home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa/image-validation.wgt3nN/extracted/lib/modules/7.1.12-dev147-fairydust1/kernel/drivers/media/common/videobuf2/videobuf2-dma-contig.ko ",
+              "insmod /home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa/image-validation.wgt3nN/extracted/lib/modules/7.1.12-dev147-fairydust1/kernel/drivers/media/v4l2-core/v4l2-vp9.ko ",
+              "insmod /home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa/image-validation.wgt3nN/extracted/lib/modules/7.1.12-dev147-fairydust1/kernel/drivers/media/platform/apple/avd/apple-avd.ko "
+            ]
+          },
+          "userspace": "kmod, mount, blkid, udevadm, switch_root and fsck.ext4 version probes succeed inside the read-only extracted root. The dynamic loader resolves all libraries for these plus umount, systemd-udevd, systemd-tmpfiles, plymouth, plymouthd and cryptsetup. No init, module-loading, mount or device actions ran.",
+          "kernel_builtins": [
+            "RD_GZIP",
+            "BINFMT_ELF",
+            "DEVTMPFS",
+            "DEVTMPFS_MOUNT",
+            "FW_LOADER",
+            "BLK_DEV_NVME",
+            "NVME_APPLE",
+            "SPI_APPLE",
+            "PINCTRL_APPLE_GPIO",
+            "APPLE_DART",
+            "APPLE_MAILBOX",
+            "EXT4_FS",
+            "FAT_FS",
+            "VFAT_FS",
+            "DRM_ASAHI"
+          ],
+          "hook_order": "Runtime EARLYHOOKS=\"asahi udev\"; Asahi vendor firmware loading precedes udev startup, explicit modules and normal uevent triggers. Runtime LATEHOOKS=\"asahi plymouth\" copies vendorfw under the real root. Full host hooks are retained except autodetect; explicit current Apple modules supplement older optional names.",
+          "vendor_firmware": {
+            "path": "/boot/efi/vendorfw/firmware.cpio",
+            "size": 32530132,
+            "sha256": "7c2ce145ec9bb390c2377e6e83d1aacc3817dd227909b0e62b0febe96d2f451f",
+            "manifest_sha256": "2f3ab6e0d7d2fb8ab11746094c1d02a3ef00da9a8037bfdac583eb4b8d31cea1",
+            "manifest_matches_live": true,
+            "verified_files": 217,
+            "verified_symlinks": 0,
+            "verified_hardlinks": 121,
+            "j413_tpmtfw_sha256": "f06776c81796d4da6cd80efbbb4f773f545c97a6c9ac58a3ea69938e830f6c5d",
+            "qa_note": "The newc CPIO represents manifest LINK records as regular hardlinks. The independent parser resolves shared inode content before comparing."
+          }
+        },
+        "findings": [
+          {
+            "priority": "P1",
+            "status": "RESOLVED",
+            "file": "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-initramfs/verify.sh",
+            "line": 18,
+            "problem": "Only executable existence is checked for init/busybox. Removing init_functions from a private extracted copy still exits 0 and prints full PASS. /init sources /init_functions before mount_setup; the missing file prevents normal boot.",
+            "reproducer": {
+              "scratch": "/home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa/missing-init-functions",
+              "operation": "cp -al of independently extracted image; unlink init_functions; run verify.sh on private copy",
+              "exit_code": 0,
+              "log": "/home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa/missing-init-functions.log"
+            },
+            "required_correction": "Check exact runtime startup/helper/hook files and runtime hook/module config, then add missing-startup-file negative controls. Revalidate the unchanged accepted image.",
+            "resolution": "Exact startup content/type/config checks reject missing init_functions and the later host-resolving Busybox symlink counterexample. Both preserved original fixtures now return 1; current positive image and all five startup negative controls pass."
+          },
+          {
+            "priority": "P2",
+            "status": "LIMIT",
+            "problem": "Embedded firmware count is not full firmware self-containment. J413 trackpad firmware is supplied from ESP vendorfw through Asahi early hook; m1n1 supplies SIO firmware data separately.",
+            "action": "Pin/check existing ESP firmware.cpio before activation and retain runtime firmware/DT/probe acceptance gates."
+          }
+        ],
+        "build_warning_assessment": {
+          "missing_dockchannel_hid_firmware": "Expected wildcard build warning for firmware supplied by the validated ESP archive at runtime; kernel DT requests apple/tpmtfw-j413.bin and kernel firmware search includes /lib/firmware/vendor.",
+          "missing_xhci_pci_firmware": "Optional broad non-autodetect PCI host controller firmware warnings; the J413 path uses xhci-plat-hcd. Vendor Asmedia firmware is present in the ESP archive. Not evidence of J413 xHCI dependency failure.",
+          "other_warnings": [
+            "aarch64 microcode hook skipped",
+            "no DRM privacy screen module",
+            "consolefont unset"
+          ]
+        },
+        "limits": [
+          "No boot or hardware acceptance. Runtime root discovery, EFI PARTUUID, SIO firmware parameters, DP probe and audio remain untested.",
+          "No assertion that m1n1-prepared firmware memory can be replaced by firmware files in this archive.",
+          "The full application repository gate is not green; this lane did not rerun the unrelated broad UI suite.",
+          "Original supplied controls pass but were insufficient for the demonstrated missing-startup-file case.",
+          "The independent newc vendor-archive parser first treated manifest links as symlinks; corrected parsing resolves CPIO regular hardlinks by inode, after which all manifest identities match."
+        ],
+        "source_hashes": {
+          "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-initramfs/build-inner.sh": "6c43b5a9c8375c386eb6a19b445f774c10d934dcae869f54319ec4e4157cb183",
+          "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-initramfs/build.sh": "cbaf6cdf2bc825c2895f603dd3e360158cb3ba6b68c57b05e2dfc212244d5ee7",
+          "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-initramfs/test-image.sh": "1940fdfecda14dd0d870c92240b04fc3e5da731e4fbcd9a44319470c0e6477b6",
+          "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-initramfs/test-verify.sh": "7a5e2433c3f92f625f20878d4bc0742fc6fa1e423383ad9e6e2701f6ff8ff1b0",
+          "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-initramfs/validate-image.sh": "05a8d762fb7e5d9d3febea484cc530d7b2a4fb4d7e364210882bd753f19d9feb",
+          "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-initramfs/verify.sh": "bc523c4b5faa55020cf64597a97c656c5b01d3f928c7ace6fdc658ea66acc249",
+          "/home/david/Work/dev147-fairydust-build/build/.config": "678853acf4d664a96a4b1a69bba53d3a22ed419d9bf18bb7bcd322956ce849c6",
+          "/usr/lib/initcpio/init": "9a25937d2434df2e0cb94f5082c3deafa4fef487b59c88c64e2a584de17d807b",
+          "/usr/lib/initcpio/init_functions": "12b72a05836f2d4a00878196330715c934032a1af4fc609babffe8f0932aef76",
+          "/usr/lib/initcpio/hooks/asahi": "faa37c601ca2c30da0d93e76889631fe4381c459a6ff51801066d1bacb3f5df7",
+          "/usr/lib/initcpio/hooks/udev": "5f17add5ee7b6f3c329cdeb536f37e2128ed3dc6fb9e5e3a78b3c5ae74e380bc",
+          "/usr/share/asahi-scripts/functions.sh": "296d34003111210e7222470399a8daa2933d7fd4d9104cfae7873a064860f489",
+          "/home/david/Work/dev147-fairydust-build/linux/drivers/base/firmware_loader/main.c": "421df100b5cd059acdd21c8a22edaaac8ef40f61f6ae0e5df11e43192f0d2f60",
+          "/home/david/Work/dev147-fairydust-build/linux/drivers/hid/dockchannel-hid/dockchannel-hid.c": "15c1186c3bbb87dddb75c1f1053ab3a2c3a2a1128bba6718bd88977f4b7beb2f",
+          "/home/david/Work/dev147-fairydust-build/linux/arch/arm64/boot/dts/apple/t8112-j413.dts": "5f56f8e47f992fb34c11065ee8a58884bd269a19ac6f08286767a3f058ebf475"
+        },
+        "final_rerun": {
+          "run": {
+            "argv": [
+              "bash",
+              "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/validate-boot.sh"
+            ],
+            "cwd": "/home/david/Work/omarchy-dev147-fairydust-build",
+            "timeout_seconds": 280,
+            "exit_code": 0,
+            "elapsed_seconds": 48.363,
+            "log": "/home/david/Work/dev147-fairydust-boot-20260905/research/final-qa/whole-gate.log",
+            "source_hashes_before": "/home/david/Work/dev147-fairydust-boot-20260905/research/final-qa/source-hashes-before.json",
+            "checks_directory": "/home/david/Work/dev147-fairydust-boot-20260905/checks/offline-gate.k7tooauD"
+          },
+          "image_sha256": "e4e70b766e463468f01d1830a4dd1b42b0cbefb4d07463bdf7e54451ecce730a",
+          "startup_log": "/home/david/Work/dev147-fairydust-boot-20260905/checks/offline-gate.k7tooauD/startup-tests.log",
+          "image_log": "/home/david/Work/dev147-fairydust-boot-20260905/checks/offline-gate.k7tooauD/initramfs.log",
+          "original_counterexamples": {
+            "validator_sha256": "669b637bdd4f6cb375ccc60303ac704d4b8f105ce95eb01cc84c89c7f774d1c6",
+            "results": [
+              {
+                "fixture": "/home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa/missing-init-functions",
+                "exit_code": 1,
+                "stdout": "",
+                "stderr": "",
+                "originally_false_pass": true,
+                "now_rejected": true
+              },
+              {
+                "fixture": "/home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa/host-busybox-symlink",
+                "exit_code": 1,
+                "stdout": "",
+                "stderr": "",
+                "originally_false_pass": true,
+                "now_rejected": true
+              }
+            ]
+          },
+          "current_validator_sha256": "669b637bdd4f6cb375ccc60303ac704d4b8f105ce95eb01cc84c89c7f774d1c6",
+          "current_startup_test_sha256": "072c1746751b1e0346c2312b1803cb66bb0aad129a46cfd115226c30debc19b2"
+        }
+      }
+    },
+    "research/stage-qa/independent-stage-qa.json": {
+      "sha256": "5a87cd4bf7f456192539d9b664f0235a66a47f01e4f300c35aa7af74b398a70b",
+      "data": {
+        "schema": 1,
+        "date": "2026-09-05",
+        "scope": "Independent staging helper and launcher review; exact helper and full delivery in disposable unprivileged namespaces. Live boot and privileged system paths were not modified.",
+        "verdict": "PASS: corrected staging source, 20-case sandbox suite, independent depth control and full-delivery rehearsal pass final independent whole gate. No live installation or selection.",
+        "reviewed_helper_sha256": "384ac25abf827daaf4177ee66b55db8eba3261ac1ed63ab2ea25c39ec52683ce",
+        "manifest_sha256": "f33054856e60d3baf5cb7630cb8d7dfc60ffa586e16456c3e7313fffe6f7c59d",
+        "delivery_total_bytes_including_manifest": 2298586871,
+        "tests": [
+          {
+            "command": "TMPDIR=/home/david/Work/dev147-fairydust-boot-20260905/research/stage-qa/tmp PYTHONDONTWRITEBYTECODE=1 python3 /home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-stage/test_stage.py",
+            "exit_code": 0,
+            "tests": 15,
+            "log": "/home/david/Work/dev147-fairydust-boot-20260905/research/stage-qa/test-stage.log"
+          },
+          {
+            "command": "PYTHONDONTWRITEBYTECODE=1 python3 /home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-stage/test_full_delivery.py",
+            "exit_code": 0,
+            "modules": 1862,
+            "log": "/home/david/Work/dev147-fairydust-boot-20260905/research/stage-qa/test-full-delivery.log",
+            "receipt": "/home/david/Work/dev147-fairydust-boot-20260905/research/stage-qa/independent-full-delivery-before-copy-fix/receipt.json"
+          }
+        ],
+        "author_evidence_preservation": {
+          "directory": "/home/david/Work/dev147-fairydust-boot-20260905/research/stage-qa/author-full-delivery-before",
+          "hashes": {
+            "stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "receipt.json": "3e2a6065d20cf4accb5d44b613258c38b241c943bf322c8b0d3988626fb8fbfe",
+            "stdout.json": "69f350ea6d39b5537a29be23beaa5547497cd24702259d266d9c95dab8a82be2"
+          }
+        },
+        "findings": [
+          {
+            "priority": "P2",
+            "status": "RESOLVED",
+            "file": "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-stage/stage.py",
+            "line": 176,
+            "problem": "Untrusted source files are copied until EOF before size/time drift and manifest/inventory rejection. A growing or excessive input can prolong root copying and consume available storage before rejection.",
+            "correction": "Apply a fixed total delivery byte budget before writing file bytes. Copy exactly the initial descriptor size, reject short read, one extra byte, or stat drift. Retain hash checks. Add oversized and growth controls and repin launcher after code changes.",
+            "resolution": "Helper 12501982dfd4adb347103671ce5dbf9650b53b628474a434de3c458fd98ad6a7 reserves a shared 2,300,000,000-byte, 4,096-entry budget; directory recursion is bounded at 32. It copies exactly the initial descriptor size and rejects early EOF, an extra byte, or metadata drift. Launcher is repinned."
+          }
+        ],
+        "verified_design": [
+          "The launcher reads a regular non-symlink helper, checks its fixed SHA-256 in isolated Python under sudo, and executes exactly those bytes.",
+          "Root copy opens each source directory component through O_NOFOLLOW and relative dir_fd descriptors; directories and files are checked against pre-open inode identity.",
+          "Initial untrusted copy is root-owned and private before frozen manifest, exact inventory and inner module manifest validation. Symlinks, hardlinks and special inputs are rejected.",
+          "Targets are fixed unique paths, have checked root-owned non-writable parents, and are published with renameat2 RENAME_NOREPLACE. Existing outputs are refused.",
+          "An exclusively created pacman lock blocks ordinary package transactions. Existing lock ownership is preserved, and only the held lock inode is removed on normal exit.",
+          "Active boot bundle and package guard bytes are pinned before staging; protected /boot, GRUB, old integration state and pacman local database are compared before and after copying/publication.",
+          "No update-m1n1, grub-mkconfig, preset, depmod, package operation, kernel selection or reboot is invoked. Matching modules receive their own release directory.",
+          "Only the new versioned boot directory, module directory and retained private state are added. Full-delivery rehearsal checks all published module bytes and key boot artifacts."
+        ],
+        "limits": [
+          "Protected GRUB/old-state inputs in tests are synthetic. Live protected files remain unavailable in this unprivileged lane and will be exported by the user-run helper.",
+          "Staging does not establish a booted candidate, working SIO firmware preparation or hardware acceptance.",
+          "Publication consists of separate directory renames; interruption can leave isolated partial staging paths and possibly the pacman lock. No cross-filesystem atomicity or automatic retry/cleanup is claimed.",
+          "Old kernel selection after changing the shared DT is not validated fallback. Recovery of ext4 GRUB state needs its own route; macOS can directly restore only the FAT bundle."
+        ],
+        "skill_exception": "The documented dependency-free frozen dataclass/strict parser choice avoids introducing Pydantic into a privileged boot recovery helper. The adjacent plan explicitly records this exception.",
+        "corrected_review": {
+          "helper_sha256": "12501982dfd4adb347103671ce5dbf9650b53b628474a434de3c458fd98ad6a7",
+          "tests": 20,
+          "exit_code": 0,
+          "log": "/home/david/Work/dev147-fairydust-boot-20260905/research/stage-qa/test-stage-bounded-copy.log",
+          "extra_control": {
+            "case": "depth-34 input directory",
+            "expected_stage_exit": 1,
+            "exit_code": 1,
+            "protected_fixtures_preserved": true,
+            "log": "/home/david/Work/dev147-fairydust-boot-20260905/research/stage-qa/depth-limit.log"
+          },
+          "actual_delivery": {
+            "files_including_manifest": 1886,
+            "entries_including_directories": 2247,
+            "bytes": 2298586871,
+            "max_path_depth": 13
+          }
+        },
+        "final_rerun": {
+          "run": {
+            "argv": [
+              "bash",
+              "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/validate-boot.sh"
+            ],
+            "cwd": "/home/david/Work/omarchy-dev147-fairydust-build",
+            "timeout_seconds": 280,
+            "exit_code": 0,
+            "elapsed_seconds": 48.363,
+            "log": "/home/david/Work/dev147-fairydust-boot-20260905/research/final-qa/whole-gate.log",
+            "source_hashes_before": "/home/david/Work/dev147-fairydust-boot-20260905/research/final-qa/source-hashes-before.json",
+            "checks_directory": "/home/david/Work/dev147-fairydust-boot-20260905/checks/offline-gate.k7tooauD"
+          },
+          "helper_sha256": "12501982dfd4adb347103671ce5dbf9650b53b628474a434de3c458fd98ad6a7",
+          "launcher_sha256": "748810653d9f083113052afc0b19acc1e0b1d73ec99b4165906a46a83e856c15",
+          "test_log": "/home/david/Work/dev147-fairydust-boot-20260905/checks/offline-gate.k7tooauD/stage-tests.log",
+          "full_delivery_log": "/home/david/Work/dev147-fairydust-boot-20260905/checks/offline-gate.k7tooauD/stage-full.log",
+          "full_delivery_receipt": {
+            "verdict": "PASS",
+            "command": [
+              "/usr/bin/bwrap",
+              "--die-with-parent",
+              "--unshare-user",
+              "--uid",
+              "0",
+              "--gid",
+              "0",
+              "--ro-bind",
+              "/",
+              "/",
+              "--dev-bind",
+              "/dev",
+              "/dev",
+              "--proc",
+              "/proc",
+              "--bind",
+              "/home/david/Work/dev147-fairydust-boot-20260905/stage/full-delivery-sandbox/dev147-stage-test-zewpykry/boot",
+              "/boot",
+              "--bind",
+              "/home/david/Work/dev147-fairydust-boot-20260905/stage/full-delivery-sandbox/dev147-stage-test-zewpykry/etc",
+              "/etc",
+              "--bind",
+              "/home/david/Work/dev147-fairydust-boot-20260905/stage/full-delivery-sandbox/dev147-stage-test-zewpykry/var/lib",
+              "/var/lib",
+              "--bind",
+              "/home/david/Work/dev147-fairydust-boot-20260905/stage/full-delivery-sandbox/dev147-stage-test-zewpykry/modules",
+              "/usr/lib/modules",
+              "--bind",
+              "/home/david/Work/dev147-fairydust-boot-20260905/stage/full-delivery-sandbox/dev147-stage-test-zewpykry/run/lock",
+              "/run/lock",
+              "--chdir",
+              "/",
+              "/usr/bin/env",
+              "-i",
+              "PATH=/usr/bin:/bin",
+              "/usr/bin/python3",
+              "-I",
+              "-c",
+              "import hashlib\nimport os\nimport stat\nimport sys\n\nhelper, expected, delivery, manifest = sys.argv[1:]\ndescriptor = os.open(helper, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)\nwith os.fdopen(descriptor, \"rb\") as stream:\n    if not stat.S_ISREG(os.fstat(stream.fileno()).st_mode):\n        raise SystemExit(\"FAIL: helper is not a regular file\")\n    code = stream.read(1048577)\nif len(code) > 1048576 or hashlib.sha256(code).hexdigest() != expected:\n    raise SystemExit(\"FAIL: frozen helper hash mismatch\")\nsys.argv = [helper, delivery, manifest]\nglobals()[\"__file__\"] = helper\nexec(compile(code, helper, \"exec\"), globals())",
+              "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-stage/stage.py",
+              "12501982dfd4adb347103671ce5dbf9650b53b628474a434de3c458fd98ad6a7",
+              "/home/david/Work/dev147-fairydust-boot-20260905/delivery",
+              "f33054856e60d3baf5cb7630cb8d7dfc60ffa586e16456c3e7313fffe6f7c59d"
+            ],
+            "exit": 0,
+            "modules": 1862,
+            "manifest_sha256": "f33054856e60d3baf5cb7630cb8d7dfc60ffa586e16456c3e7313fffe6f7c59d",
+            "helper_sha256": "12501982dfd4adb347103671ce5dbf9650b53b628474a434de3c458fd98ad6a7",
+            "protected_fixture_preserved": true,
+            "scope": "Full frozen delivery through exact launcher bootstrap and root stage entrypoint in unprivileged bwrap; disposable targets only; no live installation or selection."
+          },
+          "source_hashes_unchanged": true
+        }
+      }
+    },
+    "stage/bounded-copy-qa.json": {
+      "sha256": "a3b465ca7621700aa689cd13adde00e656db91080cf99d6668cfa4a0f2e5976a",
+      "data": {
+        "verdict": "PASS",
+        "timestamp_utc": "2026-09-04T23:29:00.483572+00:00",
+        "scope": "Bounded-copy P2 correction; author QA only, no live privileged staging.",
+        "supersedes_source_identity": "code-qa.json",
+        "helper_sha256": "12501982dfd4adb347103671ce5dbf9650b53b628474a434de3c458fd98ad6a7",
+        "launcher_sha256": "748810653d9f083113052afc0b19acc1e0b1d73ec99b4165906a46a83e856c15",
+        "frozen_delivery": {
+          "bytes_including_manifest": 2298586871,
+          "entries": 2247,
+          "maximum_component_depth": 13,
+          "manifest_sha256": "f33054856e60d3baf5cb7630cb8d7dfc60ffa586e16456c3e7313fffe6f7c59d"
+        },
+        "fixed_limits": {
+          "bytes_per_copy_tree": 2300000000,
+          "entries_per_copy_tree": 4096,
+          "depth": 32,
+          "headroom_bytes": 1413129
+        },
+        "behavior": "Reserve initial fstat size before destination creation; copy exactly that size; reject early EOF, one extra byte, or metadata drift. Recursive typed budget bounds files and lazy scandir enumeration before sorting.",
+        "regressions": {
+          "test_first_red": "Old code copied the oversized sparse Image before rejecting its hash; old code also accepted4097 empty unlisted directories.",
+          "unit_cases": 20,
+          "exit": 0,
+          "command": "TMPDIR=/home/david/Work/dev147-fairydust-boot-20260905/stage python3 dev/apple-dp-altmode/fairydust/boot-stage/test_stage.py",
+          "new_controls": [
+            "oversized known file before content creation",
+            "oversized unlisted file before content creation",
+            "4097-entry flood",
+            "file growth bounded to initial size",
+            "shared recursive byte budget"
+          ]
+        },
+        "full_delivery": {
+          "exit": 0,
+          "modules": 1862,
+          "receipt": "full-delivery-sandbox/receipt.json",
+          "helper_sha256": "12501982dfd4adb347103671ce5dbf9650b53b628474a434de3c458fd98ad6a7",
+          "protected_fixture_preserved": true
+        },
+        "other_checks": {
+          "ruff_check": 0,
+          "ruff_format": 0,
+          "mypy_strict": 0,
+          "bash_syntax": 0,
+          "git_diff_check": 0
+        },
+        "evidence_sha256": {
+          "bounded-copy-red.stderr": "dd9929fcefba6cc70a2a7d84e708091d82eb49a371f2d2e5817faed83cf24cf8",
+          "bounded-copy-tests.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bounded-copy-tests.stderr": "cf7d4523720927dedd9c00bab8a61f79d24529bf59a5add4760a4abd27189ffd",
+          "full-delivery-sandbox/receipt.json": "3da15651963ab8c1c7ff2cfeea0516d2e88d7c57855a5cb55e18147b29da231d"
+        }
+      }
+    },
+    "checks/offline-gate.ZDD7H3p9/stage-run/receipt.json": {
+      "sha256": "43d6f56b3c27a36518281a7a26ef7b4f4b10ecf01ccc2f4301e4d8f56ea428ee",
+      "data": {
+        "verdict": "PASS",
+        "command": [
+          "/usr/bin/bwrap",
+          "--die-with-parent",
+          "--unshare-user",
+          "--uid",
+          "0",
+          "--gid",
+          "0",
+          "--ro-bind",
+          "/",
+          "/",
+          "--dev-bind",
+          "/dev",
+          "/dev",
+          "--proc",
+          "/proc",
+          "--bind",
+          "/home/david/Work/dev147-fairydust-boot-20260905/stage/full-delivery-sandbox/dev147-stage-test-fx6dz19s/boot",
+          "/boot",
+          "--bind",
+          "/home/david/Work/dev147-fairydust-boot-20260905/stage/full-delivery-sandbox/dev147-stage-test-fx6dz19s/etc",
+          "/etc",
+          "--bind",
+          "/home/david/Work/dev147-fairydust-boot-20260905/stage/full-delivery-sandbox/dev147-stage-test-fx6dz19s/var/lib",
+          "/var/lib",
+          "--bind",
+          "/home/david/Work/dev147-fairydust-boot-20260905/stage/full-delivery-sandbox/dev147-stage-test-fx6dz19s/modules",
+          "/usr/lib/modules",
+          "--bind",
+          "/home/david/Work/dev147-fairydust-boot-20260905/stage/full-delivery-sandbox/dev147-stage-test-fx6dz19s/run/lock",
+          "/run/lock",
+          "--chdir",
+          "/",
+          "/usr/bin/env",
+          "-i",
+          "PATH=/usr/bin:/bin",
+          "/usr/bin/python3",
+          "-I",
+          "-c",
+          "import hashlib\nimport os\nimport stat\nimport sys\n\nhelper, expected, delivery, manifest = sys.argv[1:]\ndescriptor = os.open(helper, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)\nwith os.fdopen(descriptor, \"rb\") as stream:\n    if not stat.S_ISREG(os.fstat(stream.fileno()).st_mode):\n        raise SystemExit(\"FAIL: helper is not a regular file\")\n    code = stream.read(1048577)\nif len(code) > 1048576 or hashlib.sha256(code).hexdigest() != expected:\n    raise SystemExit(\"FAIL: frozen helper hash mismatch\")\nsys.argv = [helper, delivery, manifest]\nglobals()[\"__file__\"] = helper\nexec(compile(code, helper, \"exec\"), globals())",
+          "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-stage/stage.py",
+          "12501982dfd4adb347103671ce5dbf9650b53b628474a434de3c458fd98ad6a7",
+          "/home/david/Work/dev147-fairydust-boot-20260905/delivery",
+          "f33054856e60d3baf5cb7630cb8d7dfc60ffa586e16456c3e7313fffe6f7c59d"
+        ],
+        "exit": 0,
+        "modules": 1862,
+        "manifest_sha256": "f33054856e60d3baf5cb7630cb8d7dfc60ffa586e16456c3e7313fffe6f7c59d",
+        "helper_sha256": "12501982dfd4adb347103671ce5dbf9650b53b628474a434de3c458fd98ad6a7",
+        "protected_fixture_preserved": true,
+        "scope": "Full frozen delivery through exact launcher bootstrap and root stage entrypoint in unprivileged bwrap; disposable targets only; no live installation or selection."
+      }
+    },
+    "research/final-qa/independent-final-qa.json": {
+      "sha256": "befb5ad38f19ed45b2b380046b7044a8a43797d92319cee1af7d1e191743b793",
+      "data": {
+        "schema": 1,
+        "date": "2026-09-05",
+        "reviewer": "Independent QA lane; did not author the reviewed implementation.",
+        "verdict": "PASS: complete offline boot inputs and unselected staging handoff. Full application repository gate remains not green.",
+        "scope": "Read-only implementation/source review and exact complete gate against frozen artifacts; tests use disposable unprivileged namespaces. Scratch and explicitly authorized test evidence only. No sudo or live boot/system changes.",
+        "gate": {
+          "argv": [
+            "bash",
+            "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/validate-boot.sh"
+          ],
+          "cwd": "/home/david/Work/omarchy-dev147-fairydust-build",
+          "timeout_seconds": 280,
+          "exit_code": 0,
+          "elapsed_seconds": 48.363,
+          "log": "/home/david/Work/dev147-fairydust-boot-20260905/research/final-qa/whole-gate.log",
+          "source_hashes_before": "/home/david/Work/dev147-fairydust-boot-20260905/research/final-qa/source-hashes-before.json",
+          "checks_directory": "/home/david/Work/dev147-fairydust-boot-20260905/checks/offline-gate.k7tooauD"
+        },
+        "source_hashes_unchanged": true,
+        "source_sha256": {
+          "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-bundle/bundle.sh": "9e24b336c166097b05a2a8b8d29e32874f38bd1356cc7b67b8c78449775c2285",
+          "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-bundle/test-bundle.sh": "937c58d3af64e080ee49e8b2769a94c51bf0c591ac59a2e706b5a3ac582e9202",
+          "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-initramfs/build-inner.sh": "6c43b5a9c8375c386eb6a19b445f774c10d934dcae869f54319ec4e4157cb183",
+          "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-initramfs/build.sh": "cbaf6cdf2bc825c2895f603dd3e360158cb3ba6b68c57b05e2dfc212244d5ee7",
+          "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-initramfs/test-image.sh": "1940fdfecda14dd0d870c92240b04fc3e5da731e4fbcd9a44319470c0e6477b6",
+          "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-initramfs/test-startup.sh": "072c1746751b1e0346c2312b1803cb66bb0aad129a46cfd115226c30debc19b2",
+          "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-initramfs/test-verify.sh": "7a5e2433c3f92f625f20878d4bc0742fc6fa1e423383ad9e6e2701f6ff8ff1b0",
+          "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-initramfs/validate-image.sh": "05a8d762fb7e5d9d3febea484cc530d7b2a4fb4d7e364210882bd753f19d9feb",
+          "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-initramfs/verify.sh": "669b637bdd4f6cb375ccc60303ac704d4b8f105ce95eb01cc84c89c7f774d1c6",
+          "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-stage/launch.sh": "748810653d9f083113052afc0b19acc1e0b1d73ec99b4165906a46a83e856c15",
+          "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-stage/stage.py": "12501982dfd4adb347103671ce5dbf9650b53b628474a434de3c458fd98ad6a7",
+          "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-stage/test_full_delivery.py": "77f2f8cdf9cf2a7c64e6ad4165b366b712275a7c084c0961a8d44b6a15372674",
+          "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-stage/test_stage.py": "fddaf26773bd92d3805ca3c723738f1812e4b03d355485a3548cff0b762403c3",
+          "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/test-module-tree.sh": "a41cabbf6ab2e881938030c8ffbb580922aa99f64aa80475aed45293a515a8a7",
+          "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/validate-boot.sh": "8e0b382ed82a1ab6c7b57b85c72304e6d98bd07b09e9dc38fbdf99f7703a573b",
+          "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/validate-offline.sh": "cfc1fabe76885e7399ccc765f492bf4660c37b614c8c35fde973ed5a806b7198"
+        },
+        "artifact_identities": {
+          "Image": {
+            "bytes": 33982976,
+            "sha256": "5175f41bb2d25abce49f6a844cdbe9233a4d090de34fa9aadcf6512c87590079"
+          },
+          "initramfs.img": {
+            "bytes": 191153387,
+            "sha256": "e4e70b766e463468f01d1830a4dd1b42b0cbefb4d07463bdf7e54451ecce730a"
+          },
+          "t8112-j413.dtb": {
+            "bytes": 72115,
+            "sha256": "9831d42f9c271ce35dd3e32b5c8298e1c13849568853aea0779f40bb67377b80"
+          },
+          "boot.bin": {
+            "bytes": 1489431,
+            "sha256": "1ae29a2bfadb309562c205520d8c28e2a8df2283bc88bbfb52474e54333c3dff"
+          },
+          "config": {
+            "bytes": 239876,
+            "sha256": "678853acf4d664a96a4b1a69bba53d3a22ed419d9bf18bb7bcd322956ce849c6"
+          },
+          "SHA256SUMS": {
+            "bytes": 276751,
+            "sha256": "f33054856e60d3baf5cb7630cb8d7dfc60ffa586e16456c3e7313fffe6f7c59d"
+          }
+        },
+        "delivery_entries_excluding_manifest": 1885,
+        "delivered_modules": 1862,
+        "checkbox_verification": [
+          {
+            "step": "Slice 1: Assemble complete offline boot inputs",
+            "verdict": "VERIFIED",
+            "evidence": [
+              "Frozen Image/config/DTB and full module tree match built candidate and source 83604c8b18e4673ed91e1172aef9aebeb0af20ce.",
+              "Real initramfs: 334 exact modules, builtin GPU, dependency closure, 12 embedded firmware files and exact startup identity/order.",
+              "Independent boot-bundle byte assembly/segment analysis, source consumption review and rejection controls.",
+              "Existing external ESP firmware archive and manifest match their pinned identities."
+            ],
+            "limit": "m1n1 runtime SIO firmware preparation and driver/device behavior need an attended candidate boot."
+          },
+          {
+            "step": "Slice 2: Prepare unselected staging and protected evidence collection",
+            "verdict": "VERIFIED",
+            "evidence": [
+              "Exact fixed user launcher executes the helper bytes verified in isolated privileged Python. Helper 12501982dfd4adb347103671ce5dbf9650b53b628474a434de3c458fd98ad6a7 and manifest f33054856e60d3baf5cb7630cb8d7dfc60ffa586e16456c3e7313fffe6f7c59d are pinned.",
+              "All 20 stage tests pass, including bounded copy failures; an independent depth-34 test rejects.",
+              "Full actual-delivery rehearsal verifies every published module and boot artifact and preserves protected fixtures.",
+              "Ruff lint/format, strict mypy and shell syntax pass."
+            ],
+            "limit": "No live stage ran. GRUB/private-state fixtures are synthetic; protected live evidence collection remains the user-run next action."
+          },
+          {
+            "step": "FINAL: independently verify the offline integration and staging handoff",
+            "verdict": "VERIFIED",
+            "evidence": [
+              "Exact gate exit 0 in 48.363 seconds with 280-second timeout.",
+              "Frozen source hashes unchanged across gate.",
+              "Original missing startup and host-symlink counterexamples both now reject.",
+              "Reviewed plan, evidence and user-command/recovery boundaries; no active boot or hardware result is asserted."
+            ],
+            "limit": "This verifies preparation and handoff, not the broader goal of staging/activating/testing the prototype."
+          },
+          {
+            "step": "User-run live staging and real protected evidence",
+            "verdict": "UNVERIFIABLE HERE",
+            "reason": "Not performed; all new live destination paths and manual-results directory are absent."
+          },
+          {
+            "step": "Paired activation, complete recovery and hardware acceptance",
+            "verdict": "UNVERIFIABLE HERE",
+            "reason": "Not performed. Restoring ext4 GRUB state from macOS/Recovery still needs a verified route."
+          }
+        ],
+        "resolved_findings": [
+          {
+            "id": "startup-missing-file",
+            "severity": "P1",
+            "status": "RESOLVED",
+            "evidence": "/home/david/Work/dev147-fairydust-boot-20260905/research/final-qa/original-counterexamples.json"
+          },
+          {
+            "id": "startup-host-symlink",
+            "severity": "P1",
+            "status": "RESOLVED",
+            "evidence": "/home/david/Work/dev147-fairydust-boot-20260905/checks/offline-gate.k7tooauD/startup-tests.log"
+          },
+          {
+            "id": "unbounded-root-copy",
+            "severity": "P2",
+            "status": "RESOLVED",
+            "evidence": "/home/david/Work/dev147-fairydust-boot-20260905/checks/offline-gate.k7tooauD/stage-tests.log"
+          },
+          {
+            "id": "generic-bundle-selection-wording",
+            "severity": "minor",
+            "status": "RESOLVED",
+            "evidence": "bundle.sh content PASS no longer asserts selection state."
+          }
+        ],
+        "open_blocking_implementation_findings": [],
+        "component_receipts": {
+          "/home/david/Work/dev147-fairydust-boot-20260905/research/boot-selection-and-bundle-qa.json": "853fc0ea77abba36ca6f4814551415e39c056dbc9368dc6a485d1fc20c0275ca",
+          "/home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa/independent-initramfs-qa.json": "a6ef78e083bbae8bfcb054fec1de3b82c9b7478d65c0b540af5ba84afaa15a95",
+          "/home/david/Work/dev147-fairydust-boot-20260905/research/stage-qa/independent-stage-qa.json": "5a87cd4bf7f456192539d9b664f0235a66a47f01e4f300c35aa7af74b398a70b"
+        },
+        "commands_and_logs": {
+          "/home/david/Work/dev147-fairydust-boot-20260905/checks/offline-gate.k7tooauD/stage-full.log": "1abfb573b5fa2667603e11155213eb7daba62c7973f2368801f1fc2d9c801d16",
+          "/home/david/Work/dev147-fairydust-boot-20260905/checks/offline-gate.k7tooauD/format.log": "177f260a5645724013185e4b140c7045cc39e56c0c97b120f5cb23599f85f0de",
+          "/home/david/Work/dev147-fairydust-boot-20260905/checks/offline-gate.k7tooauD/bundle-tests.log": "bf67b9844cae08a8d26a29bb4e7c7d0320acde01c577c0e79ab1fa1a1c4889a1",
+          "/home/david/Work/dev147-fairydust-boot-20260905/checks/offline-gate.k7tooauD/live-pins.log": "4dc446def33b56c262cd5f356c035787370d91a6f2d2435f1410ac2aed08f3c3",
+          "/home/david/Work/dev147-fairydust-boot-20260905/checks/offline-gate.k7tooauD/modules.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "/home/david/Work/dev147-fairydust-boot-20260905/checks/offline-gate.k7tooauD/manifest-pin.log": "9d61a875cbcd51183132641170bc9bf66af1fe18da804327e5b7af812c6dac2d",
+          "/home/david/Work/dev147-fairydust-boot-20260905/checks/offline-gate.k7tooauD/stage-tests.log": "7fa94b79e48872e2c6170e15af2608b7f6c0222a59a72ff96de39f9b1e38ddf3",
+          "/home/david/Work/dev147-fairydust-boot-20260905/checks/offline-gate.k7tooauD/initramfs-tests.log": "c6c2b32f4d13a8b4f61404a6506092f22ac2dcbc2525821c50b3b143481e50a5",
+          "/home/david/Work/dev147-fairydust-boot-20260905/checks/offline-gate.k7tooauD/bundle.log": "639fb4c481f4e4cf5e61ec2fc0c61bd2ad161155c199bc185da9b3e0b6eaabbf",
+          "/home/david/Work/dev147-fairydust-boot-20260905/checks/offline-gate.k7tooauD/initramfs-truncated.log": "de9c5fd39e002b14c52f4c1d96530622588b3956f70177daea4c143fe37a0b2a",
+          "/home/david/Work/dev147-fairydust-boot-20260905/checks/offline-gate.k7tooauD/initramfs.log": "e44ed4ee76dc221eb6e7534fe355440d4909cf58d547ff13663983c8d384a83d",
+          "/home/david/Work/dev147-fairydust-boot-20260905/checks/offline-gate.k7tooauD/result.txt": "f878511a171e6a154412cd71e7694306f3c7d86501a2e1616a9126eb732e0e79",
+          "/home/david/Work/dev147-fairydust-boot-20260905/checks/offline-gate.k7tooauD/startup-tests.log": "6f5f5c8dee87010bcdd1b7be08db3b751954549da5f21c591935512598ecdb08",
+          "/home/david/Work/dev147-fairydust-boot-20260905/checks/offline-gate.k7tooauD/delivery.log": "6e6e0d15e1f0171cf569bea7b137b4a1a61f0b85a5078ed6e60e6c06db469333",
+          "/home/david/Work/dev147-fairydust-boot-20260905/checks/offline-gate.k7tooauD/ruff.log": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18",
+          "/home/david/Work/dev147-fairydust-boot-20260905/checks/offline-gate.k7tooauD/kernel.log": "8f8e7cd15827b8d23e5fd403e9617f7950fa493d2b2a77e5472044afc0c9829b",
+          "/home/david/Work/dev147-fairydust-boot-20260905/checks/offline-gate.k7tooauD/mypy.log": "8228fcc5ce46d42d01caf3cd941f4e9c5f2bcc372bb5b147a2f0572d2dd675a8",
+          "/home/david/Work/dev147-fairydust-boot-20260905/checks/offline-gate.k7tooauD/stage-run/receipt.json": "008351a37d28e002531bff19e88e8c17f37dc3595e2403de2f7803ae7a051285"
+        },
+        "original_counterexamples": {
+          "validator_sha256": "669b637bdd4f6cb375ccc60303ac704d4b8f105ce95eb01cc84c89c7f774d1c6",
+          "results": [
+            {
+              "fixture": "/home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa/missing-init-functions",
+              "exit_code": 1,
+              "stdout": "",
+              "stderr": "",
+              "originally_false_pass": true,
+              "now_rejected": true
+            },
+            {
+              "fixture": "/home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa/host-busybox-symlink",
+              "exit_code": 1,
+              "stdout": "",
+              "stderr": "",
+              "originally_false_pass": true,
+              "now_rejected": true
+            }
+          ]
+        },
+        "live_stage_paths": {
+          "/boot/dev147-fairydust-7.1.12-dev147-fairydust1": "absent",
+          "/usr/lib/modules/7.1.12-dev147-fairydust1": "absent",
+          "/var/lib/dev147-fairydust-stage/7.1.12-dev147-fairydust1": "absent",
+          "/home/david/Work/dev147-fairydust-boot-20260905/stage/manual-results": "absent"
+        },
+        "repository_gate": {
+          "verdict": "NOT GREEN",
+          "test_all_exit": 1,
+          "failing_files": [
+            "bar-widget-contract-test.sh",
+            "config-test.sh",
+            "runtime-smoke-test.sh",
+            "unowned-system-paths-test.sh",
+            "zram-package-contract-test.sh"
+          ],
+          "reason": "Three missing omarchy-pkgs checks, existing IPC registration count mismatch, and bar-widget temporary-directory cleanup failure. Focused bar-widget rerun passes.",
+          "bar_widget_focused_exit": 0,
+          "command_metadata_exit": 0,
+          "commands": 455,
+          "bin_syntax_exit": 0,
+          "bin_syntax_count": 458,
+          "inspection": "Read retained logs and exact failures; did not repeat unrelated broad desktop tests.",
+          "source_log": "/home/david/Work/dev147-fairydust-boot-20260905/logs/omarchy-test-all.log"
+        },
+        "reviewed_documents_sha256": {
+          "/home/david/Work/omarchy-dev147-fairydust-build/docs/plans/2026-09-05-dev147-fairydust-boot-integration.md": "7ec5cb18d283952b25b250f861063568b746a11be8d9eff2df5971623db45845",
+          "/home/david/Work/omarchy-dev147-fairydust-build/docs/evidence/dev-147-fairydust-boot-preparation-2026-09-05.md": "6efe4984281081d7dd452734d56308208767cb6b7a6700165b58aaef908315d6",
+          "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-stage/README.md": "f25c16ae132c73be19bda6e8534267fc9ffc01810ca4da7d51779290045ce6e0"
+        },
+        "limits": [
+          "No live staging, installation, selected-boot write, reboot, device manipulation, or edit to /home/david/o-live. Running kernel is still 7.1.6-1-1-ARCH.",
+          "Stage-only preservation is supported by fixed new paths, protected snapshot checks and disposable fixtures; this is not hardware acceptance.",
+          "The initramfs depends on the external ESP vendor firmware archive and m1n1-populated SIO firmware parameters/memory. Twelve embedded files are not a complete firmware self-containment claim.",
+          "The inherited 50 DT schema findings are not a schema PASS.",
+          "Paired m1n1/kernel/initramfs activation must handle GRUB overrides and interruption. FAT boot.bin and ext4 grub.cfg cannot be replaced as one filesystem-atomic transaction.",
+          "macOS/Recovery can restore the FAT bundle; a route to restore ext4 GRUB state must be designed/tested before activation.",
+          "Old kernel selection under the changed shared DT is not verified fallback.",
+          "The full application repository gate has five recorded failing files; no whole-repository PASS."
+        ]
+      }
+    },
+    "research/final-qa/whole-gate-run.json": {
+      "sha256": "82f2954ef6ec5b2b3349999a6003364d3eff60cf058a0b4a24930051ffcccc0c",
+      "data": {
+        "argv": [
+          "bash",
+          "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/validate-boot.sh"
+        ],
+        "cwd": "/home/david/Work/omarchy-dev147-fairydust-build",
+        "timeout_seconds": 280,
+        "exit_code": 0,
+        "elapsed_seconds": 48.363,
+        "log": "/home/david/Work/dev147-fairydust-boot-20260905/research/final-qa/whole-gate.log",
+        "source_hashes_before": "/home/david/Work/dev147-fairydust-boot-20260905/research/final-qa/source-hashes-before.json",
+        "checks_directory": "/home/david/Work/dev147-fairydust-boot-20260905/checks/offline-gate.k7tooauD"
+      }
+    },
+    "research/final-qa/original-counterexamples.json": {
+      "sha256": "ceab0e2a6a49e14d20abc63e312b6ae400fc20975ee9874e899215b997c9335a",
+      "data": {
+        "validator_sha256": "669b637bdd4f6cb375ccc60303ac704d4b8f105ce95eb01cc84c89c7f774d1c6",
+        "results": [
+          {
+            "fixture": "/home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa/missing-init-functions",
+            "exit_code": 1,
+            "stdout": "",
+            "stderr": "",
+            "originally_false_pass": true,
+            "now_rejected": true
+          },
+          {
+            "fixture": "/home/david/Work/dev147-fairydust-boot-20260905/research/initramfs-qa/host-busybox-symlink",
+            "exit_code": 1,
+            "stdout": "",
+            "stderr": "",
+            "originally_false_pass": true,
+            "now_rejected": true
+          }
+        ]
+      }
+    },
+    "checks/offline-gate.k7tooauD/stage-run/receipt.json": {
+      "sha256": "008351a37d28e002531bff19e88e8c17f37dc3595e2403de2f7803ae7a051285",
+      "data": {
+        "verdict": "PASS",
+        "command": [
+          "/usr/bin/bwrap",
+          "--die-with-parent",
+          "--unshare-user",
+          "--uid",
+          "0",
+          "--gid",
+          "0",
+          "--ro-bind",
+          "/",
+          "/",
+          "--dev-bind",
+          "/dev",
+          "/dev",
+          "--proc",
+          "/proc",
+          "--bind",
+          "/home/david/Work/dev147-fairydust-boot-20260905/stage/full-delivery-sandbox/dev147-stage-test-zewpykry/boot",
+          "/boot",
+          "--bind",
+          "/home/david/Work/dev147-fairydust-boot-20260905/stage/full-delivery-sandbox/dev147-stage-test-zewpykry/etc",
+          "/etc",
+          "--bind",
+          "/home/david/Work/dev147-fairydust-boot-20260905/stage/full-delivery-sandbox/dev147-stage-test-zewpykry/var/lib",
+          "/var/lib",
+          "--bind",
+          "/home/david/Work/dev147-fairydust-boot-20260905/stage/full-delivery-sandbox/dev147-stage-test-zewpykry/modules",
+          "/usr/lib/modules",
+          "--bind",
+          "/home/david/Work/dev147-fairydust-boot-20260905/stage/full-delivery-sandbox/dev147-stage-test-zewpykry/run/lock",
+          "/run/lock",
+          "--chdir",
+          "/",
+          "/usr/bin/env",
+          "-i",
+          "PATH=/usr/bin:/bin",
+          "/usr/bin/python3",
+          "-I",
+          "-c",
+          "import hashlib\nimport os\nimport stat\nimport sys\n\nhelper, expected, delivery, manifest = sys.argv[1:]\ndescriptor = os.open(helper, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)\nwith os.fdopen(descriptor, \"rb\") as stream:\n    if not stat.S_ISREG(os.fstat(stream.fileno()).st_mode):\n        raise SystemExit(\"FAIL: helper is not a regular file\")\n    code = stream.read(1048577)\nif len(code) > 1048576 or hashlib.sha256(code).hexdigest() != expected:\n    raise SystemExit(\"FAIL: frozen helper hash mismatch\")\nsys.argv = [helper, delivery, manifest]\nglobals()[\"__file__\"] = helper\nexec(compile(code, helper, \"exec\"), globals())",
+          "/home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-stage/stage.py",
+          "12501982dfd4adb347103671ce5dbf9650b53b628474a434de3c458fd98ad6a7",
+          "/home/david/Work/dev147-fairydust-boot-20260905/delivery",
+          "f33054856e60d3baf5cb7630cb8d7dfc60ffa586e16456c3e7313fffe6f7c59d"
+        ],
+        "exit": 0,
+        "modules": 1862,
+        "manifest_sha256": "f33054856e60d3baf5cb7630cb8d7dfc60ffa586e16456c3e7313fffe6f7c59d",
+        "helper_sha256": "12501982dfd4adb347103671ce5dbf9650b53b628474a434de3c458fd98ad6a7",
+        "protected_fixture_preserved": true,
+        "scope": "Full frozen delivery through exact launcher bootstrap and root stage entrypoint in unprivileged bwrap; disposable targets only; no live installation or selection."
+      }
+    }
+  },
+  "author_gate": {
+    "command": "bash dev/apple-dp-altmode/fairydust/validate-boot.sh",
+    "exit": 0,
+    "check_directory": "checks/offline-gate.ZDD7H3p9"
+  },
+  "repo_checks": {
+    "test_all_exit": 1,
+    "failing_files": [
+      "bar-widget-contract-test.sh",
+      "config-test.sh",
+      "runtime-smoke-test.sh",
+      "unowned-system-paths-test.sh",
+      "zram-package-contract-test.sh"
+    ],
+    "bar_widget_recheck_exit": 0,
+    "command_metadata_exit": 0,
+    "commands": 455,
+    "bin_syntax_count": 458,
+    "bin_syntax_exit": 0
+  },
+  "manual_stage_executed": false,
+  "selected_boot_changed": false,
+  "hardware_validated": false,
+  "independent_gate": {
+    "command": "bash dev/apple-dp-altmode/fairydust/validate-boot.sh",
+    "exit": 0,
+    "duration_seconds": 48.363,
+    "check_directory": "checks/offline-gate.k7tooauD"
+  }
+}
