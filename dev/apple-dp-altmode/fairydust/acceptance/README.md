@@ -29,3 +29,15 @@ bash /home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairyd
 ```
 
 The gate combines formatting, lint, strict typing, namespace entry-point controls and live read-only capture checks. Fixtures replace DRM/Type-C trees and command outputs; protected pin files and boot ID remain live inputs. A software gate PASS can include a live snapshot with errors. It verifies honest capture, not a clean boot or stable display.
+
+## Read-only trace preflight
+
+Before preparing a bounded fault trace, run this launcher as the normal user and enter the sudo password:
+
+```bash
+bash /home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/acceptance/trace-preflight.sh
+```
+
+Keep the monitor connected. No cable action is needed. The privileged block checks the running release and reads eight fixed tracefs files: available tracers, clocks and six event formats. It does not enable tracing, read trace buffers or change event settings. The launcher retains `report.txt`, `stderr.log` and `exit-status` in a private directory and prints its path. Missing formats or read failures return a nonzero status. Runtime capability remains unverified until this manual command completes.
+
+Shell syntax and independent source review passed. Existing IOMFB method and mailbox-header events can help locate a missing or late acknowledgement. They do not directly prove that the host clear-swap completion callback ran. See the [trace design evidence](../../../../docs/evidence/dev-147-trace-preflight-2026-09-05.md).
