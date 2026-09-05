@@ -5,7 +5,7 @@
 **Branch:** `codex/dev147-fairydust-build`
 **Linear:** DEV-147; existing DEV-163 owns monitor-hub data loss.
 **Started:** 2026-09-05
-**Reconciled:** 2026-09-05 — trial return refused missing module trees; reviewed module repair awaits manual apply.
+**Reconciled:** 2026-09-05 — module repair applied and verified; unchanged return launcher awaits retry.
 
 ## Context
 
@@ -49,7 +49,7 @@ Use full `self-correction-loop`. Root owns scope and documentation. One SWE owns
   Checkpoint: ten user-confirmed image recoveries and twenty accepted external endpoint 0x28 services in one DCP boot cross the original capacity. [Evidence](../evidence/dev-147-front-ten-generations-2026-09-05.md) also records three disconnect clear-swap timeouts and four USB descriptor errors. This is a bounded capacity/recovery success, not a stable-endurance PASS. Twenty-generation and orientation coverage remain open. Pause further physical cycles until these faults are diagnosed; David confirms the requested next batch had not started.
   Next probe: the loss-free fixed-X8 trace captured a 51.749 ms clear-swap reply chain and skipped shutdown tail. Build the isolated 100 ms diagnostic trial below; inspect USB enumeration and rear PHY recovery separately with DEV-163. Do not combine fixes or hide remaining warnings.
   Diagnostic detail: distinguish a late clear-swap callback from an absent callback after firmware powers off. Match swap ID, request, completion and HPD timestamps before deciding whether to avoid an invalid swap, adjust ordering or handle cancellation. The observed discarded-swap firmware message is not yet matched to the driver's waiting clear-swap cookie. For USB, compare hub-only re-enumeration with whole monitor-cable re-enumeration and record negotiated hub speed; vary cable or orientation one at a time after the baseline is captured.
-  Current dependency: return-results.jYflVlnm refused missing modules before boot writes. The guarded module repair now passes author and independent gates. David runs `clear-wait-trial/module-repair/launch.sh`; inspect `MODULES_REPAIRED_NOT_SELECTED`, both restored inventories and the loaded cleanup exception before the separate unchanged return launcher. W stays selected. No reboot or kernel rebuild yet.
+  Current dependency: repair-results.YFb3sL5J succeeds; root and independent checks verify both complete live module inventories and the loaded cleanup exception. W remains selected. David retries the unchanged `clear-wait-trial/return-to-trial/launch.sh`; inspect the new return receipt before any reboot. No kernel rebuild is required.
 
 - [x] Diagnostic substep: build the isolated 100 ms clear-wait trial.
   Goal: an independently reviewed, unselected artifact that tests whether a bounded additional wait restores the shutdown tail.
@@ -168,6 +168,8 @@ Release scope is front-port DisplayPort with working associated daily-driver beh
 - 2026-09-05: `git ls-remote https://github.com/AsahiLinux/linux.git` still reports fairydust `b8810ad6442699f610984f3eceea2e3234a50b77` and `bits/200-dcp` `52f0b76aaae7b9a1cc2100f4a9b33257b450d5c0`; no newer tip on those branches to substitute for this baseline. This is not a search of every submitted patch. Saved the six-announcement pre-batch baseline and requested three attended reconnects while the collector is prepared.
 
 ## Discoveries (LIVING)
+
+- Module repair is applied and verified. Both live 1,876-file inventories match their pinned deliveries; systemd loaded the exact two-release exception. Return state is absent, so the unchanged return launcher can retry. The installed drop-in is root-private; its hash comes from the privileged receipt and its loaded command is independently checked through systemd. See the [apply evidence](../evidence/dev-147-clear-wait-trial-preparation-2026-09-05.md).
 
 - Module repair preparation passes seven full-delivery namespace controls and cleanup behavior/systemd syntax in author and independent runs. Final review has no blocker. Exact normal-user preflight passes live. The [evidence](../evidence/dev-147-clear-wait-trial-preparation-2026-09-05.md) records hashes, earlier fixture failures and test limits. Manual repair remains open; inspect real module paths before any boot-selection handoff.
 
