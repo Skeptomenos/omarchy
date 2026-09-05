@@ -51,3 +51,17 @@ bash initramfs/validate.sh /home/david/Work/dev147-clear-wait-trial/initramfs/ru
 Use a fresh output directory for each attempt. These procedures do not install or select a kernel. Hardware acceptance must check shutdown-tail calls, timeout behavior, visible image recovery and existing regressions after an attended boot.
 
 The [preparation evidence](../../../../docs/evidence/dev-147-clear-wait-trial-preparation-2026-09-05.md) records completed source and recipe checks. The living plan tracks later build and hardware results.
+
+Use the [stage-only guide](stage/README.md) after artifact validation and delivery rehearsal. It explains temporary boot selection and the retained default.
+
+## Attended acceptance
+
+The trial's capture tools retain an exact release guard and separate output root. Check their software controls before boot:
+
+```bash
+bash acceptance/validate.sh
+```
+
+After the attended trial boot, collect read-only state with `python3 acceptance/snapshot.py trial-boot`. Use `bash acceptance/trace-capture.sh` only for an agreed front-port reconnect. The original baseline tools remain unchanged.
+
+A successful clear-wait trial needs a loss-free trace of A407/A408 replies followed by the A467 → A457 → A472 shutdown chain, no clear-swap or power-state timeout, later DP/HPD recovery and user confirmation of the image. Transport ACKs do not expose callback status or the completion cookie. USB/ATC warnings require separate journal review. The snapshot's quiet-journal and driver-filter limitations remain disclosed in the living plan.

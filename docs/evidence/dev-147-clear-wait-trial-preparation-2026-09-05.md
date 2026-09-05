@@ -34,3 +34,29 @@ The isolated initramfs recipe reuses the baseline namespace builder with new rel
 Full compilation, module staging, artifact validation, actual trial initramfs creation and independent artifact review were pending when this preparation record was written. Hardware acceptance remains open. The selected kernel remains `7.1.12-dev147-fairydust1`.
 
 The [trial procedure](../../dev/apple-dp-altmode/fairydust/clear-wait-trial/README.md) provides commands. Subsequent build and boot results must be recorded separately or as dated addenda.
+
+## Addendum — build and initramfs completed, 2026-09-05
+
+The fifth compilation chunk returned zero. The first four returned the planned checkpoint status 124; a scan found no compiler-error, fatal-error or undefined-reference diagnostics. `logs/build-chunks.json` preserves that distinction. Private module installation and explicit depmod returned zero; depmod stderr was empty.
+
+Assembly returned zero. The full `validate-build.sh` gate returned zero at `logs/full-build-gate.log`, reporting all 1,862 modules, AFK controls and J413 DP/SIO wiring PASS. Image SHA-256: `048af4bcf37e0ce365bfeb2ebb03c42c8786631cd48b94ea37e6e355975f2f84`.
+
+The J413 DTB is byte-identical to the baseline: `9831d42f9c271ce35dd3e32b5c8298e1c13849568853aea0779f40bb67377b80`. This trial needs no ESP/m1n1 bundle replacement.
+
+The unprivileged namespace initramfs build returned zero at `initramfs/run-001`. Image SHA-256: `a3de88afae768731a0a23bd7aaaacc02e19ac520fbed0f5df7c41ae69cf3dae9`. Actual-image validation, module and startup controls, and truncated-image rejection returned zero at `checks/initramfs.Zl3ZF15p`.
+
+Independent stage preparation passed 22 namespace controls at `checks/stage.SGSteyFc`. Its review receipt SHA-256 is `a3628e88e589eef05842fffbbbd79f60615a3d8521a65419e3347873c6004526`. The pending launcher refused to run before sudo. Independent assembly-procedure review passed at `checks/assembly-review-independent.kd35sec_`, receipt SHA-256 `2ee73d9590d584a79770f67d06d6b70f188558ad032c24fb2aa9d6bce3c161fd`.
+
+The stage procedure preserves GRUB, the ESP and existing recovery inputs. The trial can later be selected by changing only its kernel/initramfs paths in a transient GRUB edit. Full delivery rehearsal and real manual staging remain pending at this addendum.
+
+## Addendum — full delivery rehearsal, 2026-09-05
+
+Independent full build validation returned zero at `checks/build-independent.z2lninmt`. Receipt SHA-256: `9641f033ef8e514a15311e97eb5d24c6b944a28982d0893305d7b7b95a91c97e`. Generated helper Rust bindings match the baseline; main/UAPI binding differences reflect only the release string and its length. Build warnings do not establish a new binding-layout change.
+
+The assembled delivery manifest SHA-256 is `a89c31f8b42c3f4f958ac8aca4c312c95a222baf2e80b8b5702dbe4549e8a857`. Independent full-delivery staging ran the exact bootstrap/helper in disposable unprivileged namespaces at `checks/stage-full-independent.y9ny2ep8`. It passed in 8.966 seconds: all 1,862 modules, 1,876 module-manifest files, published boot inputs and receipts matched. All 15 protected fixture files retained their hashes.
+
+The rehearsal used the actual delivery and readable baseline boot files. It used saved routing source for root-private GRUB fixtures. The real helper must still check those live private files during David's run. No actual staging or boot occurred.
+
+The final launcher pins this rehearsed manifest. Launcher SHA-256: `2355fc81da26309b74e3a4fa7db29889b97c8584c173c4e394084fee32c5355f`. Helper SHA-256: `96b4ef29a03897c612ff2a978a932b5dc31d6da2cf7dfc1eded7ab08ed20ea1f`. Shell syntax and diff checks pass. The next manual action is the stage-only launcher; review its receipt before a restart or temporary trial selection.
+
+Independent actual initramfs validation also returned zero at `checks/initramfs.w0A63RDv`. Trial capture software validation returned zero at `acceptance/checks/software.H7qELEYw`. Its explicit uname fixtures cover the trial release and reject baseline/unknown releases before trace setup. These are preboot software results, not live trial capture.

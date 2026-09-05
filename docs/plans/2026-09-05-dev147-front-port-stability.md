@@ -48,9 +48,9 @@ Use full `self-correction-loop`. Root owns scope and documentation. One SWE owns
   Checkpoint: ten user-confirmed image recoveries and twenty accepted external endpoint 0x28 services in one DCP boot cross the original capacity. [Evidence](../evidence/dev-147-front-ten-generations-2026-09-05.md) also records three disconnect clear-swap timeouts and four USB descriptor errors. This is a bounded capacity/recovery success, not a stable-endurance PASS. Twenty-generation and orientation coverage remain open. Pause further physical cycles until these faults are diagnosed; David confirms the requested next batch had not started.
   Next probe: the loss-free fixed-X8 trace captured a 51.749 ms clear-swap reply chain and skipped shutdown tail. Build the isolated 100 ms diagnostic trial below; inspect USB enumeration and rear PHY recovery separately with DEV-163. Do not combine fixes or hide remaining warnings.
   Diagnostic detail: distinguish a late clear-swap callback from an absent callback after firmware powers off. Match swap ID, request, completion and HPD timestamps before deciding whether to avoid an invalid swap, adjust ordering or handle cancellation. The observed discarded-swap firmware message is not yet matched to the driver's waiting clear-swap cookie. For USB, compare hub-only re-enumeration with whole monitor-cable re-enumeration and record negotiated hub speed; vary cable or orientation one at a time after the baseline is captured.
-  Current dependency: finish the isolated trial's build and independent offline gates before preparing an unselected deployment. No additional cable cycle is needed before that preparation. User-visible confirmation of the last control remains pending; kernel state and trace establish DP recovery with X8 retained.
+  Current dependency: David runs the trial's stage-only launcher and supplies its receipt. Kernel, actual initramfs and full-delivery sandbox gates pass; the launcher pins the reviewed delivery. Review actual staging before a temporary trial boot. User-visible confirmation of the last baseline control remains pending; kernel state and trace establish DP recovery with X8 retained.
 
-- [ ] Diagnostic substep: build the isolated 100 ms clear-wait trial.
+- [x] Diagnostic substep: build the isolated 100 ms clear-wait trial.
   Goal: an independently reviewed, unselected artifact that tests whether a bounded additional wait restores the shutdown tail.
   Probe first: baseline 50 ms rejects a modeled 52-tick completion; verify candidate 100 ms accepts it using extracted Linux completion logic with explicit simulation limits.
   Implementation: one source-line timeout change, separate commit/worktree/build and unique release; reuse the pinned toolchain and base config except release identity. Preserve recovery and guard artifacts.
@@ -58,6 +58,7 @@ Use full `self-correction-loop`. Root owns scope and documentation. One SWE owns
   Exit criteria: software/artifacts verified and manual deployment handoff prepared. Hardware checks must still show shutdown-tail RPCs, bounded timeout behavior and image recovery after a separately attended boot.
   Assumption: the observed late reply can complete within the larger budget; 100 ms is not an established worst-case bound.
   Verify: trace the trial on hardware and retain all timeouts. Async continuation and skipping clear-swap are excluded pending stronger lifecycle evidence.
+  Evidence: [preparation and build record](../evidence/dev-147-clear-wait-trial-preparation-2026-09-05.md). Full build, actual initramfs and independent real-delivery namespace checks pass; the stage-only handoff is ready. This checkbox covers artifact preparation only. Manual staging, trial boot and hardware acceptance remain open.
 - [ ] Slice 3: Fix attached-at-boot detection and characterize latency.
   Goal: an already attached front-port monitor works after boot without a manual reconnect, with measured connection timing.
   Probe first: trace the source path from CD321x state to connector notification, mux/PHY readiness and external DCP initialization. Compare boot versus successful reconnect. Review available upstream fixes before writing one.
@@ -94,6 +95,8 @@ The next milestone gate is `bash /home/david/Work/omarchy-dev147-fairydust-build
 Release scope is front-port DisplayPort with working associated daily-driver behavior. Full support additionally requires automatic routing to either USB-C port, coherent USB4/Thunderbolt integration, and a new regression matrix. No completion date is inferred from three successful cable connections.
 
 ## Progress (LIVING)
+
+- 2026-09-05: The [isolated trial build](../evidence/dev-147-clear-wait-trial-preparation-2026-09-05.md) completes with all 1,862 modules and an identical baseline DTB. Full kernel, actual initramfs and independent full-delivery staging rehearsal pass. The launcher pins the reviewed manifest. David's password-assisted stage is the next dependency; review its receipt before a temporary boot. The current kernel remains selected. Trial-specific capture tools preserve exact release guards and separate outputs.
 
 - 2026-09-05: Source review selects a separate 100 ms diagnostic clear-wait candidate. It preserves PR582's no-crash behavior and timeout early return. This is a budget experiment around measured 51.749 ms replies, not a production timeout bound. Prepare an isolated source/build at `/home/david/Work/dev147-clear-wait-trial`, release `7.1.12-dev147-clearwait100`; keep the running kernel, original build and boot files frozen.
 
@@ -147,6 +150,7 @@ Release scope is front-port DisplayPort with working associated daily-driver beh
 
 ## Decision Log (LIVING)
 
+- 2026-09-05: Test a one-line 50 → 100 ms clear-wait change in a separate release. Retain the current timeout warning and recovery behavior. The measured late reply supports a diagnostic trial, not a production bound. Preserve the existing default and ESP by staging separate files and using a transient GRUB edit for the attended trial boot.
 - 2026-09-05: Stabilize shared behavior on one working route before expanding the hardware matrix. Preserve source portability; no new fixed-port shortcuts.
 - 2026-09-05: Separate upstream fix readiness from full package release. Do not hold a proven isolated fix for unrelated feature completeness.
 - 2026-09-05: Keep the running candidate and recovery artifacts unchanged while collecting baseline evidence. Two-port implementation becomes active only after these milestones or a demonstrated architectural dependency.
