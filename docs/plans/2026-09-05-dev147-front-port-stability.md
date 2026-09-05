@@ -5,7 +5,7 @@
 **Branch:** `codex/dev147-fairydust-build`
 **Linear:** DEV-147; existing DEV-163 owns monitor-hub data loss.
 **Started:** 2026-09-05
-**Reconciled:** 2026-09-05 — trial boot confirmed; external DRM disconnected, physical outcome pending.
+**Reconciled:** 2026-09-05 — LG35 video recovers after manual power-on; return to LG27 baseline requested.
 
 ## Context
 
@@ -49,7 +49,7 @@ Use full `self-correction-loop`. Root owns scope and documentation. One SWE owns
   Checkpoint: ten user-confirmed image recoveries and twenty accepted external endpoint 0x28 services in one DCP boot cross the original capacity. [Evidence](../evidence/dev-147-front-ten-generations-2026-09-05.md) also records three disconnect clear-swap timeouts and four USB descriptor errors. This is a bounded capacity/recovery success, not a stable-endurance PASS. Twenty-generation and orientation coverage remain open. Pause further physical cycles until these faults are diagnosed; David confirms the requested next batch had not started.
   Next probe: the loss-free fixed-X8 trace captured a 51.749 ms clear-swap reply chain and skipped shutdown tail. Build the isolated 100 ms diagnostic trial below; inspect USB enumeration and rear PHY recovery separately with DEV-163. Do not combine fixes or hide remaining warnings.
   Diagnostic detail: distinguish a late clear-swap callback from an absent callback after firmware powers off. Match swap ID, request, completion and HPD timestamps before deciding whether to avoid an invalid swap, adjust ordering or handle cancellation. The observed discarded-swap firmware message is not yet matched to the driver's waiting clear-swap cookie. For USB, compare hub-only re-enumeration with whole monitor-cable re-enumeration and record negotiated hub speed; vary cable or orientation one at a time after the baseline is captured.
-  Current dependency: trial boot ee6d8621 is confirmed at clearwait100 with the paired ESP. Internal display is active; external DRM is disconnected, front Type-C host/PD sink. Both module trees survived cleanup. Ask whether LG35 shows an image and remained powered on with unchanged cables; await that physical confirmation before a new manual test or regression conclusion. Snapshot lg35-powered-reboot.qbb7lvao preserves the boot state.
+  Current dependency: manual LG35 power-on restores trial video at 3440×1440/99.982 Hz, matching W's recovery sequence. Automatic wake remains unresolved; trial LG35 USB hub/controls remain absent unlike W. User requests LG27 as the main monitor again. Next use one traced attachment to powered-on LG27 with the same cable/front port/Mac orientation and rear setup; keep this kernel fixed. Retain LG35 for later wake/USB comparison, not more blind reboot cycles.
 
 - [x] Diagnostic substep: build the isolated 100 ms clear-wait trial.
   Goal: an independently reviewed, unselected artifact that tests whether a bounded additional wait restores the shutdown tail.

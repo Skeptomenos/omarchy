@@ -265,3 +265,13 @@ David reports `7.1.12-dev147-clearwait100`. Read-only checks confirm boot `ee6d8
 Front controller 0-003f maps to port1 and reports host data role / PD sink. Both USB host controllers initialize, but the inspected boot journal has no downstream USB discovery. External DCP boots at 5.041548 seconds and reports disconnected with zero modes at 5.041817. This differs from the earlier device-role failure; it does not establish the exact point of startup notification loss.
 
 Both test module directories survive this boot. The cleanup unit journal shows both exact-release exemptions taking effect and retains packaged W. This verifies the repair across a boot. User confirmation of visible LG35 output and unchanged powered-on cable setup is pending. Leave cables fixed; do not assign a regression or request another reconnect until the physical state is confirmed.
+
+## Addendum — LG35 power-on restores trial image, 2026-09-05
+
+David confirms no initial LG35 image, then reports that manually powering on the monitor restores it. Snapshot `acceptance/lg35-power-on-recovered.pk7h6zde` on the same trial boot confirms external 3440×1440/99.982 Hz and internal 2560×1664/60 Hz, both enabled with DPMS on. External HPD is asserted at 485.414916 seconds, followed by modeset at 485.508520. The snapshot records 22 classified driver records and zero collection issues; endurance remains unaccepted.
+
+This reproduces W's observed recovery after manual monitor power-on. LG35 video is therefore demonstrated on both stacks under that sequence; the earlier blank result does not establish a Fairydust video regression. Automatic monitor wake remains unresolved. This observation does not distinguish monitor power/input settings, standby behavior or host startup handling.
+
+USB differs: current trial inventory contains only four root hubs, with no LG35 hub or controls, while powered-on W enumerated both. The inspected trial journal contains no downstream USB discovery or enumeration-error messages. Preserve this as an unresolved USB comparison, not proof of a particular cause.
+
+David asks to return to LG27. Keep the current trial and use powered-on LG27 for the next single traced front-port attachment, retaining cable, Mac-end orientation and rear setup. Keep LG35 as secondary coverage for later wake/USB checks; no further LG35 reboot is needed now.
