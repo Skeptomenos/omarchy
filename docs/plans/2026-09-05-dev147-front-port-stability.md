@@ -86,6 +86,8 @@ Release scope is front-port DisplayPort with working associated daily-driver beh
 
 ## Progress (LIVING)
 
+- 2026-09-05: [Rear-empty reconnect control](../evidence/dev-147-rear-empty-reconnect-2026-09-05.md) passes video and restores monitor USB enumeration. Trace 1350/1350 with zero loss, clear-swap ACK sequence 32.907 ms, four AFK announcements in the same boot. Rear-drive insertion capture mode is ready: seven tests, style/type/syntax checks and independent review pass. David runs `trace-capture.sh rear-attach`, inserts the drive once at READY with front cable untouched, and reports the outcome. Review before any front reconnect with the drive present.
+
 - 2026-09-05: Reboot restored first-attachment video. [New baseline](../evidence/dev-147-reboot-monitor-baseline-2026-09-05.md): boot `09746091-1f14-41ea-97b1-d3339f3a23af`, 1430/1430 trace records without loss, DP/HPD asserted, user image PASS. Rear partner absent, but front hub address errors recur and the hub does not enumerate. The rear drive is not required for that USB fault. Next one traced rear-empty front reconnect tests the DP control before any drive comparison.
 
 - 2026-09-05: David identifies the rear accessory as an external hard drive and confirms image loss occurred only on the later monitor reconnect. [Rear-drive audit](../evidence/dev-147-rear-drive-correlation-2026-09-05.md) finds separate PHY/DWC3 resources with shared I2C/IRQ, no direct port-state overwrite, and rear host creation about 136 seconds before the front USB failure. Treat rear-drive interaction as unproven. Next recover a rear-empty front baseline, then compare one reconnect without and with the drive; identify enclosure/protocol and protect mounted storage. No speculative fix.

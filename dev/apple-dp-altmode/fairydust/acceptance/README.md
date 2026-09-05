@@ -75,3 +75,15 @@ bash /home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairyd
 Enter the password. At READY, connect the same cable once to the same front port with the same orientation. Wait until the capture finishes and report the image result. This mode changes only the instruction cue; capture filters, 45-second duration and cleanup remain the same. It issues no driver-reset or role-swap command.
 
 The [failed reconnect evidence](../../../../docs/evidence/dev-147-targeted-reconnect-failure-2026-09-05.md) explains this probe. Recovery would establish that a Mac reboot is unnecessary for this attempt; it would not isolate monitor state from the longer disconnection interval.
+
+## Rear-drive insertion comparison
+
+After a verified working front-monitor baseline, leave its cable untouched and keep the drive disconnected until READY:
+
+```bash
+bash /home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/acceptance/trace-capture.sh rear-attach
+```
+
+At READY, connect the external drive once to the rear USB-C port. Leave both cables connected until the capture finishes. Report whether the monitor image stayed visible and whether the drive appeared. Do not start a front-port reconnect or unplug the drive during this capture. The recorder does not mount, read or write the disk; the desktop's normal device handling still applies.
+
+This mode changes only the instruction cue and records its name. The existing Type-C events capture both ports, while DCP metadata stays filtered to the external display. The [rear-empty control](../../../../docs/evidence/dev-147-rear-empty-reconnect-2026-09-05.md) owns the starting observations.

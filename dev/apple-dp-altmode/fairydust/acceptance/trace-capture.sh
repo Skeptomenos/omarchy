@@ -1,6 +1,6 @@
 #!/bin/bash
 set -euo pipefail
-[[ $EUID != 0 && ( $# == 0 || ( $# == 1 && $1 == "attach" ) ) ]] || { printf 'Run as the normal user with no arguments or with attach.\n' >&2; exit 2; }
+[[ $EUID != 0 && ( $# == 0 || ( $# == 1 && ( $1 == "attach" || $1 == "rear-attach" ) ) ) ]] || { printf 'Run as the normal user with no arguments, attach or rear-attach.\n' >&2; exit 2; }
 capture_mode=${1:-reconnect}
 umask 077
 root=/home/david/Work/dev147-fairydust-acceptance-20260905
@@ -8,7 +8,7 @@ root=/home/david/Work/dev147-fairydust-acceptance-20260905
 results=$(mktemp -d "$root/trace-capture.XXXXXXXX")
 if /usr/bin/sudo /bin/bash -s -- "$capture_mode" > "$results/report.txt" 2> "$results/stderr.log" <<'DEV147_TRACE_CAPTURE'
 set -euo pipefail
-[[ $# == 1 && ( $1 == "reconnect" || $1 == "attach" ) ]] || { printf 'FAIL: invalid capture mode.\n'; exit 2; }
+[[ $# == 1 && ( $1 == "reconnect" || $1 == "attach" || $1 == "rear-attach" ) ]] || { printf 'FAIL: invalid capture mode.\n'; exit 2; }
 capture_mode=$1
 printf 'CAPTURE_MODE %s\n' "$capture_mode"
 [[ $(/usr/bin/uname -r) == "7.1.12-dev147-fairydust1" ]] || { printf 'FAIL: unexpected kernel release.\n'; exit 2; }
@@ -72,6 +72,8 @@ printf 'START_UPTIME '; /usr/bin/cat /proc/uptime
 printf '1\n' > "$instance/tracing_on"
 if [[ $capture_mode == "attach" ]]; then
   printf 'READY: capture active for 45 seconds. Connect the monitor to the FRONT port once.\n' >&3
+elif [[ $capture_mode == "rear-attach" ]]; then
+  printf 'READY: capture active for 45 seconds. Keep the FRONT monitor connected; connect the external drive once to the REAR port. Do not unplug the drive or FRONT monitor during capture.\n' >&3
 else
   printf 'READY: capture active for 45 seconds. Disconnect the FRONT cable once, wait 5 seconds, then reconnect once.\n' >&3
 fi
