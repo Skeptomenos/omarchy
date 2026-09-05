@@ -47,6 +47,7 @@ Use full `self-correction-loop`. Root owns scope and documentation. One SWE owns
   Verify: compare observed transitions with the existing positive/negative lifecycle harness; review any timeout or unexpected announcement before further cycles.
   Checkpoint: ten user-confirmed image recoveries and twenty accepted external endpoint 0x28 services in one DCP boot cross the original capacity. [Evidence](../evidence/dev-147-front-ten-generations-2026-09-05.md) also records three disconnect clear-swap timeouts and four USB descriptor errors. This is a bounded capacity/recovery success, not a stable-endurance PASS. Twenty-generation and orientation coverage remain open. Pause further physical cycles until these faults are diagnosed; David confirms the requested next batch had not started.
   Next probe: correlate clear-swap start/completion, HPD removal and DCP teardown without changing the timeout. Inspect USB enumeration and recovery separately with DEV-163. Do not combine speculative fixes or hide recoverable warnings.
+  Diagnostic detail: distinguish a late clear-swap callback from an absent callback after firmware powers off. Match swap ID, request, completion and HPD timestamps before deciding whether to avoid an invalid swap, adjust ordering or handle cancellation. The observed discarded-swap firmware message is not yet matched to the driver's waiting clear-swap cookie. For USB, compare hub-only re-enumeration with whole monitor-cable re-enumeration and record negotiated hub speed; vary cable or orientation one at a time after the baseline is captured.
 - [ ] Slice 3: Fix attached-at-boot detection and characterize latency.
   Goal: an already attached front-port monitor works after boot without a manual reconnect, with measured connection timing.
   Probe first: trace the source path from CD321x state to connector notification, mux/PHY readiness and external DCP initialization. Compare boot versus successful reconnect. Review available upstream fixes before writing one.
@@ -83,6 +84,8 @@ The next milestone gate is `bash /home/david/Work/omarchy-dev147-fairydust-build
 Release scope is front-port DisplayPort with working associated daily-driver behavior. Full support additionally requires automatic routing to either USB-C port, coherent USB4/Thunderbolt integration, and a new regression matrix. No completion date is inferred from three successful cable connections.
 
 ## Progress (LIVING)
+
+- 2026-09-05: David confirms a mouse through the monitor USB hub works. Journal corroborates USB OPTICAL MOUSE at `1-1.2`, under front controller `502280000.usb`; this is a functional USB-input PASS, not throughput or reconnect endurance. Source/log review of the first timeout finds firmware HPD removal and M3 power-down before the warning, then a discarded-swap message after it. Correlate the exact clear-swap ID/callback before claiming causation. No kernel change made.
 
 - 2026-09-05: Ten-generation checkpoint reached: four latest visual recoveries at about six seconds each, twenty accepted external services and ten modesets in the same DCP boot. Capture `ten-confirmed.mlonvf2b` contains three host clear-swap timeouts; full-journal review adds four USB descriptor errors. Paused further cycles, with user confirmation that no extra tests started. Record a capacity milestone with known faults; Slice 2 and release remain open.
 

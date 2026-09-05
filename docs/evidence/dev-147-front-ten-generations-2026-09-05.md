@@ -16,6 +16,12 @@ A separate full-journal check finds four USB descriptor `error -71` messages bet
 
 The collector's selected-driver diagnostics do not include every USB or system error. The full-journal check is therefore distinct from its summary. Repeated firmware clock/PMU/FIFO diagnostics also remain unclassified as to cause; they are not assumed harmless.
 
+## Follow-up observations
+
+David subsequently reports that an external mouse connected through the monitor hub works. The kernel journal corroborates `USB OPTICAL MOUSE` and HID/input registration at `1-1.2` beneath front controller `502280000.usb`. This validates current functional input through the hub; it does not erase the recorded reconnect errors or test bulk transfers.
+
+At the first clear-swap timeout, firmware reports HPD removal at 4763.105364 seconds and disabling M3 at 4763.118026. The host timeout occurs at 4763.158026, followed by firmware reporting a discarded swap at 4763.165007 because external-display power state is off. Source `dcp_swap_clear_started()` submits the clear swap; `dcp_swap_cleared()` completes the waiting cookie. Current logs do not establish that the discarded swap ID belongs to that cookie. Trace the exact request/response and HPD sequence before selecting a fix. A longer timeout alone would not solve an operation that never completes.
+
 ## Decision
 
 Pause the requested reversed-orientation ten-cycle batch. David confirms it had not started. Keep the monitor connected and preserve the working kernel. Diagnose disconnect completion and USB enumeration before further stress testing. The twenty-generation target, reversed orientation, startup detection and complete release matrix remain open. Ten images alone do not meet the front-port stability release gate.
