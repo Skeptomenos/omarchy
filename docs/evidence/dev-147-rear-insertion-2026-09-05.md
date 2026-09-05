@@ -19,3 +19,11 @@ Independent review verified capture integrity, snapshot manifest, controller att
 The rear-attach software's independent receipt is `/home/david/Work/dev147-fairydust-acceptance-20260905/checks/trace-rear-attach-independent.jk43cq__/receipt.json`, SHA256 `72ec4fbff1eaf9bd95dd0041bd1d812c12554624a0dfea1ba7aad11ac9f5e5bc`.
 
 User addendum: David answered yes to the front-cable-untouched question. The enclosure model remains unanswered. Independent review found no captured front hotplug callback or shutdown method sequence; snapshot firmware diagnostics predate this insertion. The next required input is the drive/enclosure identity, not another cable cycle.
+
+## Device identification addendum
+
+David identifies the device as a Crucial X8 1 TB Portable SSD. Crucial's [product flyer](https://www.crucial.com/content/dam/crucial/ssd-products/X8/flyer/crucial-X8-productflyer.pdf), checked on 2026-09-05, lists the 1 TB model and USB 3.2 Gen 2 Type-C at 10 Gb/s, compatible with USB 3.2 Gen 1. It is a USB storage test; Thunderbolt tunneling is not required. No claim is made about the actual cable or drive firmware.
+
+A subsequent read-only inventory still shows rear root hubs without a downstream device or external block disk, while external DP stays connected/enabled. This localizes the SSD's absence before successful USB device enumeration; it does not identify whether the cable, drive, rear PHY or controller setup is responsible. No filesystem or storage-driver change is justified by that absence.
+
+The protocol question is resolved. Proceed with the planned single front reconnect while leaving the X8 connected to the rear port. Preserve the same boot and front cable orientation. The comparison tests rear occupancy, not active storage traffic; stop on the first failed image and retain that state.
