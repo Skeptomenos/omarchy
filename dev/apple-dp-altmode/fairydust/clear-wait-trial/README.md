@@ -54,6 +54,8 @@ The [preparation evidence](../../../../docs/evidence/dev-147-clear-wait-trial-pr
 
 Use the [stage-only guide](stage/README.md) after artifact validation and delivery rehearsal. It explains temporary boot selection and the retained default.
 
+After the W comparison restore, use the separately reviewed [return-to-trial guide](return-to-trial/README.md). It selects the existing trial through a named menu and preserves the original recovery files. The consumed original activation launcher cannot prepare this return.
+
 ## Attended acceptance
 
 The trial's capture tools retain an exact release guard and separate output root. Check their software controls before boot:

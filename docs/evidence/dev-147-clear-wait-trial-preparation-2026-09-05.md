@@ -178,3 +178,34 @@ Loaded ELF GNU notes match the earlier successful W driver identities: AppleDRM 
 This shows the failed LG35 state can occur with the older kernel and earlier working driver identities, so the newer Fairydust patches are not necessary to reproduce this observation. It does not rule out other regressions. Exact initramfs selection remains unresolved: David's “default” description could mean the unchanged default image rather than the requested dpalt image. Loaded driver notes alone do not authenticate the whole initramfs or module-load ordering. Ask the exact selection before accepting a matched W comparison. No new cable action or reboot is requested yet.
 
 David explicitly confirms adding `-dpalt` to the initrd filename. Together with the fresh preboot checksum, old bundle and loaded driver notes, this establishes the intended W boot provenance. W also fails to show LG35 in the current setup. This is evidence against a failure requiring the new code to be running, not proof that earlier software could not leave persistent controller/monitor state or that Fairydust has no regression. Next verify the LG35 input menu selects USB-C while retaining cable connections. No more kernel changes or blind reboots are justified at this point.
+
+## Addendum — powered LG35 baseline verified, 2026-09-05
+
+David reports turning on LG35 restored its image without a reported cable change. Read-only verification on the same W boot confirms internal 2560×1664/60 Hz and external 3440×1440/99.982 Hz, both enabled and DPMS on. Front Type-C role is now host/PD sink. LG35 hub 0bda:5411 is enumerated at 480 Mbps; controls 043e:9a39 at 12 Mbps. USB enumeration is not a functional peripheral or throughput test.
+
+The kernel logs hub/controls discovery at 279.339113/279.720025 seconds, external HPD at 280.869595 and modeset request at 280.965226. No USB enumeration errors appear in the inspected boot. These observations support monitor power/wake state as an important variable in the prior blank result. They do not retrospectively establish the monitor's state during every Fairydust test.
+
+Private working-baseline record: `comparison/w-powered-on.6zVYHkiV`, with release, boot ID, command line, filtered driver journal, compositor modes, USB IDs/speeds and bundle hash. Current user authorization is to return to Fairydust while retaining powered monitor and cable setup.
+
+Prepare a guarded return that reuses the retained activation state without overwriting its original backups. Preserve old-bundle recovery and validate the staged trial inputs. A clearly labelled trial menu entry should avoid manual long-path edits. No source-kernel change is part of this transition. The next cold trial startup and this W power-on-after-startup are different sequences; account for that distinction before declaring a regression if the trial remains blank.
+
+## Addendum — guarded return software gate, 2026-09-05
+
+The new `clear-wait-trial/return-to-trial` helper retains the original activation state, backup bundle, GRUB backup and recovery guide. It verifies both complete staged kernel inventories and the trial's original root-stage receipt. A separate root-private return journal saves the prior candidate menu. Ordered replacements publish the new menu, unchanged dispatcher, then the pinned Fairydust bundle. The named default is `DEV-147 fairydust 7.1.12 - test1 (100 ms)`; Fairydust1 remains the second entry. W stays on its separate old-bundle recovery path.
+
+Frozen SHA-256 identities:
+
+- `return.py`: `b68113720f9c23af4325bb6ad284c26c30b4cbe130601b62c70dfa7af027825c`.
+- `launch.sh`: `76aad7ee86ed34e913a04814f74a8766e897bc328561d4646faee0e42cc6a839`.
+- `candidate.cfg`: `2737b42aa18940d3f65e37a945df95b614b183c4ba84fe707084d0faae3dc1d6`.
+- `baseline.py`, `topology.py` and `dispatcher.cfg` are byte-identical copies of the original reviewed activation inputs.
+
+Author command `bash dev/apple-dp-altmode/fairydust/clear-wait-trial/return-to-trial/validate.sh` exits 0. Private gate `return-to-trial/checks/software.1oblqoyF` records eight tests in 28.401 seconds, lint, formatting, strict type checks and shell/GRUB syntax checks. It tests successful return and unchanged restore, all three interrupted replacement boundaries, existing state, altered routing, changed receipts, damaged trial Image and changed helper bytes. Synthetic W remains unchanged across return and restore. Both full real kernel/module deliveries and the real trial receipt are used; topology and original-stage receipt identity are substituted inside the isolated namespace.
+
+Two real GRUB emulator cases execute the menu against a disposable ext4 image. They verify the default trial and selectable Fairydust1 entry, exact kernel/initrd arguments and cleared stale selection variables. Kernel/initrd commands are recording wrappers; this does not load a kernel or execute EFI firmware. Direct live read-only execution of the exact launcher preflight also exits 0 with `READ_ONLY_TOPOLOGY_PASS`.
+
+No selected boot file, kernel source or running system changed. Hardware recovery, physical power-loss behavior and FAT atomicity remain outside these software checks. Independent final review and the user's password-assisted apply remain the next boundaries.
+
+Independent rerun `return-to-trial/checks/software.RdgFx8UI` exits 0: eight tests in 21.378 seconds and both GRUB cases pass. Its source inventory SHA-256 is `95032743aac88759532c9e19711c648c5b5da4bb39a21b3b48b152c81991f36e`; GRUB receipt SHA-256 is `40cf9de47352d97084d3911778f739965e24090e3b98fd1c5b6e88e8ec0eca04`. Root rechecks every frozen code/menu hash against the author inventory and runs `git diff --check`; both exit 0.
+
+Independent final review returns `VERDICT: PASS` with no blocking finding. The handoff is ready for David's normal-user `return-to-trial/launch.sh` run. Review its private receipt before a manual reboot. Keep LG35 on and cables fixed; the default named trial removes the earlier long-path editing step. Hardware comparison and release acceptance remain open.

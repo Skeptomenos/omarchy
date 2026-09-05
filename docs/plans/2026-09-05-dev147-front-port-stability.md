@@ -5,10 +5,11 @@
 **Branch:** `codex/dev147-fairydust-build`
 **Linear:** DEV-147; existing DEV-163 owns monitor-hub data loss.
 **Started:** 2026-09-05
+**Reconciled:** 2026-09-05 — powered LG35 works on restored W; reviewed trial return awaits manual apply.
 
 ## Context
 
-Worktree: `/home/david/Work/omarchy-dev147-fairydust-build`. Frozen kernel source: `/home/david/Work/dev147-fairydust-build/linux`, commit `83604c8b18e4673ed91e1172aef9aebeb0af20ce`. Running release: `7.1.12-dev147-fairydust1`. It combines pinned Asahi fairydust with corrected AFK service reuse and the attributed PR582 timeout change. Source, installed artifacts and recovery inputs must remain frozen during baseline acceptance.
+Worktree: `/home/david/Work/omarchy-dev147-fairydust-build`. Frozen Fairydust source: `/home/david/Work/dev147-fairydust-build/linux`, commit `83604c8b18e4673ed91e1172aef9aebeb0af20ce`. It combines pinned Asahi fairydust with corrected AFK service reuse and the attributed PR582 timeout change. The retained 100 ms trial is `7.1.12-dev147-clearwait100`. Current running release is restored W, `7.1.6-1-1-ARCH`, for the LG35 comparison. Source, installed artifacts and recovery inputs remain frozen; only the reviewed paired return changes selected boot files.
 
 The [paired activation plan](2026-09-05-dev147-paired-activation.md) owns completed boot preparation and recovery. This plan supersedes its open hardware follow-ups as the execution owner. The user has booted the candidate. Front-port display has returned on ten confirmed connections, at 3840×2160 near 60 Hz. The bounded AFK capacity checkpoint is reached, but disconnect timeouts and USB enumeration faults pause further stress testing. The monitor was not detected when already attached at boot. Reconnect latency varies by user observation, and physical insertion times were not recorded. The near-MagSafe port has no display route in the current fixed device tree; this is a software limitation.
 
@@ -48,7 +49,7 @@ Use full `self-correction-loop`. Root owns scope and documentation. One SWE owns
   Checkpoint: ten user-confirmed image recoveries and twenty accepted external endpoint 0x28 services in one DCP boot cross the original capacity. [Evidence](../evidence/dev-147-front-ten-generations-2026-09-05.md) also records three disconnect clear-swap timeouts and four USB descriptor errors. This is a bounded capacity/recovery success, not a stable-endurance PASS. Twenty-generation and orientation coverage remain open. Pause further physical cycles until these faults are diagnosed; David confirms the requested next batch had not started.
   Next probe: the loss-free fixed-X8 trace captured a 51.749 ms clear-swap reply chain and skipped shutdown tail. Build the isolated 100 ms diagnostic trial below; inspect USB enumeration and rear PHY recovery separately with DEV-163. Do not combine fixes or hide remaining warnings.
   Diagnostic detail: distinguish a late clear-swap callback from an absent callback after firmware powers off. Match swap ID, request, completion and HPD timestamps before deciding whether to avoid an invalid swap, adjust ordering or handle cancellation. The observed discarded-swap firmware message is not yet matched to the driver's waiting clear-swap cookie. For USB, compare hub-only re-enumeration with whole monitor-cable re-enumeration and record negotiated hub speed; vary cable or orientation one at a time after the baseline is captured.
-  Current dependency: user confirms exact -dpalt selection on older kernel boot 2753fc6a, with historical working AppleDRM/TIPD build IDs; LG35 remains blank, front device/sink and no DP modes. Current W boot provenance is established. Ask LG35 on-screen USB-C input selection with cables unchanged before another physical probe. Persistent controller/monitor state remains possible; no broad exoneration of Fairydust or new patch. Old paired boot remains selected.
+  Current dependency: powered LG35 works on W. The separately guarded return to staged clearwait100 passes author and independent gates, with preserved recovery and a named default trial entry. David runs `clear-wait-trial/return-to-trial/launch.sh`; inspect `RETURNED_TO_TRIAL_NOT_REBOOTED` before a manual reboot. Keep monitor on and cables fixed. No kernel rebuild is required.
 
 - [x] Diagnostic substep: build the isolated 100 ms clear-wait trial.
   Goal: an independently reviewed, unselected artifact that tests whether a bounded additional wait restores the shutdown tail.
@@ -66,6 +67,8 @@ Use full `self-correction-loop`. Root owns scope and documentation. One SWE owns
   Step 1: preserve current failed snapshot, then restore old bundle and GRUB with the reviewed helper. This is an explicit exception to frozen selected boot files, authorized by the user's comparison request; no agent sudo or reboot.
   Step 2: after reviewing RESTORED_NOT_REBOOTED, fully restart with LG35/cable/port/orientation/rear setup unchanged. Select initramfs-linux-asahi-dpalt.img, not the original default image. Verify release, loaded driver build IDs, Type-C/DRM and USB plus physical image.
   Step 3: compare equivalent fresh-start conditions on the current trial before assigning a regression to the stack. A W success immediately after reboot is a recovery checkpoint; reboot also resets state. A hot-swap trial failure versus a cold W success alone is not matched causal evidence. Plan the guarded return separately; do not rerun a consumed activation launcher blindly.
+  Return preparation: verify both complete staged kernels, their manifests, the retained activation state and original recovery files. Use a new guarded helper with separate receipts. Publish a named 100 ms trial menu, then the unchanged dispatcher, then its paired Fairydust bundle. Keep W out of this menu because it requires the old bundle. Test refusal and interrupted-write paths in a namespace before the password-assisted handoff.
+  Manual boundary: inspect the return receipt before reboot. Keep LG35 powered on and all cables fixed. Boot the default named trial without path edits; verify release, image, Type-C/DRM and USB. If blank, compare the monitor power/wake sequence before treating the result as a regression: W recovered after a later monitor power-on, not immediately after boot.
   Exit criteria: matched setup/boot-sequence evidence, regression classified or explicitly inconclusive, retained useful patches and recovery path recorded. No requirement to reintroduce failed suspend or endurance cases.
 - [ ] Slice 3: Fix attached-at-boot detection and characterize latency.
   Goal: an already attached front-port monitor works after boot without a manual reconnect, with measured connection timing.
@@ -103,6 +106,8 @@ The next milestone gate is `bash /home/david/Work/omarchy-dev147-fairydust-build
 Release scope is front-port DisplayPort with working associated daily-driver behavior. Full support additionally requires automatic routing to either USB-C port, coherent USB4/Thunderbolt integration, and a new regression matrix. No completion date is inferred from three successful cable connections.
 
 ## Progress (LIVING)
+
+- 2026-09-05: LG35 power-on restores image on W. Baseline comparison/w-powered-on.6zVYHkiV verifies display, front host/PD sink and USB480/12 Mbps hub/controls. Prepare reviewed paired return to the existing trial with monitor kept on. The prior blank W observation is power-state-confounded; account for startup versus later power-on before assigning regressions.
 
 - 2026-09-05: Older kernel starts, internal display/system work, LG35 remains blank without reconnect. Loaded AppleDRM/TIPD identities match earlier successes and front device-role failure recurs. [Older-kernel addendum](../evidence/dev-147-clear-wait-trial-preparation-2026-09-05.md) records the result and unresolved exact initramfs selection. New Fairydust patches are not necessary for this observed state; other regressions and exact W comparison remain open.
 
@@ -162,6 +167,8 @@ Release scope is front-port DisplayPort with working associated daily-driver beh
 - 2026-09-05: `git ls-remote https://github.com/AsahiLinux/linux.git` still reports fairydust `b8810ad6442699f610984f3eceea2e3234a50b77` and `bits/200-dcp` `52f0b76aaae7b9a1cc2100f4a9b33257b450d5c0`; no newer tip on those branches to substitute for this baseline. This is not a search of every submitted patch. Saved the six-announcement pre-batch baseline and requested three attended reconnects while the collector is prepared.
 
 ## Discoveries (LIVING)
+
+- Guarded trial return passes eight namespace tests and two real GRUB menu probes in both author and independent runs. The final review has no blocker. See the [preparation evidence](../evidence/dev-147-clear-wait-trial-preparation-2026-09-05.md) for frozen hashes and fixture limits. Software preparation is complete; manual apply, boot and comparison remain open.
 
 - Pre-trace snapshot `before-targeted-trace.vjc_7io4` reports `SNAPSHOT_INCOMPLETE` with `journal_failed`; both DRM connectors are connected/enabled. A quiet-window journal grep returns 1 with empty output, which the collector treats as failure. Do not label this a clean baseline or discard the failure. Keep the frozen collector unchanged for this trace handoff; distinguish no matches from journal failure in a separate regression-backed collector correction.
 
