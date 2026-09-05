@@ -138,3 +138,13 @@ Clarification of the prior timing note: USB disruption before DCP teardown is no
 The next discriminator depends on equipment David already has: another cable known to carry both USB-C video and USB data, or another USB-C monitor. Ask availability before prescribing the one-variable comparison. Keep the current kernel and rear connection fixed; do not begin another endurance batch or make a speculative USB patch.
 
 David confirms a second USB-C monitor, LG35, is available. Select a one-monitor comparison: retain the same USB-C cable, front port, plug orientation and rear connection on the current trial boot. Power the LG35 on beforehand. During one attended trace, disconnect the front cable, move its monitor end to LG35, and reconnect the front once after at least five seconds. The default 45-second capture is adequate only if this can be completed inside its READY window. Record visible image/time and inspect USB enumeration; a different monitor's timing does not isolate resolution or monitor implementation effects.
+
+## Addendum — LG35 comparison fails negotiation, 2026-09-05
+
+David reports no image on LG35. Capture `acceptance/trace-capture.uhjc27vs` spans uptime 2135.68–2180.68, with 125/125 records, 24 zero loss counters, exit 0, empty stderr and removed instance. Report SHA-256: `8d44a531ecdfbc71dc8ab495df63a02107f79e4b6764e392ab459d961a2fca4d`.
+
+Front data-status events at 2160.132248 and 2160.175299 contain USB_DATA_ROLE and DATA_UPSIDE_DOWN; the second adds USB2/USB3 flags. Neither contains DP_CONNECTION or HPD. Snapshot `acceptance/lg35-attach.jlw1y2k9` reports front device data role/PD sink, external DRM disconnected/disabled and internal eDP enabled. Only rear USB root buses remain. The pinned CD321x source maps USB_DATA_ROLE to USB_ROLE_DEVICE. No display mode negotiation occurred for the new monitor.
+
+The old display's shutdown still completes: clear start 2161.060060, submit ACK 2161.108280, a 48.220 ms chain; abort/last-close/power-state follow, poweroff done at 2161.110462. No clear-wait timeout. This failure occurs before a new DP connection and does not refute the previously observed larger-wait benefit.
+
+The working trace did not report DATA_UPSIDE_DOWN, so the comparison has a reported orientation difference as well as the monitor change. This does not establish how the user handled the cable. Ask whether LG35 selected USB-C input and whether the same cable/front port and Mac-end orientation were retained. Stop physical testing pending those facts; no repeated SWDF role write or speculative driver patch.
