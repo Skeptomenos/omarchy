@@ -5,7 +5,7 @@
 **Branch:** `codex/dev147-fairydust-build`
 **Linear:** DEV-147; existing DEV-163 owns monitor-hub data loss.
 **Started:** 2026-09-05
-**Reconciled:** 2026-09-05 — monitor-power capture B9GNLQls has no DP/HPD; user visual outcome pending.
+**Reconciled:** 2026-09-05 — monitor-power capture B9GNLQls has no DP/HPD; user confirms no image.
 
 ## Context
 
@@ -49,7 +49,7 @@ Use full `self-correction-loop`. Root owns scope and documentation. One SWE owns
   Checkpoint: ten user-confirmed image recoveries and twenty accepted external endpoint 0x28 services in one DCP boot cross the original capacity. [Evidence](../evidence/dev-147-front-ten-generations-2026-09-05.md) also records three disconnect clear-swap timeouts and four USB descriptor errors. This is a bounded capacity/recovery success, not a stable-endurance PASS. Twenty-generation and orientation coverage remain open. Pause further physical cycles until these faults are diagnosed; David confirms the requested next batch had not started.
   Next probe: the loss-free fixed-X8 trace captured a 51.749 ms clear-swap reply chain and skipped shutdown tail. Build the isolated 100 ms diagnostic trial below; inspect USB enumeration and rear PHY recovery separately with DEV-163. Do not combine fixes or hide remaining warnings.
   Diagnostic detail: distinguish a late clear-swap callback from an absent callback after firmware powers off. Match swap ID, request, completion and HPD timestamps before deciding whether to avoid an invalid swap, adjust ordering or handle cancellation. The observed discarded-swap firmware message is not yet matched to the driver's waiting clear-swap cookie. For USB, compare hub-only re-enumeration with whole monitor-cable re-enumeration and record negotiated hub speed; vary cable or orientation one at a time after the baseline is captured.
-  Current dependency: B9GNLQls captured a front-controller disconnect/reconnection with device-role data but no DP/HPD. All 39 records are retained, loss counters are zero and cleanup passed. Current external state is disconnected. Await David’s visual outcome before another physical action; no cable defect or driver cause is established.
+  Current dependency: B9GNLQls captured a front-controller disconnect/reconnection with device-role data but no DP/HPD. All 39 records are retained, loss counters are zero and cleanup passed. Current external state is disconnected. David confirms no image. Review negotiation/role handling before another physical action; no cable defect or driver cause is established.
 
 - [x] Diagnostic substep: build the isolated 100 ms clear-wait trial.
   Goal: an independently reviewed, unselected artifact that tests whether a bounded additional wait restores the shutdown tail.
