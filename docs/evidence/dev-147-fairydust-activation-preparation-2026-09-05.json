@@ -1,0 +1,74 @@
+{
+  "date": "2026-09-05",
+  "issue": "DEV-147",
+  "milestone": "paired activation and recovery preparation",
+  "verdict": "PASS_OFFLINE_HANDOFF",
+  "selected_boot_changed": false,
+  "running_release": "7.1.6-1-1-ARCH",
+  "candidate_release": "7.1.12-dev147-fairydust1",
+  "command": "bash dev/apple-dp-altmode/fairydust/validate-activation.sh",
+  "author_gate": "checks/activation-gate.H3xj4U2r",
+  "independent_gate": "checks/activation-gate.xMLQu9Tn",
+  "gate_exit_statuses": [
+    0,
+    0
+  ],
+  "counts": {
+    "namespace_activation_restore": 22,
+    "topology": 4,
+    "real_grub_runtime": 19,
+    "mac_recovery_guards": 14
+  },
+  "code_sha256": {
+    "dev/apple-dp-altmode/fairydust/boot-activate/RECOVERY.md": "cd96a4d02ef1e9ac728a604a2ab377794b4bc5f944bd133cd11cae40b401178c",
+    "dev/apple-dp-altmode/fairydust/boot-activate/activate.py": "f8be9212515fa36ded7566e9ad368e3e7f63f97e3fa94e6004826ede0e14dd4e",
+    "dev/apple-dp-altmode/fairydust/boot-activate/candidate.cfg": "d4082978c51d96419e98218e472b76653ca52bf1c357fc12ba50786f671efcf6",
+    "dev/apple-dp-altmode/fairydust/boot-activate/candidate.sha256": "4b29319c900ddf4cdfd275c25c31eb7be42be22104b653914f56f6ec90895202",
+    "dev/apple-dp-altmode/fairydust/boot-activate/dispatcher.cfg": "58fd5692f3e28013ce54df8de255c552117c1786a7d027e2da21b7fc8a63a9d2",
+    "dev/apple-dp-altmode/fairydust/boot-activate/launch.sh": "b2f57539152484ed683fda30da66374a286ef7caa0b94e00e2a9ba789c8c9230",
+    "dev/apple-dp-altmode/fairydust/boot-activate/old.cfg": "57d839b9bc7d3488402a8cf7c9e45328dc0097731fc395b0514c467d06b7a327",
+    "dev/apple-dp-altmode/fairydust/boot-activate/old.sha256": "b0e5899dfc01b9ddd29a91c5b9ae5dd16f5de9986375470766b30ebf215747a9",
+    "dev/apple-dp-altmode/fairydust/boot-activate/restore.sh": "7ce666daa020ab304ab8dcc52ebe25a6c95e169828681b49a586f2e26c78eadf",
+    "dev/apple-dp-altmode/fairydust/boot-activate/test_activate.py": "7acfa740725859a01c02b98ff1590cac4b555c6b707881ccda46e3de695c2f87",
+    "dev/apple-dp-altmode/fairydust/boot-activate/test_topology.py": "3664aab92e6f2666949ad50cda21f41df293efc6ee6de02b548554df87e02f02",
+    "dev/apple-dp-altmode/fairydust/boot-activate/topology.py": "fa5f4804a6d7323a4638b0550bba9921ede05adfa7106d0d1e05509564bc4530",
+    "dev/apple-dp-altmode/fairydust/validate-activation.sh": "4df2893469913247394c618341eb090bc763d5f60bd9cf0cd27780964a3ac782"
+  },
+  "private_evidence_root": "/home/david/Work/dev147-fairydust-boot-20260905",
+  "private_proof_sha256": {
+    "activation/code-qa.json": "9c58db92c507392c109756d5cb48abffaa7eaba66b7a37ffae1e25577e6d3f85",
+    "checks/activation-gate.H3xj4U2r/result.txt": "afd2a6bafce99b5adc99daccbbb6b6738a4d6f4496179efdf36aa91b4f70c640",
+    "checks/activation-gate.H3xj4U2r/exit-status": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "checks/activation-gate.xMLQu9Tn/result.txt": "afd2a6bafce99b5adc99daccbbb6b6738a4d6f4496179efdf36aa91b4f70c640",
+    "checks/activation-gate.xMLQu9Tn/exit-status": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "checks/activation-gate.xMLQu9Tn/code-identities.sha256": "4646d4f566f6585f20d25861002068fd53060d9994aad15b8f68e03dbac79653",
+    "research/activation-design/design-receipt.json": "94cf753b0c1558bd4c460d26cf68f66ca7e56cd2443d5c6946272716c9417373",
+    "research/activation-recovery/receipt.json": "d5189387eec059f8d7e4a5867e75b14d78be1566e36bdcfede847aa4352cf2c6",
+    "research/activation-final-qa/final-activation-qa.json": "6e91616aac8fab03ba6b898d36e694504829c178c45f68551bad51edf8f70fb7"
+  },
+  "retained_active_bundle_sha256": "203ab7027536c8d16f373d02c1f6346a5c34cfe095a9dafd0cfe37d2b354090c",
+  "package_guard_sha256": "469820ad7cfd015a22cff979b0aa70d62e82dcc7cc05951dca92f40cd660f2bd",
+  "fixture_boundaries": [
+    "Namespace substitutes topology discovery with namespace directory devices.",
+    "Namespace substitutes only expected root-stage receipt hash after verifying unchanged helper bytes; fixture rejects production hash. Original private kernel/initramfs prior state uses synthetic bytes.",
+    "Production fixed bootstrap independently discovers mount source/type/UUID/PARTUUID and directory devices before execution; both launchers passed exact read-only bootstrap on live host."
+  ],
+  "input_freeze_invalidation": {
+    "gate": "/home/david/Work/dev147-fairydust-boot-20260905/checks/activation-gate.42KFrrIv",
+    "exit_status": 1,
+    "reason": "RECOVERY.md prose changed during the in-flight gate; frozen payload check correctly refused the stale guide hash. Shell blocks unchanged. Guide/helper/launchers repinned before final PASS."
+  },
+  "unverified": [
+    "Privileged live activation and root-private state recheck",
+    "Physical FAT publication, fsync failures, SIGKILL and power loss",
+    "macOS/Recovery command execution and actual recovery boot",
+    "Candidate boot, in-memory DT state, display, USB, audio, charging and suspend",
+    "Complete USB4 support"
+  ],
+  "next_action": "User runs boot-activate/launch.sh; inspect saved ACTIVATED_NOT_REBOOTED receipt before attended boot.",
+  "independent_review": {
+    "verdict": "PASS",
+    "blocking_findings": 0,
+    "receipt": "research/activation-final-qa/final-activation-qa.json"
+  }
+}

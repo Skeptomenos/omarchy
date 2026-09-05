@@ -191,6 +191,8 @@ Consider supporting the project: [![Buy Me A Coffee](https://img.shields.io/badg
 - Apple Silicon external display prototype — [docs/apple-silicon-external-display.md](docs/apple-silicon-external-display.md)
 - DEV-147 upstream reconciliation and patch decisions — [docs/research/dev-147-upstream-reconciliation-2026-09-04.md](docs/research/dev-147-upstream-reconciliation-2026-09-04.md)
 - DEV-147 paired boot activation — [docs/plans/2026-09-05-dev147-paired-activation.md](docs/plans/2026-09-05-dev147-paired-activation.md)
+- DEV-147 activation and recovery handoff — [dev/apple-dp-altmode/fairydust/boot-activate/README.md](dev/apple-dp-altmode/fairydust/boot-activate/README.md)
+- DEV-147 activation preparation evidence — [docs/evidence/dev-147-fairydust-activation-preparation-2026-09-05.md](docs/evidence/dev-147-fairydust-activation-preparation-2026-09-05.md)
 - DEV-147 actual staging evidence — [docs/evidence/dev-147-fairydust-staged-2026-09-05.md](docs/evidence/dev-147-fairydust-staged-2026-09-05.md)
 - DEV-147 fairydust boot integration — [docs/plans/2026-09-05-dev147-fairydust-boot-integration.md](docs/plans/2026-09-05-dev147-fairydust-boot-integration.md)
 - DEV-147 boot preparation evidence — [docs/evidence/dev-147-fairydust-boot-preparation-2026-09-05.md](docs/evidence/dev-147-fairydust-boot-preparation-2026-09-05.md)

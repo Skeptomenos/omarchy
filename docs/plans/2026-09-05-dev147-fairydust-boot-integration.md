@@ -71,6 +71,7 @@ Run `bash /home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/f
 - 2026-09-05: Independent review found two validation gaps. The initramfs checker accepted a removed startup file and then an absolute host-resolving BusyBox symlink; exact startup identity/type/config checks and five controls now reject them while the actual image passes. The stage helper copied to EOF before validation; fixed byte/entry/depth limits and exact-size copies now reject oversized, growing and excessive-entry sources. All 20 stage tests and a full actual-delivery rehearsal pass. The later complete gate and independent rerun both pass.
 
 - 2026-09-05: Complete author gate PASS at `checks/offline-gate.ZDD7H3p9`; independent gate PASS at `checks/offline-gate.k7tooauD` in 48.363 seconds. All three preparation steps are verified. The manual launcher remains unrun; selected boot and all hardware acceptance remain open.
+- 2026-09-05 08:16Z: The user subsequently ran the launcher successfully. The actual publication now passes author and independent `validate-staged.sh` gates. The [dated staging evidence](../evidence/dev-147-fairydust-staged-2026-09-05.md) records the apply. The [paired activation continuation](2026-09-05-dev147-paired-activation.md) owns remaining boot-selection and recovery work.
 
 ## Discoveries (LIVING)
 
