@@ -87,6 +87,8 @@ Release scope is front-port DisplayPort with working associated daily-driver beh
 
 ## Progress (LIVING)
 
+- 2026-09-05: [Fixed-X8 monitor reconnect](../evidence/dev-147-fixed-x8-reconnect-timeout-2026-09-05.md) captures the clear timeout with all replies present: 51.749 ms total versus the nominal 50 ms wait. Remaining shutdown methods are skipped; DP returns in kernel state, X8 remains at 10 Gb/s without reset. Visual confirmation pending. Stop blind cycles; review the clear-wait/continuation contract for a separate cause-backed candidate. One timing comparison does not prove X8-induced delay.
+
 - 2026-09-05: David confirms the external image after the mixed reconnect. Coexistence is now supported by visual confirmation and 10 Gb/s X8 enumeration. Next manual control is one front-only reconnect with the SSD and rear cable untouched; keep the recovered rear PHY warning explicit.
 
 - 2026-09-05: User accidentally reconnected X8 before the monitor. [Mixed sequence evidence](../evidence/dev-147-mixed-reconnect-coexistence-2026-09-05.md) retains 1337/1337 records without loss. X8 now enumerates at 10 Gb/s via UAS and front DP becomes enabled; no controlled fixed-rear conclusion. Confirm visible image, then one front-only reconnect while leaving the enumerated X8 untouched. No storage I/O qualification is claimed. Rear unplug also produced a 1 ms pipehandler ACK timeout in the dummy-PHY transition; record this recovered teardown fault separately from the front display hypothesis.
