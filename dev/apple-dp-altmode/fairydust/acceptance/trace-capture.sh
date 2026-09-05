@@ -1,12 +1,16 @@
 #!/bin/bash
 set -euo pipefail
-[[ $# == 0 && $EUID != 0 ]] || { printf 'Run this launcher as the normal user without arguments.\n' >&2; exit 2; }
+[[ $EUID != 0 && ( $# == 0 || ( $# == 1 && $1 == "attach" ) ) ]] || { printf 'Run as the normal user with no arguments or with attach.\n' >&2; exit 2; }
+capture_mode=${1:-reconnect}
 umask 077
 root=/home/david/Work/dev147-fairydust-acceptance-20260905
 [[ -d $root && ! -L $root && -O $root && $(stat -c '%a' "$root") == 700 ]] || exit 2
 results=$(mktemp -d "$root/trace-capture.XXXXXXXX")
-if /usr/bin/sudo /bin/bash -s > "$results/report.txt" 2> "$results/stderr.log" <<'DEV147_TRACE_CAPTURE'
+if /usr/bin/sudo /bin/bash -s -- "$capture_mode" > "$results/report.txt" 2> "$results/stderr.log" <<'DEV147_TRACE_CAPTURE'
 set -euo pipefail
+[[ $# == 1 && ( $1 == "reconnect" || $1 == "attach" ) ]] || { printf 'FAIL: invalid capture mode.\n'; exit 2; }
+capture_mode=$1
+printf 'CAPTURE_MODE %s\n' "$capture_mode"
 [[ $(/usr/bin/uname -r) == "7.1.12-dev147-fairydust1" ]] || { printf 'FAIL: unexpected kernel release.\n'; exit 2; }
 exec 3>/dev/tty
 printf 'BOOT_ID '; /usr/bin/cat /proc/sys/kernel/random/boot_id
@@ -66,7 +70,11 @@ printf 'INSTANCE %s\nCLOCK ' "$instance"; /usr/bin/cat "$instance/trace_clock"
 printf 'BUFFER_KB_PER_CPU '; /usr/bin/cat "$instance/buffer_size_kb"
 printf 'START_UPTIME '; /usr/bin/cat /proc/uptime
 printf '1\n' > "$instance/tracing_on"
-printf 'READY: capture active for 45 seconds. Disconnect the FRONT cable once, wait 5 seconds, then reconnect once.\n' >&3
+if [[ $capture_mode == "attach" ]]; then
+  printf 'READY: capture active for 45 seconds. Connect the monitor to the FRONT port once.\n' >&3
+else
+  printf 'READY: capture active for 45 seconds. Disconnect the FRONT cable once, wait 5 seconds, then reconnect once.\n' >&3
+fi
 /usr/bin/sleep 45
 printf 'CAPTURED: 45-second window ended; no hardware acceptance claim.\n'
 DEV147_TRACE_CAPTURE

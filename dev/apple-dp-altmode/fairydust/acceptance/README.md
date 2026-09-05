@@ -63,3 +63,15 @@ python3 /home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fai
 ```
 
 The test replaces sudo and tracefs inside bwrap. It does not enable live tracing. [Preparation evidence](../../../../docs/evidence/dev-147-targeted-trace-2026-09-05.md) records checks and their limits.
+
+## Attach after monitor power cycling
+
+Use this probe only after preserving the failed state. Keep Linux running. Disconnect the monitor USB-C cable from the Mac. Remove the monitor's AC power for 30 seconds, restore AC power and wait for the monitor to start. Keep the USB-C cable disconnected until READY.
+
+```bash
+bash /home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/acceptance/trace-capture.sh attach
+```
+
+Enter the password. At READY, connect the same cable once to the same front port with the same orientation. Wait until the capture finishes and report the image result. This mode changes only the instruction cue; capture filters, 45-second duration and cleanup remain the same. It issues no driver-reset or role-swap command.
+
+The [failed reconnect evidence](../../../../docs/evidence/dev-147-targeted-reconnect-failure-2026-09-05.md) explains this probe. Recovery would establish that a Mac reboot is unnecessary for this attempt; it would not isolate monitor state from the longer disconnection interval.

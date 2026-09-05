@@ -81,6 +81,8 @@ class TraceCaptureTests(unittest.TestCase):
       for name in programs:
         command += ["--ro-bind", str(root / "tools" / name), "/usr/bin/" + name]
       command += ["/bin/bash", str(SOURCE / "trace-capture.sh")]
+      if mode == "attach":
+        command.append("attach")
       result = subprocess.run(
         command, capture_output=True, text=True, check=False, timeout=10
       )
@@ -109,11 +111,30 @@ class TraceCaptureTests(unittest.TestCase):
         self.assertNotIn("READY", cue)
       else:
         self.assertIn("READY", cue)
-      if mode in ("normal", "cleanup-failure"):
+      if mode == "attach":
+        self.assertIn("Connect the monitor to the FRONT port once", cue)
+        self.assertNotIn("Disconnect", cue)
+        self.assertIn("CAPTURE_MODE attach", report)
+      if mode in ("normal", "cleanup-failure", "attach"):
         self.assertIn("CAPTURED:", report)
         self.assertIn("endpoint == 55", report)
       else:
         self.assertNotIn("CAPTURED:", report)
+
+  def test_attach_mode_cue_requires_only_one_connection(self) -> None:
+    self.run_case("attach", 0)
+
+  def test_invalid_arguments_refuse_before_sudo(self) -> None:
+    for arguments in (("unexpected",), ("attach", "extra")):
+      result = subprocess.run(
+        ["/bin/bash", str(SOURCE / "trace-capture.sh"), *arguments],
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=5,
+      )
+      self.assertEqual(result.returncode, 2)
+      self.assertEqual(result.stdout, "")
 
   def test_success_with_loss_stats_is_only_captured(self) -> None:
     self.run_case("normal", 0)
