@@ -68,3 +68,11 @@ Final independent review reports no blocker to the stage-only handoff. It verifi
 - `checks/stage-full-independent.y9ny2ep8/final-launcher-review.json`: `cd8eef2a3633ca9f6d1ebda5061292fd874811d2353296ccb2735a9b9c41fff1`.
 
 No actual staging, boot, tracing or trial hardware acceptance occurred. DEV-147 was updated with the stage-only dependency and commits `92c16aa0d` and `78cb3a2cd`.
+
+## Addendum — actual stage verified, 2026-09-05
+
+David ran the pinned stage launcher and supplied exit 0. The private receipt at `/home/david/Work/dev147-clear-wait-trial/stage/manual-results/result.json` reports `STAGED_UNSELECTED`, the exact trial release and manifest. Receipt SHA-256: `cac1088402b6bb90d08baba8a55eda17be3b1424edc291bd8045a910145e9eb5`. Stderr is empty.
+
+Read-only verification of installed module files with `sha256sum --check --strict --status /home/david/Work/dev147-clear-wait-trial/delivery/modules.sha256` from `/usr` returned zero. Published Image, initramfs and config hashes match the accepted delivery. The new boot and module directories are root-owned, mode 755. The helper reports preserved current default, ESP and protected state. The running release remains `7.1.12-dev147-fairydust1`.
+
+Actual staging is complete. Trial boot and hardware validation remain pending. The next attended action is a transient GRUB edit of only the linux/initrd paths, as specified in the stage guide. Preserve current cable connections for the boot observation; report release and visible internal/external display behavior before any further reconnect.
