@@ -68,6 +68,8 @@ The completed offline preparation gate remains `bash /home/david/Work/omarchy-de
 
 ## Progress (LIVING)
 
+- 2026-09-05: Near-MagSafe connection produces no image after 20 seconds. USB-C partner/PD detection occurs, but no DPTX connection follows. Source and live DT inspection identify the current fixed PHY1/front-port DP route; only typec1 has the display binding. See [rear-port evidence](../evidence/dev-147-fairydust-rear-port-2026-09-05.md). Both-port DP routing requires further integration, not more waiting on this connection.
+
 - 2026-09-05: Second front-port reconnect succeeds, with user-reported 10–12 seconds to image after about five seconds unplugged. Kernel disconnect-to-connect interval is 15.046 seconds; connect-to-modeset completion is 2.530 seconds. Physical reinsertion is not timestamped. See [second reconnect evidence](../evidence/dev-147-fairydust-front-reconnect2-2026-09-05.md). Delayed detection and attached-at-boot failure remain open.
 
 - 2026-09-05: David clarifies that the monitor was attached throughout boot on the front/lower USB-C port. It showed no image until a reconnect. Current DP is connected/enabled; logs show DPTX connection, HPD and a 3840×2160 nominal 60 Hz modeset after reconnect. Record one hot-plug success and an attached-at-boot detection defect, not full display acceptance. See [front-port evidence](../evidence/dev-147-fairydust-front-display-2026-09-05.md).
@@ -99,6 +101,8 @@ The completed offline preparation gate remains `bash /home/david/Work/omarchy-de
 - 2026-09-05: Activation requires the staged candidate and historical protected state to match. Restore depends on the trusted old backups, original boot dependencies and guard, while preserving current unrelated state. It must not require intact candidate files or unchanged EFI-variable/package metadata. Check dynamic `custom.cfg` inputs explicitly so a new file cannot change the preserved configuration's routing.
 
 ## Follow-ups
+
+- [ ] Review coherent upstream dynamic DP routing for both ports; the current fairydust DT wires only typec1/PHY1. Preserve the working front-port baseline.
 
 - [ ] Diagnose already-attached display detection at boot; one front-port failure followed by successful reconnect is recorded.
 - [ ] Repeat controlled front-port reconnects, then check the other port and orientations.
