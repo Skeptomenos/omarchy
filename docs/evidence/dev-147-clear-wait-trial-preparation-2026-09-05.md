@@ -257,3 +257,11 @@ David's retry `return-to-trial/return-results.fBVDEKz2` exits 0 with empty stder
 Both restored module directories remain present with root ownership and mode 0755. The cleanup exception remains loaded and inactive; no package lock remains. W is still running until a full restart. The frozen menu defaults to `DEV-147 fairydust 7.1.12 - test1 (100 ms)`, using the clearwait100 Image/initramfs pair without manual edits. The next attended boot keeps LG35 powered on and all cables fixed. Record release, internal/external image and responsiveness before any reconnect; this selection receipt alone does not establish hardware success.
 
 Independent read-only verification returns PASS for the full manual restart. It confirms receipt and frozen pins, direct ESP identity, both live module trees and absent package lock. Expected post-boot release is `7.1.12-dev147-clearwait100`.
+
+## Addendum — returned trial boot observed, 2026-09-05
+
+David reports `7.1.12-dev147-clearwait100`. Read-only checks confirm boot `ee6d8621-18d4-4821-9052-bb54b58f9ccb` and ESP `1ae29a2b…`. Snapshot `acceptance/lg35-powered-reboot.qbb7lvao` records internal eDP connected/enabled at 2560×1664/60 Hz and external DP disconnected/disabled with no modes. Its exit 1 means `SNAPSHOT_CAPTURED_WITH_ERRORS`: 20 classified journal records, zero collection issues. This is not a hardware acceptance PASS or a count of new faults.
+
+Front controller 0-003f maps to port1 and reports host data role / PD sink. Both USB host controllers initialize, but the inspected boot journal has no downstream USB discovery. External DCP boots at 5.041548 seconds and reports disconnected with zero modes at 5.041817. This differs from the earlier device-role failure; it does not establish the exact point of startup notification loss.
+
+Both test module directories survive this boot. The cleanup unit journal shows both exact-release exemptions taking effect and retains packaged W. This verifies the repair across a boot. User confirmation of visible LG35 output and unchanged powered-on cable setup is pending. Leave cables fixed; do not assign a regression or request another reconnect until the physical state is confirmed.

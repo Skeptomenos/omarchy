@@ -5,7 +5,7 @@
 **Branch:** `codex/dev147-fairydust-build`
 **Linear:** DEV-147; existing DEV-163 owns monitor-hub data loss.
 **Started:** 2026-09-05
-**Reconciled:** 2026-09-05 — return selected successfully; attended trial reboot awaits user.
+**Reconciled:** 2026-09-05 — trial boot confirmed; external DRM disconnected, physical outcome pending.
 
 ## Context
 
@@ -49,7 +49,7 @@ Use full `self-correction-loop`. Root owns scope and documentation. One SWE owns
   Checkpoint: ten user-confirmed image recoveries and twenty accepted external endpoint 0x28 services in one DCP boot cross the original capacity. [Evidence](../evidence/dev-147-front-ten-generations-2026-09-05.md) also records three disconnect clear-swap timeouts and four USB descriptor errors. This is a bounded capacity/recovery success, not a stable-endurance PASS. Twenty-generation and orientation coverage remain open. Pause further physical cycles until these faults are diagnosed; David confirms the requested next batch had not started.
   Next probe: the loss-free fixed-X8 trace captured a 51.749 ms clear-swap reply chain and skipped shutdown tail. Build the isolated 100 ms diagnostic trial below; inspect USB enumeration and rear PHY recovery separately with DEV-163. Do not combine fixes or hide remaining warnings.
   Diagnostic detail: distinguish a late clear-swap callback from an absent callback after firmware powers off. Match swap ID, request, completion and HPD timestamps before deciding whether to avoid an invalid swap, adjust ordering or handle cancellation. The observed discarded-swap firmware message is not yet matched to the driver's waiting clear-swap cookie. For USB, compare hub-only re-enumeration with whole monitor-cable re-enumeration and record negotiated hub speed; vary cable or orientation one at a time after the baseline is captured.
-  Current dependency: return-results.fBVDEKz2 succeeds with RETURNED_TO_TRIAL_NOT_REBOOTED, exact menu/dispatcher pins and directly verified Fairydust ESP. Full restart into the default named 100 ms trial is next. Keep LG35 on and cables fixed; report uname, image and responsiveness before reconnecting. W remains running until that restart. No path edits or kernel rebuild are required.
+  Current dependency: trial boot ee6d8621 is confirmed at clearwait100 with the paired ESP. Internal display is active; external DRM is disconnected, front Type-C host/PD sink. Both module trees survived cleanup. Ask whether LG35 shows an image and remained powered on with unchanged cables; await that physical confirmation before a new manual test or regression conclusion. Snapshot lg35-powered-reboot.qbb7lvao preserves the boot state.
 
 - [x] Diagnostic substep: build the isolated 100 ms clear-wait trial.
   Goal: an independently reviewed, unselected artifact that tests whether a bounded additional wait restores the shutdown tail.
