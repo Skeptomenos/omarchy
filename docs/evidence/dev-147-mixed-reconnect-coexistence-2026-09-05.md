@@ -23,3 +23,5 @@ The intended comparison remains open because rear state changed first. Preserve 
 During X8 disconnection the rear PHY `383000000.phy` logs `Pipehandler lock not acked` at 2076.423031 and `Failed to lock pipehandler` at 2076.423647. Both have warning priority 4. In pinned `drivers/phy/apple/atc.c`, this matches the dummy-PHY transition warning path, which continues after the 1000 microsecond hardware ACK wait expires. The host-mode setup path uses error priority instead. This is a rear transition fault, not a clean mixed run or proof of a front-port cause.
 
 The existing snapshot driver filter omits this PHY prefix. Its three classified firmware diagnostics are not the full fault inventory. Preserve the explicit kernel-journal warnings alongside the trace. The SSD's later recovery does not erase them.
+
+User visual addendum: David confirms the external monitor image is present after the mixed sequence. This establishes image recovery alongside the enumerated X8. It does not remove the sequence confound, rear PHY warning or untested storage I/O. The next control is one front-only reconnect with the X8 left untouched.
