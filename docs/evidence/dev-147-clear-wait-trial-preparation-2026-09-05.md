@@ -126,3 +126,15 @@ The external connector returns and the journal requests a 4K modeset at 1262.981
 USB remains a separate blocker: front hub repeatedly disconnects and logs descriptor/configuration/address -71 errors during this window. The current downstream USB inventory is empty. Some USB disruption precedes the monitor teardown, so not all of it can be attributed to that unplug. Five snapshot-classified errors do not include the complete USB journal. Retain the trial for analysis, pause stress cycles, and prioritize USB fault isolation before endurance qualification. Do not mark release acceptance complete.
 
 Independent review verifies all five endpoint 0x37/context-2 ACK pairs, distinguishing interleaved context-0/3 callbacks. It confirms the 53.221 ms clear sequence and completed tail. Exact wait entry is untraced; retain the stated counterfactual and stability limits.
+
+## Addendum — visual confirmation and USB isolation, 2026-09-05
+
+David confirms H6RTWN8n restored the external image in roughly 5–7 seconds. Combined with the independently checked 53.221 ms clear-swap chain and completed shutdown tail, this is one successful attended teardown/recovery on the diagnostic kernel. Retain the 100 ms trial for further qualification; no production-bound or endurance claim follows from one result.
+
+The front Type-C trace last reports unchanged DP pin C, USB2 and HPD at 1262.711295. Subsequent USB hub failures continue through 1273.192784 without another recorded Type-C data-status change in the capture. This narrows the observed failure to USB behavior while DP remains active; it does not identify a defective cable, hub or driver. The hub remains absent after the capture.
+
+Clarification of the prior timing note: USB disruption before DCP teardown is not proof that it preceded the user's physical unplug. No physical-action timestamp was recorded. Do not infer which early USB event was spontaneous from kernel ordering alone.
+
+The next discriminator depends on equipment David already has: another cable known to carry both USB-C video and USB data, or another USB-C monitor. Ask availability before prescribing the one-variable comparison. Keep the current kernel and rear connection fixed; do not begin another endurance batch or make a speculative USB patch.
+
+David confirms a second USB-C monitor, LG35, is available. Select a one-monitor comparison: retain the same USB-C cable, front port, plug orientation and rear connection on the current trial boot. Power the LG35 on beforehand. During one attended trace, disconnect the front cable, move its monitor end to LG35, and reconnect the front once after at least five seconds. The default 45-second capture is adequate only if this can be completed inside its READY window. Record visible image/time and inspect USB enumeration; a different monitor's timing does not isolate resolution or monitor implementation effects.
