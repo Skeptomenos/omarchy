@@ -17,3 +17,5 @@ The interruption starts roughly three seconds before the first recorded rear PD 
 Independent review verified capture integrity, snapshot manifest, controller attribution and the USB timeline. Pause the planned front reconnect until the user confirms the image result, front-cable handling and drive/enclosure model. Retain both cables in place while identifying whether the enclosure uses USB or Thunderbolt/USB4. No disk operations, role changes, resets or kernel edits were performed by the agent.
 
 The rear-attach software's independent receipt is `/home/david/Work/dev147-fairydust-acceptance-20260905/checks/trace-rear-attach-independent.jk43cq__/receipt.json`, SHA256 `72ec4fbff1eaf9bd95dd0041bd1d812c12554624a0dfea1ba7aad11ac9f5e5bc`.
+
+User addendum: David answered yes to the front-cable-untouched question. The enclosure model remains unanswered. Independent review found no captured front hotplug callback or shutdown method sequence; snapshot firmware diagnostics predate this insertion. The next required input is the drive/enclosure identity, not another cable cycle.
