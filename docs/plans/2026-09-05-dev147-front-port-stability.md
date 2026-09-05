@@ -46,10 +46,18 @@ Use full `self-correction-loop`. Root owns scope and documentation. One SWE owns
   Assumption: the corrected AFK lifecycle survives late replies and repeated teardown.
   Verify: compare observed transitions with the existing positive/negative lifecycle harness; review any timeout or unexpected announcement before further cycles.
   Checkpoint: ten user-confirmed image recoveries and twenty accepted external endpoint 0x28 services in one DCP boot cross the original capacity. [Evidence](../evidence/dev-147-front-ten-generations-2026-09-05.md) also records three disconnect clear-swap timeouts and four USB descriptor errors. This is a bounded capacity/recovery success, not a stable-endurance PASS. Twenty-generation and orientation coverage remain open. Pause further physical cycles until these faults are diagnosed; David confirms the requested next batch had not started.
-  Next probe: correlate clear-swap start/completion, HPD removal and DCP teardown without changing the timeout. Inspect USB enumeration and recovery separately with DEV-163. Do not combine speculative fixes or hide recoverable warnings.
+  Next probe: the loss-free fixed-X8 trace captured a 51.749 ms clear-swap reply chain and skipped shutdown tail. Build the isolated 100 ms diagnostic trial below; inspect USB enumeration and rear PHY recovery separately with DEV-163. Do not combine fixes or hide remaining warnings.
   Diagnostic detail: distinguish a late clear-swap callback from an absent callback after firmware powers off. Match swap ID, request, completion and HPD timestamps before deciding whether to avoid an invalid swap, adjust ordering or handle cancellation. The observed discarded-swap firmware message is not yet matched to the driver's waiting clear-swap cookie. For USB, compare hub-only re-enumeration with whole monitor-cable re-enumeration and record negotiated hub speed; vary cable or orientation one at a time after the baseline is captured.
-  Manual dependency: the mixed X8-then-monitor sequence restored the image and enumerated the X8 at 10 Gb/s, but changed both ports. David now runs `trace-capture.sh` without an argument and performs one front-monitor reconnect at READY, leaving the X8 and rear cable untouched. Keep this boot and orientation. Stop on failed image; no intentional storage workload is needed.
+  Current dependency: finish the isolated trial's build and independent offline gates before preparing an unselected deployment. No additional cable cycle is needed before that preparation. User-visible confirmation of the last control remains pending; kernel state and trace establish DP recovery with X8 retained.
 
+- [ ] Diagnostic substep: build the isolated 100 ms clear-wait trial.
+  Goal: an independently reviewed, unselected artifact that tests whether a bounded additional wait restores the shutdown tail.
+  Probe first: baseline 50 ms rejects a modeled 52-tick completion; verify candidate 100 ms accepts it using extracted Linux completion logic with explicit simulation limits.
+  Implementation: one source-line timeout change, separate commit/worktree/build and unique release; reuse the pinned toolchain and base config except release identity. Preserve recovery and guard artifacts.
+  Validation: exact source/config delta, positive/negative completion controls, full Image/modules/J413 DT build, module consistency and independent diff/build review. Planned 280-second compilation chunks remain the established execution method; a checkpoint is not a compiler failure.
+  Exit criteria: software/artifacts verified and manual deployment handoff prepared. Hardware checks must still show shutdown-tail RPCs, bounded timeout behavior and image recovery after a separately attended boot.
+  Assumption: the observed late reply can complete within the larger budget; 100 ms is not an established worst-case bound.
+  Verify: trace the trial on hardware and retain all timeouts. Async continuation and skipping clear-swap are excluded pending stronger lifecycle evidence.
 - [ ] Slice 3: Fix attached-at-boot detection and characterize latency.
   Goal: an already attached front-port monitor works after boot without a manual reconnect, with measured connection timing.
   Probe first: trace the source path from CD321x state to connector notification, mux/PHY readiness and external DCP initialization. Compare boot versus successful reconnect. Review available upstream fixes before writing one.
@@ -86,6 +94,8 @@ The next milestone gate is `bash /home/david/Work/omarchy-dev147-fairydust-build
 Release scope is front-port DisplayPort with working associated daily-driver behavior. Full support additionally requires automatic routing to either USB-C port, coherent USB4/Thunderbolt integration, and a new regression matrix. No completion date is inferred from three successful cable connections.
 
 ## Progress (LIVING)
+
+- 2026-09-05: Source review selects a separate 100 ms diagnostic clear-wait candidate. It preserves PR582's no-crash behavior and timeout early return. This is a budget experiment around measured 51.749 ms replies, not a production timeout bound. Prepare an isolated source/build at `/home/david/Work/dev147-clear-wait-trial`, release `7.1.12-dev147-clearwait100`; keep the running kernel, original build and boot files frozen.
 
 - 2026-09-05: [Fixed-X8 monitor reconnect](../evidence/dev-147-fixed-x8-reconnect-timeout-2026-09-05.md) captures the clear timeout with all replies present: 51.749 ms total versus the nominal 50 ms wait. Remaining shutdown methods are skipped; DP returns in kernel state, X8 remains at 10 Gb/s without reset. Visual confirmation pending. Stop blind cycles; review the clear-wait/continuation contract for a separate cause-backed candidate. One timing comparison does not prove X8-induced delay.
 

@@ -1,0 +1,13 @@
+diff --git c/drivers/gpu/drm/apple/iomfb_template.c w/drivers/gpu/drm/apple/iomfb_template.c
+index dc7b33c21..c7a6c14ca 100644
+--- c/drivers/gpu/drm/apple/iomfb_template.c
++++ w/drivers/gpu/drm/apple/iomfb_template.c
+@@ -926,7 +926,7 @@ void DCP_FW_NAME(iomfb_poweroff)(struct apple_dcp *dcp)
+ 
+ 	dcp_swap_start(dcp, false, &swap_req, dcp_swap_clear_started, cookie);
+ 
+-	ret = wait_for_completion_timeout(&cookie->done, msecs_to_jiffies(50));
++	ret = wait_for_completion_timeout(&cookie->done, msecs_to_jiffies(100));
+ 	swap_id = cookie->swap_id;
+ 	kref_put(&cookie->refcount, release_swap_cookie);
+ 	if (ret <= 0) {
