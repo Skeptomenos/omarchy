@@ -9,3 +9,11 @@ The frozen source explains a routing limitation: `arch/arm64/boot/dts/apple/t811
 The agent should have checked this fixed route before requesting the second-port test. Both-port display support remains implementation work. Do not duplicate the display pointer or change the PHY number on the running stack: that alone does not establish safe dynamic routing, arbitration or correct hot-plug handling. Review the coherent upstream routing work before deciding what local changes remain necessary.
 
 Return to the front port for the known-working display baseline. Track three separate gaps: detection when attached at boot, delayed hot-plug detection, and display routing for the port near MagSafe. Keep reconnect endurance, USB/audio/charging and suspend acceptance open.
+
+## Hardware capability and return to front port
+
+David reports that moving the cable back to the front port restored the image after about five seconds. This is a third user-reported successful front-port connection, without instrumented insertion timing.
+
+Apple lists DisplayPort support on both Thunderbolt/USB4 ports of this M2 MacBook Air, with one native external display up to6K/60Hz: https://support.apple.com/en-ie/111867 . Therefore either physical port can carry the external display; the current fixed route is a software limitation. This does not imply two simultaneous native external displays.
+
+Asahi's February2026 progress report explicitly describes fairydust's single selected USB-C port and cold/hot-plug quirks: https://asahilinux.org/2026/02/progress-report-6-19/ . A rear-only experimental build is a plausible fixed-routing change requiring validation. Supporting either port automatically needs coordinated driver/device-tree routing and hot-plug handling. No ready-to-install newer build providing that capability has been established in this task.
