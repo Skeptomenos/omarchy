@@ -104,3 +104,25 @@ Next perform one scoped front-only reconnect from the now-active display, keepin
 Independent review corrected the preceding blanket absence claim. `iomfb_push` prints method names, not numeric A-tags. The trace contains power-state and normal frame swap calls after reconnection: `dcpep_set_power_state` at 910.759211 and `dcpep_swap_start`/`dcpep_swap_submit` from 910.983686/910.983734. These map to A472/A407/A408. Searching only numeric tags incorrectly reported their absence.
 
 The narrower conclusion remains: there are no method pushes during the initial unplug period, before reconnection and display power-on, and no abort-swaps/last-client-close shutdown chain. This capture does not exercise the poweroff clear-swap wait. Subsequent analysis must classify method names by timing and caller sequence, not numeric text searches or an undifferentiated swap-call count.
+
+## Addendum — longer clear-wait exercised, 2026-09-05
+
+Active-display reconnect capture `acceptance/trace-capture.H6RTWN8n` retains 1,338/1,338 records with 24 zero loss counters, exit 0, empty stderr and removed trace instance. Window: uptime 1251.82–1296.82, same trial boot. Report SHA-256: `63234b15f50025ab67e15345474d1ce00439e9c75e641b5313698c28eabcfe2e`.
+
+The actual context-2 clear-swap and shutdown sequence is present. Times below are monotonic seconds; ACK refers to the matched transport reply, not a directly traced completion cookie.
+
+| Method | Push | ACK |
+|---|---:|---:|
+| dcpep_swap_start | 1253.838714 | 1253.891787 |
+| dcpep_swap_submit | 1253.891799 | 1253.891935 |
+| iomfbep_abort_swaps_dcp | 1253.891961 | 1253.892030 |
+| iomfbep_last_client_close | 1253.892031 | 1253.892301 |
+| dcpep_set_power_state | 1253.892302 | 1253.892351 |
+
+The clear-swap reply chain takes 53.221 ms. The following abort/close/power-state calls demonstrate that the waiter passed into the shutdown tail. The journal records poweroff done at 1253.894680 with neither clear-wait nor power-state timeout. This directly supports the larger diagnostic budget for a reply beyond the old nominal 50 ms. It does not establish a worst-case bound, exact scheduler counterfactual for the baseline, or general stability.
+
+The external connector returns and the journal requests a 4K modeset at 1262.981889. Snapshot `acceptance/active-reconnect.x46n0sqo` confirms both DRM connectors enabled. User-visible image return and timing are pending.
+
+USB remains a separate blocker: front hub repeatedly disconnects and logs descriptor/configuration/address -71 errors during this window. The current downstream USB inventory is empty. Some USB disruption precedes the monitor teardown, so not all of it can be attributed to that unplug. Five snapshot-classified errors do not include the complete USB journal. Retain the trial for analysis, pause stress cycles, and prioritize USB fault isolation before endurance qualification. Do not mark release acceptance complete.
+
+Independent review verifies all five endpoint 0x37/context-2 ACK pairs, distinguishing interleaved context-0/3 callbacks. It confirms the 53.221 ms clear sequence and completed tail. Exact wait entry is untraced; retain the stated counterfactual and stability limits.
