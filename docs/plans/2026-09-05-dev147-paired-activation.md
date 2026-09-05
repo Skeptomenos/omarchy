@@ -15,7 +15,7 @@ The candidate release is `7.1.12-dev147-fairydust1`. Its boot files are in `/boo
 
 The stage result exports the protected GRUB configuration. It selects entry 0 unless `next_entry` is set. Both existing Linux entries use the old kernel and initramfs. It sources an optional `/boot/grub/custom.cfg` at the end; that file was absent. m1n1 prepares the device tree before GRUB. Therefore the old GRUB menu is not a complete fallback after replacing the shared EFI `m1n1/boot.bin`.
 
-The EFI partition is FAT and accessible from macOS/Recovery. `/boot/grub` is on ext4. A recovery procedure must not assume macOS can write ext4. David activated the reviewed pair on 2026-09-05; the receipt reports `ACTIVATED_NOT_REBOOTED`. The running kernel remains the old release pending the first restart.
+The EFI partition is FAT and accessible from macOS/Recovery. `/boot/grub` is on ext4. A recovery procedure must not assume macOS can write ext4. David activated the reviewed pair on 2026-09-05; the receipt reports `ACTIVATED_NOT_REBOOTED`. The first restart now runs `7.1.12-dev147-fairydust1`; hardware acceptance remains open.
 
 ## Approach
 
@@ -68,6 +68,8 @@ The completed offline preparation gate remains `bash /home/david/Work/omarchy-de
 
 ## Progress (LIVING)
 
+- 2026-09-05: First candidate boot succeeds. Running release and command line match `7.1.12-dev147-fairydust1`. Live SIO firmware parameters are present; SIO protocol v9 and both DCP boots are logged. Internal eDP is connected/enabled; external DP is disconnected. See [first-boot evidence](../evidence/dev-147-fairydust-first-boot-2026-09-05.md) for warnings and limits. Proceed to one attended display connection before repeated reconnect or suspend testing.
+
 - 2026-09-05: David ran the activation launcher successfully. `activation/activate-results.iUG81ebY` reports exit 0, empty stderr and `ACTIVATED_NOT_REBOOTED`. Readable live hashes match the candidate bundle, old recovery bundle, copied guide and retained guard. GRUB and its support directory are root-private; their successful final verification is established by the pinned privileged helper's receipt, not a second unprivileged read. No package lock remains. See the [activation evidence](../evidence/dev-147-fairydust-activated-2026-09-05.md). Do not rerun activation or gates that require the original selected state.
 
 - 2026-09-05 07:59Z: Read the saved stage result and live issue. DEV-147 remains In Progress. The result reports `STAGED_UNSELECTED`; the current kernel and active Omarchy dev link remain unchanged. Started actual-publication verification and independent recovery design research.
@@ -95,7 +97,7 @@ The completed offline preparation gate remains `bash /home/david/Work/omarchy-de
 ## Follow-ups
 
 - [x] User-run activation; saved result and readable live pins verified.
-- [ ] Attended candidate boot; expected release `7.1.12-dev147-fairydust1`.
+- [x] Attended candidate boot; running release `7.1.12-dev147-fairydust1` verified.
 - [ ] Verify running release, prepared SIO/DT properties, firmware, internal display, external DP and reconnects beyond the prior exhaustion window.
 - [ ] USB data, audio and charging on both ports and orientations; suspend and power checks later.
 - [ ] Complete the upstream USB4 series and its prerequisites after baseline acceptance, as tracked by the original fresh plan.

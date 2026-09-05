@@ -1,6 +1,6 @@
 # Select the paired fairydust boot stack
 
-The activation and recovery handoff passed independent offline QA on 2026-09-05. David then ran activation successfully: `ACTIVATED_NOT_REBOOTED`. The [living plan](../../../../docs/plans/2026-09-05-dev147-paired-activation.md) owns execution status; [preparation evidence](../../../../docs/evidence/dev-147-fairydust-activation-preparation-2026-09-05.md) records offline checks and [activation evidence](../../../../docs/evidence/dev-147-fairydust-activated-2026-09-05.md) records the apply. Candidate boot remains open.
+The activation and recovery handoff passed independent offline QA on 2026-09-05. David then ran activation successfully: `ACTIVATED_NOT_REBOOTED`. The [living plan](../../../../docs/plans/2026-09-05-dev147-paired-activation.md) owns execution status; [preparation evidence](../../../../docs/evidence/dev-147-fairydust-activation-preparation-2026-09-05.md) records offline checks and [activation evidence](../../../../docs/evidence/dev-147-fairydust-activated-2026-09-05.md) records the apply. The first candidate boot now succeeds; hardware acceptance remains open.
 
 The candidate kernel and modules are already staged. Activation preserves the old configuration and EFI bundle, installs the verified GRUB selector while the old bundle remains active, then replaces the EFI bundle. The selector requires exactly one bundle hash to match before it loads the paired kernel configuration.
 

@@ -1,0 +1,44 @@
+{
+  "release": "7.1.12-dev147-fairydust1",
+  "boot_id": "f80d5566-d14a-4374-9824-15887a63c576",
+  "cmdline": "BOOT_IMAGE=/boot/dev147-fairydust-7.1.12-dev147-fairydust1/Image root=UUID=e24cf117-3c89-4392-a3b8-def187becda8 rw loglevel=3 quiet disablehooks=encrypt",
+  "selected_log_lines": [
+    "apple-sio 236400000.sio: RTKit: Initializing (protocol version 12)",
+    "apple-sio 236400000.sio: SIO protocol v9",
+    "apple-isp 22a000000.isp: ISP firmware-compat: 13.5 (FW: 13.5)",
+    "apple-dcp 231c00000.dcp: DCP booted",
+    "apple-dcp 271c00000.dcp: DCP booted"
+  ],
+  "connectors": {
+    "card2-DP-1": {
+      "status": "disconnected",
+      "enabled": "disabled"
+    },
+    "card2-eDP-1": {
+      "status": "connected",
+      "enabled": "enabled"
+    }
+  },
+  "dt": {
+    "sio@236400000": {
+      "apple,sio-firmware-params": "0000001e000000300000001f000000300000000b000000310000000c00001b800000000f00000034000000100001e0000000030d000000540000030e000040000000001a000000580000001b00000040000000220000005900000023000000a00000001c0000005a0000001d00000040",
+      "status": "6f6b617900"
+    },
+    "dcp@231c00000": {
+      "apple,firmware-compat": "0000000d0000000500000000",
+      "apple,firmware-version": "0000000d0000000500000000",
+      "status": "6f6b617900"
+    },
+    "dcp@271c00000": {
+      "apple,firmware-compat": "0000000d0000000500000000",
+      "apple,firmware-version": "0000000d0000000500000000",
+      "status": "6f6b617900"
+    }
+  },
+  "drivers": {
+    "236400000.sio": "/sys/bus/platform/drivers/apple-sio",
+    "231c00000.dcp": "/sys/bus/platform/drivers/apple-dcp",
+    "271c00000.dcp": "/sys/bus/platform/drivers/apple-dcp",
+    "238334000.audio-controller": "/sys/bus/platform/drivers/dcp-dp-audio"
+  }
+}

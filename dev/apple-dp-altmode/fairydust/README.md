@@ -51,4 +51,4 @@ Static DT schema validation is separate from the functional graph checks. The pi
 
 ## Boot integration
 
-The [boot-integration continuation](../../../docs/plans/2026-09-05-dev147-fairydust-boot-integration.md) prepares the complete initramfs and m1n1 inputs. The [staging handoff](boot-stage/README.md) and [paired activation handoff](boot-activate/README.md) have been applied. The activation receipt reports `ACTIVATED_NOT_REBOOTED`; candidate boot remains open. The full kernel build above remains the frozen baseline.
+The [boot-integration continuation](../../../docs/plans/2026-09-05-dev147-fairydust-boot-integration.md) prepares the complete initramfs and m1n1 inputs. The [staging handoff](boot-stage/README.md) and [paired activation handoff](boot-activate/README.md) have been applied. The activation receipt reports `ACTIVATED_NOT_REBOOTED`; the first candidate boot now succeeds; hardware acceptance remains open. The full kernel build above remains the frozen baseline.
