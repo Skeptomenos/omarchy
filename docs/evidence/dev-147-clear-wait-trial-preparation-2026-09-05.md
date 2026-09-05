@@ -60,3 +60,11 @@ The rehearsal used the actual delivery and readable baseline boot files. It used
 The final launcher pins this rehearsed manifest. Launcher SHA-256: `2355fc81da26309b74e3a4fa7db29889b97c8584c173c4e394084fee32c5355f`. Helper SHA-256: `96b4ef29a03897c612ff2a978a932b5dc31d6da2cf7dfc1eded7ab08ed20ea1f`. Shell syntax and diff checks pass. The next manual action is the stage-only launcher; review its receipt before a restart or temporary trial selection.
 
 Independent actual initramfs validation also returned zero at `checks/initramfs.w0A63RDv`. Trial capture software validation returned zero at `acceptance/checks/software.H7qELEYw`. Its explicit uname fixtures cover the trial release and reject baseline/unknown releases before trace setup. These are preboot software results, not live trial capture.
+
+Final independent review reports no blocker to the stage-only handoff. It verified that the final launcher differs only by replacement of the pending manifest with the rehearsed hash. Actual initramfs validation covers 334 matching modules and 12 embedded firmware files; the existing ESP vendor archive remains separately verified. Final review receipts:
+
+- `checks/initramfs.w0A63RDv/independent-review.json`: `bb0c74f2f5af41af4a01d71cc4094535837710aa7d48c920beffa0ba270e27a9`.
+- `acceptance/checks/software.H7qELEYw/independent-review.json`: `ae8f780f5c960229260646ace0066f3482a5ef3252673bdf202029a85f0cbb96`.
+- `checks/stage-full-independent.y9ny2ep8/final-launcher-review.json`: `cd8eef2a3633ca9f6d1ebda5061292fd874811d2353296ccb2735a9b9c41fff1`.
+
+No actual staging, boot, tracing or trial hardware acceptance occurred. DEV-147 was updated with the stage-only dependency and commits `92c16aa0d` and `78cb3a2cd`.
