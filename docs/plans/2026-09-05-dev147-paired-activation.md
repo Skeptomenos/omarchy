@@ -68,6 +68,8 @@ The completed offline preparation gate remains `bash /home/david/Work/omarchy-de
 
 ## Progress (LIVING)
 
+- 2026-09-05: Second front-port reconnect succeeds, with user-reported 10–12 seconds to image after about five seconds unplugged. Kernel disconnect-to-connect interval is 15.046 seconds; connect-to-modeset completion is 2.530 seconds. Physical reinsertion is not timestamped. See [second reconnect evidence](../evidence/dev-147-fairydust-front-reconnect2-2026-09-05.md). Delayed detection and attached-at-boot failure remain open.
+
 - 2026-09-05: David clarifies that the monitor was attached throughout boot on the front/lower USB-C port. It showed no image until a reconnect. Current DP is connected/enabled; logs show DPTX connection, HPD and a 3840×2160 nominal 60 Hz modeset after reconnect. Record one hot-plug success and an attached-at-boot detection defect, not full display acceptance. See [front-port evidence](../evidence/dev-147-fairydust-front-display-2026-09-05.md).
 
 - 2026-09-05: First candidate boot succeeds. Running release and command line match `7.1.12-dev147-fairydust1`. Live SIO firmware parameters are present; SIO protocol v9 and both DCP boots are logged. Internal eDP is connected/enabled; external DP is disconnected. See [first-boot evidence](../evidence/dev-147-fairydust-first-boot-2026-09-05.md) for warnings and limits. Proceed to one attended display connection before repeated reconnect or suspend testing.
