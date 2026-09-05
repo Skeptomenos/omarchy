@@ -87,6 +87,8 @@ Release scope is front-port DisplayPort with working associated daily-driver beh
 
 ## Progress (LIVING)
 
+- 2026-09-05: User accidentally reconnected X8 before the monitor. [Mixed sequence evidence](../evidence/dev-147-mixed-reconnect-coexistence-2026-09-05.md) retains 1337/1337 records without loss. X8 now enumerates at 10 Gb/s via UAS and front DP becomes enabled; no controlled fixed-rear conclusion. Confirm visible image, then one front-only reconnect while leaving the enumerated X8 untouched. No storage I/O qualification is claimed. Rear unplug also produced a 1 ms pipehandler ACK timeout in the dummy-PHY transition; record this recovered teardown fault separately from the front display hypothesis.
+
 - 2026-09-05: David identifies the rear device as Crucial X8 1 TB. Manufacturer documentation confirms USB 3.2 Gen 2, so Thunderbolt support is not a prerequisite. Device still fails to enumerate; front DP remains enabled. [Identification addendum](../evidence/dev-147-rear-insertion-2026-09-05.md) resolves the protocol hold. Next manual control: one front reconnect with X8 left connected, same boot/orientation; compare with the preceding rear-empty success.
 
 - 2026-09-05: [Rear insertion capture](../evidence/dev-147-rear-insertion-2026-09-05.md) retains 452/452 records without loss. Display state remains enabled, rear host controller starts but no disk enumerates. Front monitor hub briefly resets and recovers about three seconds before the first recorded rear PD event; physical timing is unknown. Pause the next front reconnect for user image/handling/enclosure confirmation. This is not a clean USB interval or proof of a drive-triggered fault.
