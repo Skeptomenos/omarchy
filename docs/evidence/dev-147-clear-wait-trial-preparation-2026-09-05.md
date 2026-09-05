@@ -275,3 +275,13 @@ This reproduces W's observed recovery after manual monitor power-on. LG35 video 
 USB differs: current trial inventory contains only four root hubs, with no LG35 hub or controls, while powered-on W enumerated both. The inspected trial journal contains no downstream USB discovery or enumeration-error messages. Preserve this as an unresolved USB comparison, not proof of a particular cause.
 
 David asks to return to LG27. Keep the current trial and use powered-on LG27 for the next single traced front-port attachment, retaining cable, Mac-end orientation and rear setup. Keep LG35 as secondary coverage for later wake/USB checks; no further LG35 reboot is needed now.
+
+## Addendum — LG27 initial success then failed attachment, 2026-09-05
+
+David clarifies that he switched to powered-on LG27 before reading the capture instructions and saw an image. He then unplugged before starting the script, reattached during the capture and got no image. Treat `trace-capture.ZU4DfANM` as attach-only evidence despite its `CAPTURE_MODE reconnect` label. The trace cannot measure the preceding clear-swap wait because that teardown predates the capture.
+
+Report SHA-256: `2997fc158504b878c615fba81f69b2d27eea8f9859b8d70e0b5cf604d04ce9aa`. Exit 0, empty stderr, instance removed, 124/124 records and all 24 loss counters zero. Window 662.02–707.02 seconds on boot ee6d8621. Front IRQ task 0-003f records repeated connection transitions around 666–669 seconds, then 677–679 seconds. Data status reports USB device role and no DP/HPD; no filtered IOMFB method or mailbox events occur. Physical handling during the window is being clarified; recorded transitions alone do not prove multiple user insertions or automatic retries.
+
+The kernel journal supports the initial success: LG27 hub 0bda:5411 (bcd1.55) appears at 651.595095 seconds, controls 043e:9a39 (bcd4.11) at 653.000036, HPD at 653.453345 and a 3840×2160 modeset at 653.539976. USB disconnects at 657.584016, HPD removes at 658.745206 and `dcp_poweroff() done` appears at 658.771562, before capture start. There is no logged clear-swap or power-state timeout in the inspected interval; absence of a trace prevents measuring the wait or claiming the full RPC sequence.
+
+Post-capture snapshot `lg27-after-pretrace-unplug.8y2539ab` confirms external disconnected/disabled, internal connected/enabled, zero collection issues and 25 classified journal records. Current front port1 is device/PD sink. This is an attachment/negotiation failure rather than evidence that LG27 is unsupported. Keep cables fixed and clarify the physical sequence before another manual control; no new kernel change or reboot is justified by this capture alone.
