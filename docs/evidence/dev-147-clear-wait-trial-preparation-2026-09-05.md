@@ -209,3 +209,35 @@ No selected boot file, kernel source or running system changed. Hardware recover
 Independent rerun `return-to-trial/checks/software.RdgFx8UI` exits 0: eight tests in 21.378 seconds and both GRUB cases pass. Its source inventory SHA-256 is `95032743aac88759532c9e19711c648c5b5da4bb39a21b3b48b152c81991f36e`; GRUB receipt SHA-256 is `40cf9de47352d97084d3911778f739965e24090e3b98fd1c5b6e88e8ec0eca04`. Root rechecks every frozen code/menu hash against the author inventory and runs `git diff --check`; both exit 0.
 
 Independent final review returns `VERDICT: PASS` with no blocking finding. The handoff is ready for David's normal-user `return-to-trial/launch.sh` run. Review its private receipt before a manual reboot. Keep LG35 on and cables fixed; the default named trial removes the earlier long-path editing step. Hardware comparison and release acceptance remain open.
+
+## Addendum — return refused missing modules, 2026-09-05
+
+David's run `return-to-trial/return-results.jYflVlnm` exits 1 with empty result output and `No such file or directory: '/usr/lib/modules/7.1.12-dev147-fairydust1'`. Stderr SHA-256: `8a40d8ea48298720e684525bbfd0de09a9e78efdfac5bab20395afe60bae546f`. The failure occurs in staged-input verification before return-state creation or any menu/GRUB/bundle replacement. `/var/lib/dev147-clearwait-return` and the package lock are absent. Selected ESP still hashes to the original `203ab702…`; W remains running.
+
+Only the packaged W module directory remains active. The trial module tree is under `/usr/lib/modules/.old`. Both original private deliveries remain available. The installed `linux-modules-cleanup.service` skips the running release and package-owned directories, then moves other module trees with rsync and removes their original paths. Service SHA-256: `5d947290ef8c94b33c79c531e5615f4c9bea38e7649092d34af3bf0af5b1ca24`. No service drop-ins exist; it is enabled and currently inactive.
+
+The previous boot's unit journal records Fairydust1 archival at 5.480726 seconds and removal at 10.285978 seconds. The current W boot records clearwait100 archival at 4.388547 and removal at 9.025067 seconds. These logs identify an installed cleanup policy, not a display-driver regression. The earlier gate supplied full module fixtures and therefore did not establish that live module paths survived reboot. Its software PASS did not justify readiness without that prerequisite.
+
+Prepare a separate guarded module repair from pinned deliveries and a narrow cleanup exception for the two test releases. Preserve W, boot selection and recovery. No kernel rebuild or reboot is required for repair. Review its receipt before retrying the unchanged return helper.
+
+Independent diagnosis verifies both pinned top-level manifests and all 1,876 module-manifest files per delivery, including 1,862 `.ko` files each. Receipt `checks/module-retention-independent.h81d3bx6/diagnosis.json`, SHA-256 `38eb89545a128640697a353690333325d65595a400687768d0f6cbf8a42c1fd4`, confirms intact repair inputs. Unit journals are also retained under `module-repair/diagnosis`. The absent older archive is consistent with the installed boot-time tmpfiles `R!` removal rule; no per-path deletion log proves that inference. Repair uses verified deliveries, not the archive.
+
+`pacman -Qo /usr/lib/systemd/system/linux-modules-cleanup.service` identifies its owner as `kernel-modules-hook 0.1.7-3`. The repair preserves that vendor unit and limits its local exception to the two exact diagnostic releases.
+
+## Addendum — module repair preparation, 2026-09-05
+
+The separate `clear-wait-trial/module-repair` helper verifies private copies of both complete frozen deliveries. It prepares root-owned module directories, publishes a drop-in that exempts exactly the two test releases, reloads systemd without starting cleanup, and verifies the effective service command before publishing either module directory. Publication refuses existing targets. A separate repair journal retains completed boundaries for interrupted attempts. Existing boot files, W modules/initramfs, `.old`, the guard and original activation/staging records are covered by preservation checks.
+
+The normal-user launcher preflight authenticates helper bytes, verifies the live inactive service, checks target absence, manifest pins and readable source paths before requesting the password. Full copied-content and root-private checks remain in the privileged phase. It does not select a kernel or reboot.
+
+Frozen SHA-256 identities:
+
+- `repair.py`: `713a0534da1bf9ffafef7c2490d885d57162651fb8fa882140a160bbfbc506cd`.
+- `launch.sh`: `d7386149d6e409a2f33a4e29c52d71526827983e907ac8afdce31e160fa23d32`.
+- `50-dev147-candidate-modules.conf`: `661df492cfdb6cf092199ace72789b9738520a8d052d10171001d61554d4a425`.
+
+Author command `bash dev/apple-dp-altmode/fairydust/clear-wait-trial/module-repair/validate.sh` exits 0. Private run `module-repair/checks/software.lfdouGKP` passes seven namespace tests in 42.363 seconds, systemd syntax, actual cleanup-body execution, lint, formatting, strict types and shell syntax. Controls cover full deliveries, preservation, existing modules/drop-ins, changed vendor service, damaged or missing delivery content and interrupted second-module publication. Cleanup retains both candidates, the current release and package-owned kernels while archiving an unrelated unowned release.
+
+Initial tests hit ENOSPC in a RAM-backed temporary fixture; disk-backed fixtures corrected that test setup. Earlier gate logs also retain test-only lint/type failures. No production repair behavior changed for those corrections. Namespace repair uses synthetic existing boot/state and a mocked systemd manager; cleanup-body tests decode the pinned unit's variable expansion and substitute package ownership. Real bash, rsync and rm operate only on disposable trees. Exact launcher read-only preflight passes on the live machine. Final independent review and manual apply remain pending at this checkpoint.
+
+Independent final gate `module-repair/checks/software.aXsPPo1G` exits 0: seven namespace tests in 44.221 seconds, cleanup behavior, systemd syntax, lint, types and shell syntax pass. Exact normal-user bootstrap preflight also passes. Review returns `VERDICT: PASS` with no blocker. Receipt `independent-review.json` SHA-256: `8b4fe055f5d6f6130b301c1d1a4708652a029d4ae8d6f8165060cd712834188f`. Root rechecks the frozen source inventory and `git diff --check`; both pass. The manual module-repair handoff is ready. Inspect its receipt and both live module trees before the separate return command; no live repair or reboot occurred during preparation.

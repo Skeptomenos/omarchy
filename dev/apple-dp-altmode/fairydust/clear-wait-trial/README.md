@@ -56,6 +56,8 @@ Use the [stage-only guide](stage/README.md) after artifact validation and delive
 
 After the W comparison restore, use the separately reviewed [return-to-trial guide](return-to-trial/README.md). It selects the existing trial through a named menu and preserves the original recovery files. The consumed original activation launcher cannot prepare this return.
 
+If boot-time cleanup archived the candidate module trees, complete the [module repair](module-repair/README.md) first. It restores verified files and exempts only these two test releases from cleanup.
+
 ## Attended acceptance
 
 The trial's capture tools retain an exact release guard and separate output root. Check their software controls before boot:

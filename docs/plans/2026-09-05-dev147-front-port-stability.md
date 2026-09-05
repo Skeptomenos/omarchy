@@ -5,7 +5,7 @@
 **Branch:** `codex/dev147-fairydust-build`
 **Linear:** DEV-147; existing DEV-163 owns monitor-hub data loss.
 **Started:** 2026-09-05
-**Reconciled:** 2026-09-05 — powered LG35 works on restored W; reviewed trial return awaits manual apply.
+**Reconciled:** 2026-09-05 — trial return refused missing module trees; reviewed module repair awaits manual apply.
 
 ## Context
 
@@ -49,7 +49,7 @@ Use full `self-correction-loop`. Root owns scope and documentation. One SWE owns
   Checkpoint: ten user-confirmed image recoveries and twenty accepted external endpoint 0x28 services in one DCP boot cross the original capacity. [Evidence](../evidence/dev-147-front-ten-generations-2026-09-05.md) also records three disconnect clear-swap timeouts and four USB descriptor errors. This is a bounded capacity/recovery success, not a stable-endurance PASS. Twenty-generation and orientation coverage remain open. Pause further physical cycles until these faults are diagnosed; David confirms the requested next batch had not started.
   Next probe: the loss-free fixed-X8 trace captured a 51.749 ms clear-swap reply chain and skipped shutdown tail. Build the isolated 100 ms diagnostic trial below; inspect USB enumeration and rear PHY recovery separately with DEV-163. Do not combine fixes or hide remaining warnings.
   Diagnostic detail: distinguish a late clear-swap callback from an absent callback after firmware powers off. Match swap ID, request, completion and HPD timestamps before deciding whether to avoid an invalid swap, adjust ordering or handle cancellation. The observed discarded-swap firmware message is not yet matched to the driver's waiting clear-swap cookie. For USB, compare hub-only re-enumeration with whole monitor-cable re-enumeration and record negotiated hub speed; vary cable or orientation one at a time after the baseline is captured.
-  Current dependency: powered LG35 works on W. The separately guarded return to staged clearwait100 passes author and independent gates, with preserved recovery and a named default trial entry. David runs `clear-wait-trial/return-to-trial/launch.sh`; inspect `RETURNED_TO_TRIAL_NOT_REBOOTED` before a manual reboot. Keep monitor on and cables fixed. No kernel rebuild is required.
+  Current dependency: return-results.jYflVlnm refused missing modules before boot writes. The guarded module repair now passes author and independent gates. David runs `clear-wait-trial/module-repair/launch.sh`; inspect `MODULES_REPAIRED_NOT_SELECTED`, both restored inventories and the loaded cleanup exception before the separate unchanged return launcher. W stays selected. No reboot or kernel rebuild yet.
 
 - [x] Diagnostic substep: build the isolated 100 ms clear-wait trial.
   Goal: an independently reviewed, unselected artifact that tests whether a bounded additional wait restores the shutdown tail.
@@ -68,6 +68,7 @@ Use full `self-correction-loop`. Root owns scope and documentation. One SWE owns
   Step 2: after reviewing RESTORED_NOT_REBOOTED, fully restart with LG35/cable/port/orientation/rear setup unchanged. Select initramfs-linux-asahi-dpalt.img, not the original default image. Verify release, loaded driver build IDs, Type-C/DRM and USB plus physical image.
   Step 3: compare equivalent fresh-start conditions on the current trial before assigning a regression to the stack. A W success immediately after reboot is a recovery checkpoint; reboot also resets state. A hot-swap trial failure versus a cold W success alone is not matched causal evidence. Plan the guarded return separately; do not rerun a consumed activation launcher blindly.
   Return preparation: verify both complete staged kernels, their manifests, the retained activation state and original recovery files. Use a new guarded helper with separate receipts. Publish a named 100 ms trial menu, then the unchanged dispatcher, then its paired Fairydust bundle. Keep W out of this menu because it requires the old bundle. Test refusal and interrupted-write paths in a namespace before the password-assisted handoff.
+  Repair prerequisite: reproduce cleanup of unowned inactive kernels, then preserve only the two exact candidate releases through a guarded service drop-in. Restore missing module trees from the pinned full deliveries, with no overwrite of existing targets. Validate actual artifacts, publication interruptions, W/boot preservation and cleanup of unrelated old kernels. The earlier namespace gate did not establish live module availability after reboot.
   Manual boundary: inspect the return receipt before reboot. Keep LG35 powered on and all cables fixed. Boot the default named trial without path edits; verify release, image, Type-C/DRM and USB. If blank, compare the monitor power/wake sequence before treating the result as a regression: W recovered after a later monitor power-on, not immediately after boot.
   Exit criteria: matched setup/boot-sequence evidence, regression classified or explicitly inconclusive, retained useful patches and recovery path recorded. No requirement to reintroduce failed suspend or endurance cases.
 - [ ] Slice 3: Fix attached-at-boot detection and characterize latency.
@@ -168,6 +169,10 @@ Release scope is front-port DisplayPort with working associated daily-driver beh
 
 ## Discoveries (LIVING)
 
+- Module repair preparation passes seven full-delivery namespace controls and cleanup behavior/systemd syntax in author and independent runs. Final review has no blocker. Exact normal-user preflight passes live. The [evidence](../evidence/dev-147-clear-wait-trial-preparation-2026-09-05.md) records hashes, earlier fixture failures and test limits. Manual repair remains open; inspect real module paths before any boot-selection handoff.
+
+- The return handoff missed linux-modules-cleanup.service. It moves non-running, unowned kernel module trees into `.old` and removes the active paths. Prior-boot and current-boot unit journals confirm removal of Fairydust1 and clearwait100 respectively. The guarded return correctly refused before creating return state or changing boot files, but the readiness claim lacked a live module inventory. Repair this deployment prerequisite before more boot testing; durable packaged kernels must integrate with module ownership and cleanup.
+
 - Guarded trial return passes eight namespace tests and two real GRUB menu probes in both author and independent runs. The final review has no blocker. See the [preparation evidence](../evidence/dev-147-clear-wait-trial-preparation-2026-09-05.md) for frozen hashes and fixture limits. Software preparation is complete; manual apply, boot and comparison remain open.
 
 - Pre-trace snapshot `before-targeted-trace.vjc_7io4` reports `SNAPSHOT_INCOMPLETE` with `journal_failed`; both DRM connectors are connected/enabled. A quiet-window journal grep returns 1 with empty output, which the collector treats as failure. Do not label this a clean baseline or discard the failure. Keep the frozen collector unchanged for this trace handoff; distinguish no matches from journal failure in a separate regression-backed collector correction.
@@ -182,6 +187,8 @@ Release scope is front-port DisplayPort with working associated daily-driver beh
 - Collector QA reproduced a counting bug before handoff: ten announcements on each of two DCP controllers were summarized as twenty, although capacity applies separately. Restrict the checkpoint summary to the fixed external DCP `271c00000.dcp`, endpoint 0x28, and add a mixed-controller entry-point regression. Initial gate PASS did not establish correct summary scope; retain the counterexample and rerun after correction.
 
 ## Decision Log (LIVING)
+
+- 2026-09-05: Preserve only the two named diagnostic module releases through a reviewed cleanup-service exception while comparisons continue. Restore them from verified deliveries before retrying return. This is a test-deployment repair; production packaging must give the kernel files proper package ownership and retire the temporary exception.
 
 - 2026-09-05: User requests readable GRUB navigation and suffix-only names for future trials. Preserve the installed baseline stem and append a short suffix (for example, fairydust1-t1); use the same convention for artifact directories. Keep immutable running trial names unchanged. Restore a clear named boot menu during packaging, with each entry retaining correct bundle pairing, so normal testing does not require long manual path edits.
 - 2026-09-05: Test a one-line 50 → 100 ms clear-wait change in a separate release. Retain the current timeout warning and recovery behavior. The measured late reply supports a diagnostic trial, not a production bound. Preserve the existing default and ESP by staging separate files and using a transient GRUB edit for the attended trial boot.

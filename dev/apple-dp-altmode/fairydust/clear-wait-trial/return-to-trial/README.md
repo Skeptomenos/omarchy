@@ -14,6 +14,8 @@ bash /home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairyd
 
 The command asks for the sudo password and does not reboot. It requires the original `7.1.6-1-1-ARCH` kernel, restored boot hashes, intact existing backups and routing files, and both complete staged module inventories. No environment keys or command arguments are required.
 
+The installed module cleanup service can archive unowned, inactive test kernels during boot. If either candidate module directory is absent, complete the separately reviewed [module repair](../module-repair/README.md) first. A prior stage receipt alone does not prove that the active module paths still exist.
+
 Send the printed result path for verification. Success requires exit `0`, an empty `stderr.log`, and `RETURNED_TO_TRIAL_NOT_REBOOTED` in `result.json`. The helper stores the previous candidate menu and each completed write boundary under `/var/lib/dev147-clearwait-return/7.1.12-dev147-clearwait100`.
 
 After verification, restart manually. The trial entry is the default; no path editing is needed. Before any comparison trace, verify `uname -r` prints `7.1.12-dev147-clearwait100`.
