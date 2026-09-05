@@ -82,6 +82,8 @@ Release scope is front-port DisplayPort with working associated daily-driver beh
 
 ## Progress (LIVING)
 
+- 2026-09-05: David confirms all latest three front-port reconnects restored the image in about five seconds each. This brings confirmed visible recoveries to six. `python3 dev/apple-dp-altmode/fairydust/acceptance/snapshot.py six-confirmed` records `six-confirmed.8o5egq0k`: DP connected/enabled, twelve external announcements/six pairs, one external DCP boot, nine firmware error records, zero classified host errors and no collection issues. Exit 1 correctly means captured error records, not a collection failure. Four further successful generations are required for the ten-generation checkpoint; endurance remains open.
+
 - 2026-09-05: Slice 1 completed after one QA correction for mixed-controller counting. Final author and independent gates both exit 0 with eight controls. The measured pre-batch-to-current increase is six external service announcements. The latest three visual outcomes remain pending; Slice 2 stays open. All frozen activation inputs still match; no kernel or boot change was made.
 
 - 2026-09-05: User approved front-port stability first, early upstream architecture check, isolated fixes, then two-port support. Started acceptance collector implementation and independent source review of AFK capacity and startup notification behavior. DEV-147 remains In Progress.
