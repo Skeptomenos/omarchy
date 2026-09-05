@@ -148,3 +148,15 @@ Front data-status events at 2160.132248 and 2160.175299 contain USB_DATA_ROLE an
 The old display's shutdown still completes: clear start 2161.060060, submit ACK 2161.108280, a 48.220 ms chain; abort/last-close/power-state follow, poweroff done at 2161.110462. No clear-wait timeout. This failure occurs before a new DP connection and does not refute the previously observed larger-wait benefit.
 
 The working trace did not report DATA_UPSIDE_DOWN, so the comparison has a reported orientation difference as well as the monitor change. This does not establish how the user handled the cable. Ask whether LG35 selected USB-C input and whether the same cable/front port and Mac-end orientation were retained. Stop physical testing pending those facts; no repeated SWDF role write or speculative driver patch.
+
+## Addendum — earlier-stack comparison preparation, 2026-09-05
+
+David authorizes comparing the older working stack and reports another LG35 reconnect with no image. Snapshot `acceptance/lg35-repeat-failed.mpt6_vtg` confirms disconnected external DP on the same trial boot. No agent cable or boot action occurred.
+
+The identified W image is `/boot/initramfs-linux-asahi-dpalt.img`, SHA-256 `ae8f1ed7f4f258f89931209cd7de6030be9f6875372d7329151b822a6ba2281f`. This matches the recent root staging receipt and the Sep1 W evidence. The old kernel hash is `ee36d989d62f2dd498b818e15c2044350c79d814a2017ffca61fdc2ad1aa95b6`; the retained old ESP bundle is `203ab7027536c8d16f373d02c1f6346a5c34cfe095a9dafd0cfe37d2b354090c`. Both readable files still match directly. The old module directory `7.1.6-1-1-ARCH` exists.
+
+Independent restore source review finds no running-release restriction in restore mode. It verifies the saved old inputs and restores the old bundle before original GRUB. The new trial files are preserved. Frozen helper and topology hashes still match the reviewed launcher. Do not run the pre-activation gate against this activated system.
+
+Before restore, David must freshly verify root-private W with a checksum command that stops on failure. Then use the existing restore launcher and review its result before reboot. After a full restart, W requires changing only the old GRUB initrd basename to `initramfs-linux-asahi-dpalt.img`; the old default image is different. Preserve existing kernel arguments.
+
+The comparison plan distinguishes a recovery checkpoint from causal evidence. The current LG35 failure followed a hot swap; W after reboot has reset host state. If W works, a matched fresh-start trial result is needed before attributing the difference to the kernel stack. No new kernel patch is justified by the present observation alone.
