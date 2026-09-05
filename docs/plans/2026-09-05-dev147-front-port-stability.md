@@ -96,7 +96,7 @@ Release scope is front-port DisplayPort with working associated daily-driver beh
 
 ## Progress (LIVING)
 
-- 2026-09-05: User confirms first trial reconnect image at about 11 seconds. Loss-free trace mwAFJQZb has 2,118 records and no clear-swap/shutdown-tail calls. Video recovers; monitor USB hub later fails with -71 errors and is absent. [First trial reconnect addendum](../evidence/dev-147-clear-wait-trial-preparation-2026-09-05.md) separates video, USB and timeout-test scope. Next one active-display reconnect is the clear-wait discriminator.
+- 2026-09-05: User confirms first trial reconnect image at about 11 seconds. Loss-free trace mwAFJQZb has 2,118 records; method pushes start only after reconnect, with power-on and ordinary frame swaps, not the initial unplug shutdown chain. Video recovers; monitor USB hub later fails with -71 errors and is absent. [First trial reconnect addendum and method-name correction](../evidence/dev-147-clear-wait-trial-preparation-2026-09-05.md) separate video, USB and timeout-test scope. Next one active-display reconnect is the clear-wait discriminator.
 
 - 2026-09-05: Trial release confirmed on boot c9cfab56-d624-48e8-a7a4-04ae5a763fbe. User reports internal image and responsive system, external blank. Snapshot confirms disconnected DP, zero external service generations and matching recovery pins. [Boot addendum](../evidence/dev-147-clear-wait-trial-preparation-2026-09-05.md) records the known startup gap separately from the still-untested clear-wait budget. Next one traced front reconnect; no stress batch.
 

@@ -98,3 +98,9 @@ Front Type-C data returns at 904.739158; DP pin C appears at 905.566423, HPD at 
 USB remains faulty. Front bus usb3 resolves to controller `502280000.usb`. The hub enumerates, resets and returns, then disconnects at 913.292014. Four descriptor-read errors and two address errors report -71; enumeration finally fails at 915.816583. The final USB inventory contains only root hubs. Snapshot `acceptance/first-reconnect.v7gkw1ak` confirms both DRM connectors enabled, two classified journal errors and no collection issues; its driver filter excludes these USB failures. This is a video recovery with USB faults, not a clean interval.
 
 Next perform one scoped front-only reconnect from the now-active display, keeping the rear cable untouched. This tests the actual clear-wait and shutdown tail. Inspect its result before any further cycle; do not start an endurance batch. DEV-163 retains ownership of the hub fault.
+
+### Correction — method names versus numeric tags, 2026-09-05
+
+Independent review corrected the preceding blanket absence claim. `iomfb_push` prints method names, not numeric A-tags. The trace contains power-state and normal frame swap calls after reconnection: `dcpep_set_power_state` at 910.759211 and `dcpep_swap_start`/`dcpep_swap_submit` from 910.983686/910.983734. These map to A472/A407/A408. Searching only numeric tags incorrectly reported their absence.
+
+The narrower conclusion remains: there are no method pushes during the initial unplug period, before reconnection and display power-on, and no abort-swaps/last-client-close shutdown chain. This capture does not exercise the poweroff clear-swap wait. Subsequent analysis must classify method names by timing and caller sequence, not numeric text searches or an undifferentiated swap-call count.
