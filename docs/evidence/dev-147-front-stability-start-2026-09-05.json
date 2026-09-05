@@ -1,0 +1,40 @@
+{
+  "milestone": "front-port stability capture readiness",
+  "date": "2026-09-05",
+  "verdict": "PASS_COLLECTOR_ONLY",
+  "code_sha256": {
+    "snapshot.py": "366766476b8492b181d206824664ce139d75d4542dd0dee077de39774ee037d6",
+    "test_snapshot.py": "562e0bf0ed82ba9b2f681d6b0077f24a3184c410d321b2334ac5a8f7e876e190",
+    "validate.sh": "50314b4ab3eaa23b785cd1a59440c1b9798b9d698d941b7bd9082c99ecc36f26"
+  },
+  "private_root": "/home/david/Work/dev147-fairydust-acceptance-20260905",
+  "proof_sha256": {
+    "checks/collector.ivHF8J3n/qa.json": "f53ff639098c67815dad8a3a31cd2dfc7a91441cb5477c307a755eacfa4acf10",
+    "collector-independent-qa/final-qa.json": "da97ee756b8f3104b4c783cd7fb4b0a3a6735144d438ab86daac5291e8ae207f",
+    "source-review/source-review.json": "2e5cd0f0fe2bf72eeac98305bd765562cd00b2946f88289f027691c12adb5852",
+    "collector-independent-qa/mixed-controller-counterexample.json": "c6ae1b55d30039a9cb728f0579720d852be514afbd3bb4923824dff7e3969c7c",
+    "pre-batch-baseline.json": "7d5d42987b04b7377d4fb314da0e7cd96186065ec8d4256be9f39e6edb8d910f"
+  },
+  "author_gate": "checks/collector.ivHF8J3n",
+  "independent_gate": "checks/collector.s1QPrrz2",
+  "entrypoint_controls": 8,
+  "live_observations": {
+    "status": "SNAPSHOT_CAPTURED_WITH_ERRORS",
+    "summary_controller": "271c00000.dcp",
+    "summary_endpoint": "0x28",
+    "service_announcements": 12,
+    "announcement_pairs": 6,
+    "host_slot_count": null,
+    "dcp_boots": {
+      "271c00000.dcp": 1,
+      "231c00000.dcp": 1
+    },
+    "journal_errors": 9,
+    "firmware_error_records": 9,
+    "host_error_records": 0,
+    "endurance_accepted": false
+  },
+  "human_latest_batch": "pending",
+  "endurance_accepted": false,
+  "system_changes": false
+}

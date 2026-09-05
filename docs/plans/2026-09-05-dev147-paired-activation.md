@@ -7,9 +7,11 @@
 **Started:** 2026-09-05
 **Reconciled:** 2026-09-05
 
+**Continuation:** The [front-port stability plan](2026-09-05-dev147-front-port-stability.md) now owns open hardware acceptance, fixes and release work. This plan retains the completed activation/recovery evidence.
+
 ## Context
 
-The user ran the reviewed stage launcher on 2026-09-05. Its private result is `/home/david/Work/dev147-fairydust-boot-20260905/stage/manual-results/result.json`. The launcher reports exit 0 and `STAGED_UNSELECTED`. Independent verification of the published files is the first step below. The running kernel is still `7.1.6-1-1-ARCH`.
+The user ran the reviewed stage launcher on 2026-09-05. Its private result is `/home/david/Work/dev147-fairydust-boot-20260905/stage/manual-results/result.json`. The historical stage result reports exit 0 and `STAGED_UNSELECTED`. Subsequent activation and boot succeeded; the running kernel is now `7.1.12-dev147-fairydust1`.
 
 The candidate release is `7.1.12-dev147-fairydust1`. Its boot files are in `/boot/dev147-fairydust-7.1.12-dev147-fairydust1` and its modules are in `/usr/lib/modules/7.1.12-dev147-fairydust1`. The [boot preparation plan](2026-09-05-dev147-fairydust-boot-integration.md) owns the completed offline milestone. Source and build inputs remain frozen.
 
