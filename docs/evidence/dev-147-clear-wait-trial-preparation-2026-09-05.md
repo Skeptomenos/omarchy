@@ -86,3 +86,15 @@ The collector returned SNAPSHOT_CAPTURED_WITH_ERRORS: 22 classified journal reco
 The blank attached-at-boot display remains an open startup result. It does not test the trial's disconnect wait. Next capture one front reconnect with the rear cable left untouched, to establish image recovery and retain negotiation evidence. If the image returns, assess that trace before a later connected-to-connected teardown test.
 
 David also reports that the paired Fairydust GRUB menu is harder to scan. The current saved configuration has one Fairydust entry. He requests future trial names keep the installed baseline name and append a short suffix, instead of replacing multiple name segments. This preference is recorded in the living plan. The running trial's release, module directory and pinned artifacts were not renamed.
+
+## Addendum — first trial reconnect restores video, 2026-09-05
+
+David reports an external image after about 11 seconds. Capture `acceptance/trace-capture.mwAFJQZb` spans uptime 895.83–940.83 on the same trial boot. It contains 2,118/2,118 records and 24 zero loss counters, exit 0, empty stderr and successful instance cleanup.
+
+There are no A407/A408 clear-swap calls or A467/A457/A472 shutdown-tail calls in this capture. The initial external connector was already disconnected. This result establishes image recovery from the failed startup state, not acceptance of the larger timeout.
+
+Front Type-C data returns at 904.739158; DP pin C appears at 905.566423, HPD at 905.891205. DCP hotplug callbacks occur at 908.519933, then disconnect at 910.513102 and reconnect at 910.748036. The journal records a 3840×2160 modeset at 910.760142. These software timestamps do not replace David's insertion-to-visible-image estimate. Four external endpoint 0x28 service announcements occur during the one physical reconnect; do not equate announcement pairs with two user actions.
+
+USB remains faulty. Front bus usb3 resolves to controller `502280000.usb`. The hub enumerates, resets and returns, then disconnects at 913.292014. Four descriptor-read errors and two address errors report -71; enumeration finally fails at 915.816583. The final USB inventory contains only root hubs. Snapshot `acceptance/first-reconnect.v7gkw1ak` confirms both DRM connectors enabled, two classified journal errors and no collection issues; its driver filter excludes these USB failures. This is a video recovery with USB faults, not a clean interval.
+
+Next perform one scoped front-only reconnect from the now-active display, keeping the rear cable untouched. This tests the actual clear-wait and shutdown tail. Inspect its result before any further cycle; do not start an endurance batch. DEV-163 retains ownership of the hub fault.
