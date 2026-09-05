@@ -8,7 +8,7 @@ The candidate kernel and modules are already staged. Activation preserves the ol
 
 The command below has already been applied. Do not run it again. Its saved result is `/home/david/Work/dev147-fairydust-boot-20260905/activation/activate-results.iUG81ebY`.
 
-Keep the [recovery guide](RECOVERY.md) available in macOS before the first candidate boot. Then run the reviewed launcher as the normal user:
+Keep the [recovery guide](RECOVERY.md) available in macOS before the first candidate boot. Recorded command, already executed:
 
 ```bash
 bash /home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-activate/launch.sh
