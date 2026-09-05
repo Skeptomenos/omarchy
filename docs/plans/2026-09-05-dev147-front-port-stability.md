@@ -5,7 +5,7 @@
 **Branch:** `codex/dev147-fairydust-build`
 **Linear:** DEV-147; existing DEV-163 owns monitor-hub data loss.
 **Started:** 2026-09-05
-**Reconciled:** 2026-09-05 — source comparison complete; monitor-only negotiation capture awaits manual run.
+**Reconciled:** 2026-09-05 — monitor-power capture B9GNLQls has no DP/HPD; user visual outcome pending.
 
 ## Context
 

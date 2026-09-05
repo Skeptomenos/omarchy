@@ -317,3 +317,11 @@ Capture SHA-256: `b25a2b42c8dd1fc4659a99ba9e76b89dcb8cc04fa10387c44b5cf3cc1504ef
 Root verifies the frozen source inventory and current disconnected/device-role baseline. Review found only an overbroad README statement about disk writes; it is corrected to disclose private output files. Driver source, boot files and the original acceptance tools remain unchanged. The next boundary is the user's password-assisted capture and monitor action.
 
 Final independent review: PASS. Receipt `negotiation/checks/software.O9kLDx2T/independent-review.json`, SHA-256 `f15571fe6e2b0d0a9b781b39ca1f0a1c6298795028e221b233e37ba46e49c1b5`, confirms eight tests in 0.757 seconds and passing syntax, lint, format, types and diff checks. The README correction is included. No live trace or hardware action was performed by the reviewer.
+
+## Addendum — monitor-power capture B9GNLQls, 2026-09-05
+
+Capture `negotiation/trace-capture.B9GNLQls` on boot `ee6d8621-18d4-4821-9052-bb54b58f9ccb` covers uptime 10638.77–10683.77. Exit 0, empty stderr, own instance removed, 39/39 records and all 24 loss counters zero. Report SHA-256: `0d35568471b51e755697d6c7e42e9da47aea43960308f401591a1740f5a089c4`.
+
+Front IRQ task 0-003f reports no connection at 10667.850761 and a new connection at 10675.998592. Data status then reports device role; USB2/USB3 flags appear at 10676.042267. No DP/HPD or filtered DCP events occur. Unlike the earlier unchanged-state concern, this action produced a controller-visible disconnect/reconnection; it does not establish a full electrical PD reset. Generic TPS status power-path fault and high-voltage labels are not independently validated CD321x electrical diagnoses.
+
+The required power-status event was enabled but emitted no record. The inspected CD321x handler calls that reader only on POWER_STATUS_UPDATE; no such IRQ flag appears here. Absence of that trace is therefore not a collector error or proof that power status never changed. Read-only state after capture remains DP disconnected/disabled and Type-C `host [device]`. Actual DWC3 role and the root cause remain unproven. User visual outcome requested; do not infer it from the command exit status. No further physical cycle or driver change requested pending that observation.
