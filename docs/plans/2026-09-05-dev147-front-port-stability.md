@@ -86,6 +86,8 @@ Release scope is front-port DisplayPort with working associated daily-driver beh
 
 ## Progress (LIVING)
 
+- 2026-09-05: Reboot restored first-attachment video. [New baseline](../evidence/dev-147-reboot-monitor-baseline-2026-09-05.md): boot `09746091-1f14-41ea-97b1-d3339f3a23af`, 1430/1430 trace records without loss, DP/HPD asserted, user image PASS. Rear partner absent, but front hub address errors recur and the hub does not enumerate. The rear drive is not required for that USB fault. Next one traced rear-empty front reconnect tests the DP control before any drive comparison.
+
 - 2026-09-05: David identifies the rear accessory as an external hard drive and confirms image loss occurred only on the later monitor reconnect. [Rear-drive audit](../evidence/dev-147-rear-drive-correlation-2026-09-05.md) finds separate PHY/DWC3 resources with shared I2C/IRQ, no direct port-state overwrite, and rear host creation about 136 seconds before the front USB failure. Treat rear-drive interaction as unproven. Next recover a rear-empty front baseline, then compare one reconnect without and with the drive; identify enclosure/protocol and protect mounted storage. No speculative fix.
 
 - 2026-09-05: Attach trace `trace-capture.987OT1x4` after the requested monitor reset retains 28/28 records with zero loss, but still shows device role and no DP/HPD. Current external DRM remains disconnected/disabled. [Evidence](../evidence/dev-147-monitor-reset-attach-2026-09-05.md) records unchanged boot and cleanup. User-visible outcome and rear-port accessory remain pending. Stop identical cycles; choose a different cable/monitor comparison after equipment confirmation, or a host restart only as an explicit recovery step.
