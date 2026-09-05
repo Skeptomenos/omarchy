@@ -1,10 +1,12 @@
 # Select the paired fairydust boot stack
 
-The activation and recovery handoff passed independent offline QA on 2026-09-05. The [living plan](../../../../docs/plans/2026-09-05-dev147-paired-activation.md) owns execution status; the [dated evidence](../../../../docs/evidence/dev-147-fairydust-activation-preparation-2026-09-05.md) records the checks. Actual activation and candidate boot remain open.
+The activation and recovery handoff passed independent offline QA on 2026-09-05. David then ran activation successfully: `ACTIVATED_NOT_REBOOTED`. The [living plan](../../../../docs/plans/2026-09-05-dev147-paired-activation.md) owns execution status; [preparation evidence](../../../../docs/evidence/dev-147-fairydust-activation-preparation-2026-09-05.md) records offline checks and [activation evidence](../../../../docs/evidence/dev-147-fairydust-activated-2026-09-05.md) records the apply. Candidate boot remains open.
 
 The candidate kernel and modules are already staged. Activation preserves the old configuration and EFI bundle, installs the verified GRUB selector while the old bundle remains active, then replaces the EFI bundle. The selector requires exactly one bundle hash to match before it loads the paired kernel configuration.
 
 ## Activate
+
+The command below has already been applied. Do not run it again. Its saved result is `/home/david/Work/dev147-fairydust-boot-20260905/activation/activate-results.iUG81ebY`.
 
 Keep the [recovery guide](RECOVERY.md) available in macOS before the first candidate boot. Then run the reviewed launcher as the normal user:
 
@@ -29,6 +31,8 @@ Restore verifies and replaces the old EFI bundle first, then restores original G
 Successful Linux restore records `RESTORED_NOT_REBOOTED` in its private result directory. A stale package lock requires manual assessment; the recovery guide explains the separate macOS route.
 
 ## Validate
+
+This is the pre-activation gate. It expects the old selected boot state and must not be rerun against the activated system. Preserve its completed evidence; use the activation receipt and post-boot checks for the next milestone.
 
 ```bash
 bash /home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/validate-activation.sh

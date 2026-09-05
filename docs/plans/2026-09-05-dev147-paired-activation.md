@@ -15,7 +15,7 @@ The candidate release is `7.1.12-dev147-fairydust1`. Its boot files are in `/boo
 
 The stage result exports the protected GRUB configuration. It selects entry 0 unless `next_entry` is set. Both existing Linux entries use the old kernel and initramfs. It sources an optional `/boot/grub/custom.cfg` at the end; that file was absent. m1n1 prepares the device tree before GRUB. Therefore the old GRUB menu is not a complete fallback after replacing the shared EFI `m1n1/boot.bin`.
 
-The EFI partition is FAT and accessible from macOS/Recovery. `/boot/grub` is on ext4. A recovery procedure must not assume macOS can write ext4. No selected-boot change has been made.
+The EFI partition is FAT and accessible from macOS/Recovery. `/boot/grub` is on ext4. A recovery procedure must not assume macOS can write ext4. David activated the reviewed pair on 2026-09-05; the receipt reports `ACTIVATED_NOT_REBOOTED`. The running kernel remains the old release pending the first restart.
 
 ## Approach
 
@@ -68,6 +68,8 @@ The completed offline preparation gate remains `bash /home/david/Work/omarchy-de
 
 ## Progress (LIVING)
 
+- 2026-09-05: David ran the activation launcher successfully. `activation/activate-results.iUG81ebY` reports exit 0, empty stderr and `ACTIVATED_NOT_REBOOTED`. Readable live hashes match the candidate bundle, old recovery bundle, copied guide and retained guard. GRUB and its support directory are root-private; their successful final verification is established by the pinned privileged helper's receipt, not a second unprivileged read. No package lock remains. See the [activation evidence](../evidence/dev-147-fairydust-activated-2026-09-05.md). Do not rerun activation or gates that require the original selected state.
+
 - 2026-09-05 07:59Z: Read the saved stage result and live issue. DEV-147 remains In Progress. The result reports `STAGED_UNSELECTED`; the current kernel and active Omarchy dev link remain unchanged. Started actual-publication verification and independent recovery design research.
 - 2026-09-05: Actual stage milestone passes the complete author and independent gates. The active boot bundle, package guard and vendor firmware remain at their pinned hashes. All five saved configuration strings match their protected receipt hashes. Only the current GRUB configuration among those five files remains unreadable without root; a later privileged activation helper must recheck it before writing.
 - 2026-09-05: Corrected GRUB selection passes all 19 real-parser/disk-image probes for author and orchestrator. Root and ESP images use the actual filesystem types and UUIDs. The emulator does not execute the candidate kernel or dynamically load EFI modules; those remain distinct source/inventory and hardware checks. The accepted dispatcher is `58fd5692f3e28013ce54df8de255c552117c1786a7d027e2da21b7fc8a63a9d2`; candidate config is `d4082978c51d96419e98218e472b76653ca52bf1c357fc12ba50786f671efcf6`.
@@ -92,7 +94,8 @@ The completed offline preparation gate remains `bash /home/david/Work/omarchy-de
 
 ## Follow-ups
 
-- [ ] User-run activation and attended candidate boot.
+- [x] User-run activation; saved result and readable live pins verified.
+- [ ] Attended candidate boot; expected release `7.1.12-dev147-fairydust1`.
 - [ ] Verify running release, prepared SIO/DT properties, firmware, internal display, external DP and reconnects beyond the prior exhaustion window.
 - [ ] USB data, audio and charging on both ports and orientations; suspend and power checks later.
 - [ ] Complete the upstream USB4 series and its prerequisites after baseline acceptance, as tracked by the original fresh plan.
