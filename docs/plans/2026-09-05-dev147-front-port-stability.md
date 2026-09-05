@@ -48,7 +48,7 @@ Use full `self-correction-loop`. Root owns scope and documentation. One SWE owns
   Checkpoint: ten user-confirmed image recoveries and twenty accepted external endpoint 0x28 services in one DCP boot cross the original capacity. [Evidence](../evidence/dev-147-front-ten-generations-2026-09-05.md) also records three disconnect clear-swap timeouts and four USB descriptor errors. This is a bounded capacity/recovery success, not a stable-endurance PASS. Twenty-generation and orientation coverage remain open. Pause further physical cycles until these faults are diagnosed; David confirms the requested next batch had not started.
   Next probe: the loss-free fixed-X8 trace captured a 51.749 ms clear-swap reply chain and skipped shutdown tail. Build the isolated 100 ms diagnostic trial below; inspect USB enumeration and rear PHY recovery separately with DEV-163. Do not combine fixes or hide remaining warnings.
   Diagnostic detail: distinguish a late clear-swap callback from an absent callback after firmware powers off. Match swap ID, request, completion and HPD timestamps before deciding whether to avoid an invalid swap, adjust ordering or handle cancellation. The observed discarded-swap firmware message is not yet matched to the driver's waiting clear-swap cookie. For USB, compare hub-only re-enumeration with whole monitor-cable re-enumeration and record negotiated hub speed; vary cable or orientation one at a time after the baseline is captured.
-  Current dependency: David boots the staged trial through a transient GRUB edit, then reports uname and display behavior before any reconnect. Actual stage returned STAGED_UNSELECTED with matching installed artifacts and modules. The current default remains fairydust1. User-visible confirmation of the last baseline control remains pending; kernel state and trace establish DP recovery with X8 retained.
+  Current dependency: trial boot succeeds internally but attached external display is disconnected. Capture one front reconnect with rear cable untouched to establish recovery; inspect before a later active-display teardown test. No clear-wait timeout is recorded in this boot, so the 100 ms hypothesis remains untested on hardware. The saved default remains fairydust1.
 
 - [x] Diagnostic substep: build the isolated 100 ms clear-wait trial.
   Goal: an independently reviewed, unselected artifact that tests whether a bounded additional wait restores the shutdown tail.
@@ -95,6 +95,8 @@ The next milestone gate is `bash /home/david/Work/omarchy-dev147-fairydust-build
 Release scope is front-port DisplayPort with working associated daily-driver behavior. Full support additionally requires automatic routing to either USB-C port, coherent USB4/Thunderbolt integration, and a new regression matrix. No completion date is inferred from three successful cable connections.
 
 ## Progress (LIVING)
+
+- 2026-09-05: Trial release confirmed on boot c9cfab56-d624-48e8-a7a4-04ae5a763fbe. User reports internal image and responsive system, external blank. Snapshot confirms disconnected DP, zero external service generations and matching recovery pins. [Boot addendum](../evidence/dev-147-clear-wait-trial-preparation-2026-09-05.md) records the known startup gap separately from the still-untested clear-wait budget. Next one traced front reconnect; no stress batch.
 
 - 2026-09-05: David's actual trial stage returns zero, STAGED_UNSELECTED, empty stderr and the pinned manifest. Read-only installed module verification returns zero; Image/initramfs/config match. [Stage addendum](../evidence/dev-147-clear-wait-trial-preparation-2026-09-05.md) records the receipt. Next: attended temporary trial boot with current cable connections retained, then release and visible display observations. No automatic reboot or hardware acceptance claim.
 
@@ -152,6 +154,7 @@ Release scope is front-port DisplayPort with working associated daily-driver beh
 
 ## Decision Log (LIVING)
 
+- 2026-09-05: User requests readable GRUB navigation and suffix-only names for future trials. Preserve the installed baseline stem and append a short suffix (for example, fairydust1-t1); use the same convention for artifact directories. Keep immutable running trial names unchanged. Restore a clear named boot menu during packaging, with each entry retaining correct bundle pairing, so normal testing does not require long manual path edits.
 - 2026-09-05: Test a one-line 50 → 100 ms clear-wait change in a separate release. Retain the current timeout warning and recovery behavior. The measured late reply supports a diagnostic trial, not a production bound. Preserve the existing default and ESP by staging separate files and using a transient GRUB edit for the attended trial boot.
 - 2026-09-05: Stabilize shared behavior on one working route before expanding the hardware matrix. Preserve source portability; no new fixed-port shortcuts.
 - 2026-09-05: Separate upstream fix readiness from full package release. Do not hold a proven isolated fix for unrelated feature completeness.

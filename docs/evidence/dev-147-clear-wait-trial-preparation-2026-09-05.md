@@ -76,3 +76,13 @@ David ran the pinned stage launcher and supplied exit 0. The private receipt at 
 Read-only verification of installed module files with `sha256sum --check --strict --status /home/david/Work/dev147-clear-wait-trial/delivery/modules.sha256` from `/usr` returned zero. Published Image, initramfs and config hashes match the accepted delivery. The new boot and module directories are root-owned, mode 755. The helper reports preserved current default, ESP and protected state. The running release remains `7.1.12-dev147-fairydust1`.
 
 Actual staging is complete. Trial boot and hardware validation remain pending. The next attended action is a transient GRUB edit of only the linux/initrd paths, as specified in the stage guide. Preserve current cable connections for the boot observation; report release and visible internal/external display behavior before any further reconnect.
+
+## Addendum — trial boot, 2026-09-05
+
+David booted `7.1.12-dev147-clearwait100`. He reports a working internal screen and responsive system, but no external image. Read-only capture `acceptance/trial-boot.uxa1108a` confirms boot `c9cfab56-d624-48e8-a7a4-04ae5a763fbe`, external DP disconnected/disabled and internal eDP connected/enabled. Snapshot SHA-256: `833331819d62b79173c3ed7879d7fbea0ee83c654388b6d51e479af9022e9099`.
+
+The collector returned SNAPSHOT_CAPTURED_WITH_ERRORS: 22 classified journal records, no collection issues. The boot log contains repeated external-DCP probe deferrals before it binds and boots; the record count is not a count of distinct new defects. Both physical Type-C ports have partners; the front reports host data role and PD sink. The external DCP reports connected=0 at initialization, with no external display service generation. No clear-swap or setPowerState timeout was found in this boot's journal. ESP/recovery/guard pins still match.
+
+The blank attached-at-boot display remains an open startup result. It does not test the trial's disconnect wait. Next capture one front reconnect with the rear cable left untouched, to establish image recovery and retain negotiation evidence. If the image returns, assess that trace before a later connected-to-connected teardown test.
+
+David also reports that the paired Fairydust GRUB menu is harder to scan. The current saved configuration has one Fairydust entry. He requests future trial names keep the installed baseline name and append a short suffix, instead of replacing multiple name segments. This preference is recorded in the living plan. The running trial's release, module directory and pinned artifacts were not renamed.
