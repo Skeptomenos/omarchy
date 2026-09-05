@@ -68,4 +68,6 @@ bash acceptance/validate.sh
 
 After the attended trial boot, collect read-only state with `python3 acceptance/snapshot.py trial-boot`. Use `bash acceptance/trace-capture.sh` only for an agreed front-port reconnect. The original baseline tools remain unchanged.
 
+For the later controller-status investigation, use the separate [monitor power negotiation capture](negotiation/README.md) when requested. It keeps all USB cables connected and records full status and power tracepoints during one monitor off/on sequence.
+
 A successful clear-wait trial needs a loss-free trace of A407/A408 replies followed by the A467 → A457 → A472 shutdown chain, no clear-swap or power-state timeout, later DP/HPD recovery and user confirmation of the image. Transport ACKs do not expose callback status or the completion cookie. USB/ATC warnings require separate journal review. The snapshot's quiet-journal and driver-filter limitations remain disclosed in the living plan.
