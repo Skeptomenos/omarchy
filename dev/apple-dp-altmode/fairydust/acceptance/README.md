@@ -1,6 +1,6 @@
 # Capture front-port acceptance evidence
 
-The [living stability plan](../../../../docs/plans/2026-09-05-dev147-front-port-stability.md) owns test outcomes and release readiness. This tool only captures evidence. It does not move cables, change system configuration, enable tracing or decide that hardware passed.
+The [living stability plan](../../../../docs/plans/2026-09-05-dev147-front-port-stability.md) owns test outcomes and release readiness. `snapshot.py` only captures evidence. It does not move cables, change system configuration, enable tracing or decide that hardware passed. The separate trace launcher below temporarily enables scoped tracing.
 
 Run as the normal user on the frozen candidate:
 
@@ -38,6 +38,28 @@ Before preparing a bounded fault trace, run this launcher as the normal user and
 bash /home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/acceptance/trace-preflight.sh
 ```
 
-Keep the monitor connected. No cable action is needed. The privileged block checks the running release and reads eight fixed tracefs files: available tracers, clocks and six event formats. It does not enable tracing, read trace buffers or change event settings. The launcher retains `report.txt`, `stderr.log` and `exit-status` in a private directory and prints its path. Missing formats or read failures return a nonzero status. Runtime capability remains unverified until this manual command completes.
+Keep the monitor connected. No cable action is needed. The privileged block checks the running release and reads eight fixed tracefs files: available tracers, clocks and six event formats. It does not enable tracing, read trace buffers or change event settings. The launcher retains `report.txt`, `stderr.log` and `exit-status` in a private directory and prints its path. Missing formats or read failures return a nonzero status. The recorded runtime result is in the trace preflight evidence below.
 
 Shell syntax and independent source review passed. Existing IOMFB method and mailbox-header events can help locate a missing or late acknowledgement. They do not directly prove that the host clear-swap completion callback ran. See the [trace design evidence](../../../../docs/evidence/dev-147-trace-preflight-2026-09-05.md).
+
+## One attended disconnect trace
+
+After a successful preflight, keep the monitor on the working front USB-C port with the same cable orientation. Run from a terminal on the internal display:
+
+```bash
+bash /home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/acceptance/trace-capture.sh
+```
+
+Enter the sudo password. Wait for `READY`. Then unplug the front-port monitor cable once, wait five seconds, and reconnect it once. Leave it connected until the command finishes. Record whether the image returns and its approximate delay. Do not start a reconnect batch.
+
+The capture lasts 45 seconds in its own trace instance. It selects external DCP method/callback metadata and IOMFB mailbox headers, plus available CD321x events. Type-C events have no port identity. The script stops tracing, records per-CPU loss statistics and the trace, then removes its instance. It replaces no kernel or boot files and does not reset drivers. Result files stay private and may contain process names; do not publish the raw report.
+
+The terminal prints the result directory. Share that path and the visual result. Exit 0 means capture and cleanup completed; it does not establish loss-free tracing, successful image recovery or a fixed fault. Setup failure means no cable action is needed. A cleanup failure remains explicit in the report and must be reviewed before another run.
+
+Validate the trace launcher in a disposable fixture with:
+
+```bash
+python3 /home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/acceptance/test_trace_capture.py
+```
+
+The test replaces sudo and tracefs inside bwrap. It does not enable live tracing. [Preparation evidence](../../../../docs/evidence/dev-147-targeted-trace-2026-09-05.md) records checks and their limits.
