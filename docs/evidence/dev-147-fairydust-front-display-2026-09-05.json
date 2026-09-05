@@ -1,0 +1,24 @@
+{
+  "boot_id": "f80d5566-d14a-4374-9824-15887a63c576",
+  "user_report": "Monitor attached throughout boot on front/lower USB-C port; no image until cable reconnected, then image appears.",
+  "connector": {
+    "status": "connected",
+    "enabled": "enabled",
+    "modes": "3840x2160\n3840x2160\n2560x1440\n1920x1080\n1920x1080\n1600x900\n1280x1024\n1280x800\n1280x720\n1280x720\n1024x768\n800x600\n720x480\n720x480\n640x480\n640x480"
+  },
+  "log_lines": [
+    "[    5.359068] omarchy-air kernel: apple-dcp 271c00000.dcp: DCP booted",
+    "[    5.359187] omarchy-air kernel: apple-dcp 271c00000.dcp: dcp_hotplug() connected:0 valid_mode:0 nr_modes:0",
+    "[ 1391.914290] omarchy-air kernel: apple-dcp 271c00000.dcp: dcp_dptx_disconnect(port=0)",
+    "[ 1403.424375] omarchy-air kernel: apple-dcp 271c00000.dcp: dcp_dptx_disconnect(port=0)",
+    "[ 1403.439266] omarchy-air kernel: apple-dcp 271c00000.dcp: dcp_dptx_connect(port=0)",
+    "[ 1405.486024] omarchy-air kernel: apple-dcp 271c00000.dcp: AFK[ep:28]: new service DCPDP13Service on channel 1",
+    "[ 1405.489026] omarchy-air kernel: apple-dcp 271c00000.dcp: AFK[ep:28]: new service DCPDP13Service on channel 3",
+    "[ 1405.714687] omarchy-air kernel: apple-dcp 271c00000.dcp: dcp_hotplug() connected:1 valid_mode:0 nr_modes:16",
+    "[ 1405.757630] omarchy-air kernel: apple-dcp 271c00000.dcp: set_digital_out_mode(color:74 timing:45) \"3840x2160\": 60 533250 3840 3888 3920 4000 2160 2214 2219 2222 0x48 0x0",
+    "[ 1405.964666] omarchy-air kernel: apple-dcp 271c00000.dcp: RTKit: syslog message: PPipeDCP_H13P.cpp:11109: IOMFB updateFrequencies EDT ERROR: getClockFrequency(0) (0) < videoClock 266625008! Giving up on frequencies.",
+    "[ 1405.982756] omarchy-air kernel: apple-dcp 271c00000.dcp: set_digital_out_mode finished:8276",
+    "[ 1406.000804] omarchy-air kernel: apple-dcp 271c00000.dcp: dcp_dptx_connect(port=0)"
+  ],
+  "interpretation": "Boot with display already attached fails in this observation; one user-reported reconnect restores image. Root cause and repeatability unproven."
+}

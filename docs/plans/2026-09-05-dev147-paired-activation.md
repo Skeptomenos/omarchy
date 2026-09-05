@@ -68,6 +68,8 @@ The completed offline preparation gate remains `bash /home/david/Work/omarchy-de
 
 ## Progress (LIVING)
 
+- 2026-09-05: David clarifies that the monitor was attached throughout boot on the front/lower USB-C port. It showed no image until a reconnect. Current DP is connected/enabled; logs show DPTX connection, HPD and a 3840×2160 nominal 60 Hz modeset after reconnect. Record one hot-plug success and an attached-at-boot detection defect, not full display acceptance. See [front-port evidence](../evidence/dev-147-fairydust-front-display-2026-09-05.md).
+
 - 2026-09-05: First candidate boot succeeds. Running release and command line match `7.1.12-dev147-fairydust1`. Live SIO firmware parameters are present; SIO protocol v9 and both DCP boots are logged. Internal eDP is connected/enabled; external DP is disconnected. See [first-boot evidence](../evidence/dev-147-fairydust-first-boot-2026-09-05.md) for warnings and limits. Proceed to one attended display connection before repeated reconnect or suspend testing.
 
 - 2026-09-05: David ran the activation launcher successfully. `activation/activate-results.iUG81ebY` reports exit 0, empty stderr and `ACTIVATED_NOT_REBOOTED`. Readable live hashes match the candidate bundle, old recovery bundle, copied guide and retained guard. GRUB and its support directory are root-private; their successful final verification is established by the pinned privileged helper's receipt, not a second unprivileged read. No package lock remains. See the [activation evidence](../evidence/dev-147-fairydust-activated-2026-09-05.md). Do not rerun activation or gates that require the original selected state.
@@ -95,6 +97,9 @@ The completed offline preparation gate remains `bash /home/david/Work/omarchy-de
 - 2026-09-05: Activation requires the staged candidate and historical protected state to match. Restore depends on the trusted old backups, original boot dependencies and guard, while preserving current unrelated state. It must not require intact candidate files or unchanged EFI-variable/package metadata. Check dynamic `custom.cfg` inputs explicitly so a new file cannot change the preserved configuration's routing.
 
 ## Follow-ups
+
+- [ ] Diagnose already-attached display detection at boot; one front-port failure followed by successful reconnect is recorded.
+- [ ] Repeat controlled front-port reconnects, then check the other port and orientations.
 
 - [x] User-run activation; saved result and readable live pins verified.
 - [x] Attended candidate boot; running release `7.1.12-dev147-fairydust1` verified.
