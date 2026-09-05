@@ -1,0 +1,68 @@
+{
+  "scope": "ten-generation checkpoint, not full release",
+  "user_confirmation": "Four further front-port reconnects all restored image in about six seconds each; ten confirmed recoveries total.",
+  "snapshot_path": "/home/david/Work/dev147-fairydust-acceptance-20260905/ten-confirmed.mlonvf2b/snapshot.json",
+  "snapshot_sha256": "64f11d1f1864320d477a02d5a7daa90654e93d7ce9cc13e02354f64d604113b0",
+  "boot_id": "f80d5566-d14a-4374-9824-15887a63c576",
+  "announcements": 20,
+  "count_pairs": 10,
+  "external_dcp_boots": 1,
+  "selected_log": [
+    "[    5.359068] omarchy-air kernel: apple-dcp 271c00000.dcp: DCP booted",
+    "[ 1405.486024] omarchy-air kernel: apple-dcp 271c00000.dcp: AFK[ep:28]: new service DCPDP13Service on channel 1",
+    "[ 1405.489026] omarchy-air kernel: apple-dcp 271c00000.dcp: AFK[ep:28]: new service DCPDP13Service on channel 3",
+    "[ 1405.982756] omarchy-air kernel: apple-dcp 271c00000.dcp: set_digital_out_mode finished:8276",
+    "[ 1664.750025] omarchy-air kernel: apple-dcp 271c00000.dcp: AFK[ep:28]: new service DCPDP13Service on channel 5",
+    "[ 1664.753039] omarchy-air kernel: apple-dcp 271c00000.dcp: AFK[ep:28]: new service DCPDP13Service on channel 7",
+    "[ 1665.250589] omarchy-air kernel: apple-dcp 271c00000.dcp: set_digital_out_mode finished:8275",
+    "[ 2415.918024] omarchy-air kernel: apple-dcp 271c00000.dcp: AFK[ep:28]: new service DCPDP13Service on channel 9",
+    "[ 2415.924022] omarchy-air kernel: apple-dcp 271c00000.dcp: AFK[ep:28]: new service DCPDP13Service on channel 11",
+    "[ 2416.416550] omarchy-air kernel: apple-dcp 271c00000.dcp: set_digital_out_mode finished:8275",
+    "[ 3344.943115] omarchy-air kernel: apple-dcp 271c00000.dcp: AFK[ep:28]: new service DCPDP13Service on channel 13",
+    "[ 3344.948059] omarchy-air kernel: apple-dcp 271c00000.dcp: AFK[ep:28]: new service DCPDP13Service on channel 15",
+    "[ 3345.441582] omarchy-air kernel: apple-dcp 271c00000.dcp: set_digital_out_mode finished:8274",
+    "[ 3360.302029] omarchy-air kernel: apple-dcp 271c00000.dcp: AFK[ep:28]: new service DCPDP13Service on channel 17",
+    "[ 3360.305031] omarchy-air kernel: apple-dcp 271c00000.dcp: AFK[ep:28]: new service DCPDP13Service on channel 19",
+    "[ 3360.802539] omarchy-air kernel: apple-dcp 271c00000.dcp: set_digital_out_mode finished:8275",
+    "[ 3375.662021] omarchy-air kernel: apple-dcp 271c00000.dcp: AFK[ep:28]: new service DCPDP13Service on channel 21",
+    "[ 3375.665029] omarchy-air kernel: apple-dcp 271c00000.dcp: AFK[ep:28]: new service DCPDP13Service on channel 23",
+    "[ 3376.168025] omarchy-air kernel: apple-dcp 271c00000.dcp: set_digital_out_mode finished:8270",
+    "[ 4772.078038] omarchy-air kernel: apple-dcp 271c00000.dcp: AFK[ep:28]: new service DCPDP13Service on channel 25",
+    "[ 4772.081023] omarchy-air kernel: apple-dcp 271c00000.dcp: AFK[ep:28]: new service DCPDP13Service on channel 27",
+    "[ 4772.578043] omarchy-air kernel: apple-dcp 271c00000.dcp: set_digital_out_mode finished:8269",
+    "[ 4786.674028] omarchy-air kernel: apple-dcp 271c00000.dcp: AFK[ep:28]: new service DCPDP13Service on channel 29",
+    "[ 4786.674652] omarchy-air kernel: apple-dcp 271c00000.dcp: AFK[ep:28]: new service DCPDP13Service on channel 31",
+    "[ 4787.174034] omarchy-air kernel: apple-dcp 271c00000.dcp: set_digital_out_mode finished:8271",
+    "[ 4801.390023] omarchy-air kernel: apple-dcp 271c00000.dcp: AFK[ep:28]: new service DCPDP13Service on channel 33",
+    "[ 4801.393025] omarchy-air kernel: apple-dcp 271c00000.dcp: AFK[ep:28]: new service DCPDP13Service on channel 35",
+    "[ 4801.899021] omarchy-air kernel: apple-dcp 271c00000.dcp: set_digital_out_mode finished:8275",
+    "[ 4816.494025] omarchy-air kernel: apple-dcp 271c00000.dcp: AFK[ep:28]: new service DCPDP13Service on channel 37",
+    "[ 4816.500039] omarchy-air kernel: apple-dcp 271c00000.dcp: AFK[ep:28]: new service DCPDP13Service on channel 39",
+    "[ 4817.004038] omarchy-air kernel: apple-dcp 271c00000.dcp: set_digital_out_mode finished:8271"
+  ],
+  "limits": [
+    "No direct host slot or teardown trace.",
+    "Six-second user timings are approximate.",
+    "Twenty-generation target and remaining release matrix still open."
+  ],
+  "known_fault_events": [
+    "[ 4763.158026] omarchy-air kernel: apple-dcp 271c00000.dcp: iomfb_poweroff_v13_3: timed out waiting for the poweroff clear swap; continuing",
+    "[ 4776.878005] omarchy-air kernel: apple-dcp 271c00000.dcp: iomfb_poweroff_v13_3: timed out waiting for the poweroff clear swap; continuing",
+    "[ 4784.984027] omarchy-air kernel: usb 1-1: device descriptor read/64, error -71",
+    "[ 4785.200043] omarchy-air kernel: usb 1-1: device descriptor read/64, error -71",
+    "[ 4785.528119] omarchy-air kernel: usb 1-1: device descriptor read/64, error -71",
+    "[ 4785.745043] omarchy-air kernel: usb 1-1: device descriptor read/64, error -71",
+    "[ 4806.623228] omarchy-air kernel: apple-dcp 271c00000.dcp: iomfb_poweroff_v13_3: timed out waiting for the poweroff clear swap; continuing"
+  ],
+  "next_batch": "User confirmed not started; paused for fault diagnosis.",
+  "later_usb_speeds_mbps": {
+    "0bda:5411 hub": 480,
+    "043e:9a39 controls": 12
+  },
+  "independent_review": {
+    "verdict": "PASS_WITH_KNOWN_FAULTS",
+    "scope": "bounded AFK capacity and visual recovery only",
+    "receipt": "/home/david/Work/dev147-fairydust-acceptance-20260905/ten-checkpoint-independent/receipt.json",
+    "sha256": "16ed21655f24c7e0659084edd1e7123948d8f8df36239c2d93fd5c52db590798"
+  }
+}
