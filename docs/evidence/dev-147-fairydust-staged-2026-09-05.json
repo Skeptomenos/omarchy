@@ -1,0 +1,78 @@
+{
+  "date": "2026-09-05",
+  "verdict": "STAGED_UNSELECTED_VERIFIED",
+  "release": "7.1.12-dev147-fairydust1",
+  "running_kernel": "7.1.6-1-1-ARCH",
+  "manifest_sha256": "f33054856e60d3baf5cb7630cb8d7dfc60ffa586e16456c3e7313fffe6f7c59d",
+  "published_manifest_files": 1885,
+  "published_boot_files": 10,
+  "published_module_tree_files": 1876,
+  "modules": 1862,
+  "protected_readable_matches": 4522,
+  "protected_mismatches": 0,
+  "protected_unreadable_receipt_only": 68,
+  "manual_evidence_hashes": {
+    "result.json": "56e8c20d25806e1ced05515aede08dfe2147163c99f4e1ce766724f539a70ae6",
+    "input-identities": "ecab41357fea27eca55c72b7f4202f653c13a46999c73b84c1d2ddc8d498e040",
+    "exit-status": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "active_input_hashes": {
+    "/boot/efi/m1n1/boot.bin": "203ab7027536c8d16f373d02c1f6346a5c34cfe095a9dafd0cfe37d2b354090c",
+    "/etc/pacman.d/hooks/05-omarchy-m2-displayport-guard.hook": "469820ad7cfd015a22cff979b0aa70d62e82dcc7cc05951dca92f40cd660f2bd",
+    "/boot/efi/vendorfw/firmware.cpio": "7c2ce145ec9bb390c2377e6e83d1aacc3817dd227909b0e62b0febe96d2f451f",
+    "/usr/lib/firmware/vendor/.vendorfw.manifest": "2f3ab6e0d7d2fb8ab11746094c1d02a3ef00da9a8037bfdac583eb4b8d31cea1"
+  },
+  "independent_qa": {
+    "verdict": "PASS",
+    "gate_command": "timeout --signal=INT --kill-after=15s 280s bash dev/apple-dp-altmode/fairydust/validate-staged.sh",
+    "cwd": "/home/david/Work/omarchy-dev147-fairydust-build",
+    "gate_exit": 0,
+    "gate_evidence": "/home/david/Work/dev147-fairydust-boot-20260905/checks/staged-gate.OMOzM8fN",
+    "independent_receipts": {
+      "publication": "/home/david/Work/dev147-fairydust-boot-20260905/research/staged-qa/independent-publication.json",
+      "exported_grub": "/home/david/Work/dev147-fairydust-boot-20260905/research/staged-qa/grub-export-check.json"
+    },
+    "review": "No blocking finding in new staged verifier, tests, or aggregate composition for the observed publication.",
+    "source_edits": false,
+    "privileged_commands": false,
+    "active_boot_writes": false,
+    "limits": [
+      "68 root-private protected paths could not be independently reread; their stage-time preservation relies on the pinned privileged result.",
+      "Candidate activation, boot, rollback execution, and hardware acceptance remain unverified."
+    ],
+    "source_sha256": {
+      "dev/apple-dp-altmode/fairydust/validate-staged.sh": "baf904f3c8deabd0593d5fa5f5d1cb5c5ac6a150d3349a76522dc4a6407cbcc8",
+      "dev/apple-dp-altmode/fairydust/validate-boot.sh": "b0d0e8ec81bf1ec2e5be6f340601fb6eb571c3d4d537a432671b1b66c3e9bcc3",
+      "dev/apple-dp-altmode/fairydust/boot-stage/verify-staged.py": "bf4f94e93d960aca87da1371611d05366833230e7da08ea97ad20f26b5fe1537",
+      "dev/apple-dp-altmode/fairydust/boot-stage/test_verify_staged.py": "48d69e789c591b9e2fa7218a07ca0ca40865569d4df32323e1a3d852235d99cb",
+      "dev/apple-dp-altmode/fairydust/boot-stage/stage.py": "12501982dfd4adb347103671ce5dbf9650b53b628474a434de3c458fd98ad6a7",
+      "dev/apple-dp-altmode/fairydust/boot-stage/launch.sh": "748810653d9f083113052afc0b19acc1e0b1d73ec99b4165906a46a83e856c15"
+    },
+    "additional_commands": [
+      "python3 dev/apple-dp-altmode/fairydust/boot-stage/test_verify_staged.py:10 tests PASS",
+      "grub-script-check private grub-export.cfg:exit0",
+      "grub-editenv private grubenv-export list:exit0, empty environment",
+      "Independent hashlib SHA256/lstat manifest publication and protected-state audit:PASS;1885 manifested matches,1862 modules,4522 accessible protected matches,68 unreadable,0 mismatches"
+    ],
+    "plan_claim_review": {
+      "document": "docs/plans/2026-09-05-dev147-paired-activation.md",
+      "slice": "Slice 1: Verify actual staging and bind its evidence",
+      "verdict": "SUPPORTED",
+      "scope": "Actual publication and private stage proof only; no activation/readiness/rollback/hardware claim."
+    }
+  },
+  "private_evidence": {
+    "stage/manual-results/result.json": "56e8c20d25806e1ced05515aede08dfe2147163c99f4e1ce766724f539a70ae6",
+    "checks/staged-gate.XdDL0sq9/staged-receipt.json": "7f8b3b06aa45e5e420b8507fe3b1be706632cdff21ac329a4f43c91e737d4520",
+    "checks/staged-gate.OMOzM8fN/staged-receipt.json": "8ee93080caebd4a5821f225a4499869ad4b8ae82222a05540a7a1d6aab969644",
+    "research/staged-qa/qa-receipt.json": "585bfb92d57fe8f3e05a7b6f70999fc9763b0627319312f157c7b2b97550d012",
+    "research/staged-qa/independent-publication.json": "5d5b4df25eed627382b01dac4d77973231fd33e6d9101d404fe29b33cef880fc",
+    "research/staged-qa/grub-export-check.json": "dabfe4c0a9fc2150b7e462db61a1cba8ffc1a7dc37db944debcfd55320b0d218"
+  },
+  "limits": [
+    "No selected-boot activation or reboot occurred.",
+    "Root-private preservation is supported by the pinned stage helper result; 68 protected paths were not reread without privilege.",
+    "Activation, recovery execution and hardware acceptance remain open."
+  ]
+}

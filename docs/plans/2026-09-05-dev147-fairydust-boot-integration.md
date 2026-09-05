@@ -94,8 +94,8 @@ Run `bash /home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/f
 
 ## Follow-ups
 
-- [ ] David runs the reviewed staging command; inspect its retained protected evidence.
-- [ ] Prepare and review exact paired m1n1 + kernel/initramfs GRUB activation, complete restore and macOS/Recovery instructions. Verify original protected identities before any selected-boot write.
+- [x] David ran the reviewed staging command on 2026-09-05. Evidence: `stage/manual-results/exit-status` is `0`; `result.json` reports `STAGED_UNSELECTED`; stderr is empty. Actual-publication verification is tracked in the [paired activation continuation](2026-09-05-dev147-paired-activation.md).
+- [ ] Prepare and review exact paired m1n1 + kernel/initramfs GRUB activation, complete restore and macOS/Recovery instructions in the [paired activation continuation](2026-09-05-dev147-paired-activation.md). Verify original protected identities before any selected-boot write.
 - [ ] Attended candidate boot, then firmware/DT/driver identity and internal/external display checks.
 - [ ] Reconnects beyond the old exhaustion window; USB data/audio/charging on both ports/orientations; suspend/power later.
 - [ ] Complete upstream USB4 integration after baseline acceptance; retain the original fresh plan's remaining capability work.

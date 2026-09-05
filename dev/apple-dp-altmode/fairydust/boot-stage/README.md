@@ -4,7 +4,9 @@ This handoff adds a complete, versioned candidate without selecting it. The [boo
 
 ## User command
 
-After the plan records independent handoff PASS, David runs:
+The command below was run successfully on 2026-09-05. Do not run it again over its saved results. The [paired activation plan](../../../../docs/plans/2026-09-05-dev147-paired-activation.md) owns verification of that apply and the next boot step.
+
+The reviewed staging command is:
 
 ```bash
 bash /home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/boot-stage/launch.sh
@@ -29,9 +31,17 @@ The installed candidate is unselected. The active m1n1 bundle, GRUB configuratio
 
 The next stage must select m1n1, kernel and initramfs coherently. m1n1 prepares Apple firmware and memory properties before GRUB. Supplying the raw DT through GRUB skips that work. Once the shared m1n1 bundle changes, merely choosing an old kernel is not a proven fallback.
 
-Activation must also handle GRUB saved/next/fallback entries and interruption between writes. `boot.bin` is on FAT EFI, but `grub.cfg` is on ext4. macOS/Recovery can restore the former directly; access to the latter needs a separately verified route. No complete activation or restore procedure is released by this staging handoff.
+Activation must also handle GRUB saved/next/fallback entries and interruption between writes. `boot.bin` is on FAT EFI, but `grub.cfg` is on ext4. macOS/Recovery can restore the former directly; the paired activation plan must establish complete recovery without assuming macOS can write ext4. This staging command supplies no selected-boot change.
 
 ## Validation
+
+To verify the completed publication while the old stack remains selected, run:
+
+```bash
+bash /home/david/Work/omarchy-dev147-fairydust-build/dev/apple-dp-altmode/fairydust/validate-staged.sh
+```
+
+This runs the complete preparation gate, ten verifier controls and a read-only check of every published boot/module file, the saved manual result and current readable active inputs. Each run retains a private receipt. It deliberately expects the old running kernel and boot bundle, so it is a pre-activation check.
 
 The complete offline gate is:
 

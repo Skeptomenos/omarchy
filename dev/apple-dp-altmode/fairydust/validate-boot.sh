@@ -43,4 +43,4 @@ printf '%s  %s\n' \
   2f3ab6e0d7d2fb8ab11746094c1d02a3ef00da9a8037bfdac583eb4b8d31cea1 /usr/lib/firmware/vendor/.vendorfw.manifest | sha256sum --check --strict > "$checks/live-pins.log"
 git -C "$repo" diff --check
 printf 'PASS: complete offline boot delivery and unselected staging rehearsal\n' | tee "$checks/result.txt"
-printf 'LIMIT: real staging, selected-boot activation, rollback execution and hardware acceptance remain open.\n'
+printf 'LIMIT: this gate proves rehearsal; actual staging, selected-boot activation, rollback execution and hardware behavior require separate evidence.\n'
