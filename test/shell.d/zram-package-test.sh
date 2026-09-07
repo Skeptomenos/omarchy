@@ -91,9 +91,16 @@ grep -Fx 'systemctl start systemd-zram-setup@zram0.service' "$calls" >/dev/null 
 assert_systemd_start_follows_reload
 pass "the zram migration repairs an existing install without zram-generator"
 
+rm -f "$swap_active"
 run_migration 0
 ! grep -Fx 'add zram-generator' "$calls" >/dev/null ||
   fail "the zram migration does not reinstall an existing zram-generator"
+grep -Fx 'systemctl start systemd-zram-setup@zram0.service' "$calls" >/dev/null ||
+  fail "the zram migration starts zram when the package is already installed"
+assert_systemd_start_follows_reload
+pass "the zram migration is idempotent"
+
+run_migration 0
 ! grep -Fx 'systemctl daemon-reload' "$calls" >/dev/null ||
   fail "the zram migration does not reload systemd when zram is active"
 ! grep -Fx 'systemctl start systemd-zram-setup@zram0.service' "$calls" >/dev/null ||

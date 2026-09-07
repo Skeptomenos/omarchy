@@ -11,6 +11,7 @@ set -euo pipefail
 readonly checkout="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 readonly package_output="$checkout/build-output"
 readonly asahi_alarm_key="12CE6799A94A3F1B5DDFFE88F576553597FB8FEB"
+source "$checkout/install/helpers/arm-package-sources.sh"
 
 source "$checkout/install/helpers/mise.sh"
 
@@ -93,7 +94,7 @@ ensure_package_sources() {
   else
     log "Cloning the PKGBUILD checkout"
     mkdir -p "$cache_dir"
-    git clone --depth 1 https://github.com/omacom-io/omarchy-pkgs.git "$pkgs_checkout"
+    git clone --depth 1 https://github.com/omacom/omarchy-pkgs.git "$pkgs_checkout"
   fi
 
   export OMARCHY_PKGS_PATH="$pkgs_checkout"
@@ -107,7 +108,12 @@ build_omarchy_packages() {
 install_omarchy_packages() {
   log "Installing the Omarchy packages"
 
-  local built=("$package_output"/*.pkg.tar.*)
+  local artifact
+  local -a built=()
+  for artifact in "$package_output"/*.pkg.tar.*; do
+    [[ -f $artifact && $artifact != *.sig ]] || continue
+    built+=("$artifact")
+  done
   (( ${#built[@]} )) || fail "No packages were built in $package_output."
   sudo pacman -U --needed --noconfirm "${built[@]}"
 
@@ -127,7 +133,7 @@ ensure_asahi_alarm_keyring() {
 
   if ! sudo pacman-key --list-keys "$asahi_alarm_key" >/dev/null 2>&1; then
     log "Importing the Asahi Alarm package signing key"
-    sudo pacman-key --recv-keys "$asahi_alarm_key" --keyserver hkps://keys.openpgp.org
+    sudo pacman-key --recv-keys "$asahi_alarm_key" --keyserver hkps://keyserver.ubuntu.com
   fi
   sudo pacman-key --lsign-key "$asahi_alarm_key" >/dev/null
 
@@ -159,8 +165,11 @@ ensure_arm_package_repo() {
   fi
 
   ensure_asahi_alarm_keyring
-  log "Refreshing package databases for ARM packages"
-  sudo pacman -Sy --noconfirm
+  omarchy_arm_prepare_package_sources
+  local -a targets
+  mapfile -t targets < <(omarchy_arm_package_targets)
+  log "Upgrading system packages and installing the compatible Hyprland stack"
+  sudo env OMARCHY_UPDATE_PACMAN=1 pacman -Syu --needed --noconfirm "${targets[@]}"
 }
 
 load_unavailable_packages() {
@@ -246,6 +255,13 @@ install_default_package_set() {
   while read -r requested_package; do
     install_package=$(resolve_package_for_arch "$requested_package")
 
+    # Already installed in the full compatibility transaction. An unqualified
+    # yay target would select the regular repository and can downgrade it.
+    if omarchy_arm_package_is_selected "$requested_package"; then
+      pacman -Q "$requested_package" >/dev/null || fail "Compatible package missing after system upgrade: $requested_package"
+      continue
+    fi
+
     # The shared bootstrap installs the pinned official ARM binary after the
     # package phase, before user provisioning.
     if [[ $install_package == "mise" ]]; then
@@ -287,6 +303,11 @@ run_system_setup() {
   log "Running Omarchy system setup"
   sudo omarchy-apply-system --install-user "$USER" --first-install
 
+  # System setup restores pacman.conf and can introduce repositories absent
+  # from the starting image. Trust their keys and refresh with a full upgrade
+  # before user setup installs packages, retaining the explicit edge stack.
+  ensure_arm_package_repo
+
   log "Running Omarchy user setup"
   omarchy-provision-user --first-install
 }
@@ -316,12 +337,12 @@ snapshot_factory_baseline() {
 main() {
   check_preconditions
   ensure_utf8_locale
+  ensure_arm_package_repo
   ensure_gum
   ensure_aur_helper
   ensure_package_sources
   build_omarchy_packages
   install_omarchy_packages
-  ensure_arm_package_repo
   install_default_package_set
   omarchy_ensure_arm_mise
   seed_user_defaults

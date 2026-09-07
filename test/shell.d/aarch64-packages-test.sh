@@ -116,8 +116,9 @@ pass "the ARM package repository has an explicit owner-controlled override"
 # The shipped config only reaches /etc during post-install, which runs after the
 # package set. Adding the repo any later leaves herdr building zig from source
 # for two hours, so the order in main() is the whole point of the fix.
-repo_call=$(grep -n '^  ensure_arm_package_repo$' "$ROOT/install.sh" | cut -d: -f1)
-set_call=$(grep -n '^  install_default_package_set$' "$ROOT/install.sh" | cut -d: -f1)
+install_main=$(sed -n '/^main() {/,/^}/p' "$ROOT/install.sh")
+repo_call=$(grep -n '^  ensure_arm_package_repo$' <<<"$install_main" | cut -d: -f1)
+set_call=$(grep -n '^  install_default_package_set$' <<<"$install_main" | cut -d: -f1)
 [[ -n $repo_call && -n $set_call ]] || fail "the installer adds the ARM repo and installs the set"
 (( repo_call < set_call )) ||
   fail "the ARM repo is added before the default package set is installed"
