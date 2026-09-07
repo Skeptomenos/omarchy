@@ -333,3 +333,11 @@ David confirms no image after the B9GNLQls monitor-power control. This closes th
 David reports the previously discovered X8 missing. Initial lsblk has no USB disk. During subsequent read-only checks, the rear controller xhci-hcd.0.auto enumerates USB 2-1 at uptime 11142.059 as Crucial X8 0634:5600, SuperSpeed Plus Gen2x1. UAS binds and sda reports 1953525168 512-byte sectors with sda1/sda2. At uptime 11163.76, sysfs speed is 10000, SCSI state running, and lsblk shows 931.5 GiB. No agent reset, reload, mount or cable action occurred. What triggered this transition is unknown; do not attribute recovery to these read-only checks.
 
 The 931.3 GiB data partition is APFS and unmounted; the 200 MiB EFI partition is FAT32. No APFS filesystem appears in /proc/filesystems, no installed package name matches APFS, and apfs-fuse/mount.apfs/apfsutil are absent from PATH. USB discovery is currently restored; filesystem access is a separate unresolved requirement. No filesystem changes performed. The front monitor failure remains separate and unresolved.
+
+## Addendum — resume on replacement installation, 2026-09-08
+
+User requests continuation on the new fleet omarchy-air endpoint. SSH succeeds. Model remains Apple MacBook Air (13-inch, M2, 2022). Boot 5634b91c-edb1-4c89-9f77-4e5048699bdd runs stock 7.1.6-1-1-ARCH, with only that module release installed. DRM exposes connected internal eDP; no external connector appears in the inspected inventory. Prior activation state directory is absent. Do not reuse previous activation/restore assumptions on this installation.
+
+Owned worktree is present, clean at f00766f85 on codex/dev147-fairydust-build before this note. Trial sources, build/artifact directories and evidence are present. TIPD core hash still matches bb19187a1c41517e4b9f0fc3da7089fd41d26851774001ae3ad10c43139f2e15. Full artifact inventory has not yet been revalidated. No boot files, drivers or runtime configuration changed.
+
+Remote dev status reports configuration targeting /home/david/o-live but the SSH shell has no OMARCHY_PATH. This alone does not establish the graphical session needs a reboot. Continue through SSH on the new endpoint. Next prerequisite: validate copied artifacts and inspect the new boot layout, then prepare staging and recovery specifically for this installation before any privileged apply or hardware trial.
