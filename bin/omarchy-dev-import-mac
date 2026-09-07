@@ -1,0 +1,162 @@
+#!/bin/bash
+
+# omarchy:summary=Merge omarchy-mac quattro into quattro-arm in an isolated worktree
+# omarchy:args=[--release] [--deploy] [--update]
+# omarchy:examples=omarchy dev import-mac | omarchy dev import-mac --release --deploy
+# omarchy:group=dev
+
+set -euo pipefail
+
+usage() {
+  cat <<'USAGE'
+Usage: omarchy dev import-mac [--release] [--deploy] [--update]
+
+Merges origin-tracking quattro-arm with upstream/quattro (omarchy-mac/omarchy-mac)
+in an isolated worktree, then runs ./test/cli and ./test/shell.
+
+  --release  Push the candidate to origin quattro-arm
+  --deploy   Fast-forward the live checkout (implies --release)
+  --update   After a successful deploy, run omarchy update in this terminal
+
+Default is candidate-only: conflicts, tests, and a report. Never rebases,
+never switches the live checkout, never force-pushes.
+USAGE
+}
+
+do_release=0
+do_deploy=0
+do_update=0
+
+while (($#)); do
+  case "$1" in
+    --release) do_release=1; shift ;;
+    --deploy) do_deploy=1; do_release=1; shift ;;
+    --update) do_update=1; do_deploy=1; do_release=1; shift ;;
+    -h|--help) usage; exit 0 ;;
+    *)
+      echo "Unknown option: $1" >&2
+      usage >&2
+      exit 1
+      ;;
+  esac
+done
+
+expected_upstream="https://github.com/omarchy-mac/omarchy-mac.git"
+source_ref=upstream/quattro
+dest_branch=quattro-arm
+remote_dest=origin/quattro-arm
+
+repo=$(git -C "${OMARCHY_PATH:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)}" rev-parse --show-toplevel)
+
+live=""
+if [[ -f /etc/omarchy.conf ]]; then
+  live=$(
+    OMARCHY_PATH=
+    # shellcheck disable=SC1091
+    . /etc/omarchy.conf
+    printf '%s' "${OMARCHY_PATH:-}"
+  )
+fi
+[[ $live == /usr/share/omarchy ]] && live=""
+
+if [[ -n $live && $(git -C "$live" rev-parse --show-toplevel 2>/dev/null) == "$live" ]]; then
+  :
+else
+  live=""
+fi
+
+log() {
+  printf '\033[32m==>\033[0m %s\n' "$*"
+}
+
+fail() {
+  printf '\033[31mError:\033[0m %s\n' "$*" >&2
+  exit 1
+}
+
+[[ $(git -C "$repo" remote get-url upstream 2>/dev/null) == "$expected_upstream" ]] ||
+  git -C "$repo" remote set-url upstream "$expected_upstream"
+
+log "Fetching origin and upstream"
+git -C "$repo" fetch --prune origin
+git -C "$repo" fetch --prune upstream
+
+git -C "$repo" show-ref --verify --quiet "refs/heads/$dest_branch" ||
+  fail "local branch $dest_branch is missing"
+git -C "$repo" show-ref --verify --quiet "refs/remotes/$source_ref" ||
+  fail "missing $source_ref after fetch"
+
+dst=$(git -C "$repo" rev-parse "$dest_branch")
+src=$(git -C "$repo" rev-parse "$source_ref")
+base=$(git -C "$repo" merge-base "$dst" "$src")
+
+printf 'destination %s  %s\n' "$dest_branch" "$(git -C "$repo" log -1 --format='%h %s' "$dst")"
+printf 'source      %s  %s\n' "$source_ref" "$(git -C "$repo" log -1 --format='%h %s' "$src")"
+printf 'merge-base              %s\n' "$(git -C "$repo" log -1 --format='%h %s' "$base")"
+
+if git -C "$repo" merge-base --is-ancestor "$src" "$dst"; then
+  log "quattro-arm already contains $source_ref"
+  candidate=$dst
+  worktree=""
+else
+  collisions=$(comm -12 \
+    <(git -C "$repo" diff --name-only --diff-filter=A "$base" "$dst" -- migrations | sort) \
+    <(git -C "$repo" diff --name-only --diff-filter=A "$base" "$src" -- migrations | sort) || true)
+  [[ -z $collisions ]] || fail "both sides added the same migration files:
+$collisions"
+
+  stamp=$(date +%Y-%m-%d)
+  worktree="${OMARCHY_IMPORT_WORKTREE:-$HOME/Work/omarchy-sync-$stamp-omarchy-mac}"
+  branch="codex/sync-$stamp-omarchy-mac"
+  if [[ -e $worktree ]] || git -C "$repo" show-ref --verify --quiet "refs/heads/$branch"; then
+    stamp=$(date +%Y-%m-%d-%H%M%S)
+    worktree="${OMARCHY_IMPORT_WORKTREE:-$HOME/Work/omarchy-sync-$stamp-omarchy-mac}"
+    branch="codex/sync-$stamp-omarchy-mac"
+  fi
+
+  [[ $worktree != "$live" ]] || fail "refusing to merge inside the live checkout $live"
+
+  log "Creating $worktree on $branch"
+  git -C "$repo" worktree add -b "$branch" "$worktree" "$dest_branch"
+
+  log "Merging $source_ref"
+  if ! git -C "$worktree" merge --no-ff --no-edit "$source_ref"; then
+    printf '\nConflicts:\n' >&2
+    git -C "$worktree" diff --name-only --diff-filter=U >&2
+    fail "merge stopped on conflicts in $worktree — resolve there, do not rebase"
+  fi
+
+  candidate=$(git -C "$worktree" rev-parse HEAD)
+  log "Candidate $candidate — running tests"
+  (cd "$worktree" && ./test/cli)
+  (cd "$worktree" && ./test/shell)
+fi
+
+if (( do_release )); then
+  [[ -n ${worktree:-} && -d ${worktree:-} ]] && push_from=$worktree || push_from=$repo
+  log "Pushing to $remote_dest"
+  git -C "$push_from" push origin HEAD:"$dest_branch"
+fi
+
+if (( do_deploy )); then
+  [[ -n $live ]] || fail "no live git checkout to deploy (OMARCHY_PATH is not a worktree)"
+  [[ $(git -C "$live" branch --show-current) == "$dest_branch" ]] ||
+    fail "live checkout $live is not on $dest_branch"
+  log "Fast-forwarding $live"
+  git -C "$live" pull --ff-only
+fi
+
+if (( do_update )); then
+  if (( EUID == 0 )) || [[ ! -t 0 ]]; then
+    echo "Run this in a session terminal as your user:"
+    echo "  omarchy update"
+    exit 0
+  fi
+  exec omarchy update
+fi
+
+echo
+echo "Candidate: $candidate"
+echo "Next:"
+echo "  omarchy dev import-mac --release --deploy   # push and fast-forward live"
+echo "  omarchy update                               # packages and migrations (you run this)"
