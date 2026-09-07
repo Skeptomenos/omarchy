@@ -205,6 +205,7 @@ Item {
             }
 
             Text {
+              textFormat: Text.PlainText
               text: root.applying ? "Applying…"
                 : root.loading ? "Loading…"
                 : root.loaded ? root.currentPercent + "%" : "Unavailable"
@@ -234,6 +235,7 @@ Item {
 
           Text {
             visible: root.errorMessage !== ""
+            textFormat: Text.PlainText
             text: root.errorMessage
             color: Color.urgent
             font.family: Style.font.family

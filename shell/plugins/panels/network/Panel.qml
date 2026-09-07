@@ -1835,6 +1835,7 @@ Panel {
 
           Text {
             id: lockIndicator
+            textFormat: Text.PlainText
             visible: row.requiresCredentials || row.forgetVisible
             width: parent.width
             anchors.verticalCenter: parent.verticalCenter

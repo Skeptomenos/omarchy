@@ -46,6 +46,7 @@ warn() { :; }
 load_unavailable_packages() { :; }
 should_attempt_unavailable() { return 1; }
 package_is_unavailable_here() { return 1; }
+resolve_package_for_arch() { printf '%s\n' "$1"; }
 pacman() { [[ $1 == "-Q" ]] && printf '%s\n' "$2" >> "$test_tmp/checked"; }
 yay() { printf '%s\n' "$*" >> "$test_tmp/yay"; }
 install_default_package_set
