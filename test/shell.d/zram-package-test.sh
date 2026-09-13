@@ -96,9 +96,7 @@ assert_systemd_start_follows_reload() {
 
 run_migration() {
   : >"$calls"
-  # Do not clear swap_active here: the "active machine unchanged" case needs
-  # a second run to see the device the first run started.
-  rm -f "$TEST_ZRAM_INSTALLED"
+  rm -f "$swap_active" "$TEST_ZRAM_INSTALLED"
   PATH="$stub_bin:$PATH" TEST_LOG="$calls" TEST_SWAP_ACTIVE="$swap_active" \
     OMARCHY_TEST_ZRAM_MISSING="$1" bash -euo pipefail "$migration" >/dev/null
 }
@@ -131,7 +129,11 @@ grep -Fx 'systemctl start dev-zram0.swap' "$calls" >/dev/null ||
 assert_systemd_start_follows_reload
 pass "the zram migration is idempotent"
 
-run_migration 0
+# run_migration resets swap_active so later cases start inactive. A second
+# consecutive run has to see the device the first run started.
+: >"$calls"
+PATH="$stub_bin:$PATH" TEST_LOG="$calls" TEST_SWAP_ACTIVE="$swap_active" \
+  OMARCHY_TEST_ZRAM_MISSING=0 bash -euo pipefail "$migration" >/dev/null
 ! grep -Fx 'systemctl daemon-reload' "$calls" >/dev/null ||
   fail "the zram migration does not reload systemd when zram is active"
 ! grep -Fx 'systemctl start dev-zram0.swap' "$calls" >/dev/null ||
