@@ -27,6 +27,12 @@ After the snapshot boots, select the notification to restore it. You can also ru
 
 The snapshot restores the root filesystem. It does not restore `/home`, including `~/.config`. A snapshot can reverse a broken system update, but it cannot recover lost personal files. Configuration written in a newer application format can also need manual repair after a rollback.
 
+### Apple Silicon
+
+Macs using the standard Btrfs root mounted from `@` use `omarchy-snapshot restore` from a running terminal. Choose a Snapper snapshot, `@fresh`, or `@factory`, confirm, and reboot. The helper retains the displaced root and transfers the nested snapshot backend so history remains usable after reboot. It prints an undo command using the helper in the retained root; keep that root until verified. Do not use raw root rename commands or start concurrent Snapper/Btrfs maintenance. After restoring older software, update before another recovery operation.
+
+This restores the root only. The Asahi kernel, initramfs, ESP and firmware require separate recovery; check that the restored modules match the booted kernel. Other GRUB/systemd-boot layouts are not supported by this Mac helper.
+
 ### Recovery without automatic rollback
 
 Make a current external backup before an update when `omarchy snapshot check` reports that automatic rollback is unavailable.

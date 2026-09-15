@@ -173,8 +173,8 @@ ensure_arm_package_repo() {
   if ! grep -q '^\[omarchy-aarch64\]' /etc/pacman.conf; then
     local block repo_url="${OMARCHY_ARM_PACKAGE_SERVER:-}"
     block=$(sed -n '/^\[omarchy-aarch64\]/,/^Server[[:space:]]*=/p' \
-      "$checkout/default/pacman/pacman-stable.conf")
-    [[ -n $block ]] || fail "default/pacman/pacman-stable.conf has no [omarchy-aarch64] section."
+      "$checkout/default/pacman/pacman-edge.conf")
+    [[ -n $block ]] || fail "default/pacman/pacman-edge.conf has no [omarchy-aarch64] section."
 
     if [[ -n $repo_url ]]; then
       [[ $repo_url =~ ^(https?|file)://[^[:space:]]+$ ]] ||
@@ -227,8 +227,8 @@ install_quattro_packages() {
   mapfile -t packages < <(grep -vE '^\s*(#|$)' "$checkout/install/omarchy-base.packages")
   mapfile -t packages < <(omarchy_filter_mise_packages_for_arch "${packages[@]}")
   for package in "${packages[@]}"; do
-    # OMARCHY_TRY_UNAVAILABLE=1 attempts them anyway: an AUR package can gain
-    # aarch64 support at any time, so a stale entry costs a flag, not a release.
+    # Preserve exclusions pending ARM qualification. OMARCHY_TRY_UNAVAILABLE=1
+    # attempts them anyway: an AUR package can gain aarch64 support at any time.
     if [[ ${OMARCHY_TRY_UNAVAILABLE:-0} != "1" ]] && package_is_unavailable_here "$package"; then
       unbuildable+=("$package")
       continue
@@ -246,11 +246,11 @@ install_quattro_packages() {
   omarchy_ensure_mise_for_arch
 
   if (( ${#unbuildable[@]} )); then
-    log "No aarch64 build is known, so these were not attempted: ${unbuildable[*]}"
+    log "Not attempted (excluded pending ARM qualification): ${unbuildable[*]}"
   fi
 
   if (( ${#skipped[@]} )); then
-    warn "Skipped packages that would not install on aarch64: ${skipped[*]}"
+    warn "Could not install: ${skipped[*]}"
   fi
 }
 
