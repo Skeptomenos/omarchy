@@ -27,6 +27,14 @@ if [[ $1 == pacman-key && $2 == --populate ]]; then
   echo "populate $3" >>"$TEST_CALLS"
   exit 0
 fi
+if [[ $1 == pacman-key && $2 == --add ]]; then
+  echo "add $3" >>"$TEST_CALLS"
+  exit 0
+fi
+if [[ $1 == pacman-key && $2 == --lsign-key ]]; then
+  echo "lsign $3" >>"$TEST_CALLS"
+  exit 0
+fi
 if [[ $1 == pacman-key && $2 == --finger ]]; then
   printf 'Key fingerprint = F3C5 AE3F CFFC 738C 301E  30A8 F0C5 48C0 D272 79F7\n'
   exit 0
@@ -36,6 +44,7 @@ SH
 chmod +x "$test_tmp/bin/sudo"
 
 omarchy-pkg-missing() { return 1; }
+omarchy-pkg-present() { return 0; }
 omarchy-pkg-add() { echo "add $*" >>"$calls"; }
 export TEST_CALLS="$calls"
 export PATH="$test_tmp/bin:$PATH"
@@ -54,6 +63,17 @@ sed -n '/^\[custom\]/,/^\[/p' "$config" | grep -qxF 'SigLevel = Optional TrustAl
 sed -n '/^\[later\]/,$p' "$config" | grep -qxF 'SigLevel = Never' ||
   fail 'migration changed a later repository policy'
 pass 'existing installs populate fork trust while retaining the one-time bootstrap policy'
+
+: >"$calls"
+omarchy-pkg-missing() { return 0; }
+omarchy-pkg-present() { return 1; }
+(source "$test_tmp/migration.sh" >/dev/null)
+grep -qxF "add $ROOT/default/pacman/keyrings/omarchy-mac.gpg" "$calls" ||
+  fail 'missing package imports the pinned checkout key' "$(cat "$calls")"
+grep -qxF 'lsign F3C5AE3FCFFC738C301E30A8F0C548C0D27279F7' "$calls" ||
+  fail 'missing package locally signs the pinned checkout key' "$(cat "$calls")"
+! grep -q '^populate ' "$calls" || fail 'missing package cannot populate a packaged keyring'
+pass 'ARM skip and git-link import the pinned checkout key instead of populating /usr'
 
 source "$ROOT/install/helpers/arm-channel.sh"
 missing="$test_tmp/missing-policy.conf"
