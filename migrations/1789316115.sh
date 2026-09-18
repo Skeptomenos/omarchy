@@ -34,11 +34,15 @@ else
     echo "Could not read the pinned Omarchy Mac signing key: $keyfile" >&2
     exit 1
   }
-  primary_fingerprints=$(awk -F: '$1 == "pub" { primary = 1; next } primary && $1 == "fpr" { print $10; primary = 0 }' <<<"$key_info") || exit 1
-  [[ $primary_fingerprints == "$omarchy_mac_signing_key" ]] || {
-    echo "Pinned Omarchy Mac key must contain only signing primary $omarchy_mac_signing_key." >&2
+  if ! awk -F: -v expected="$omarchy_mac_signing_key" '
+    $1 == "sec" || $1 == "ssb" { secret = 1 }
+    $1 == "pub" { primaries++; primary = 1; next }
+    primary && $1 == "fpr" { fingerprint = $10; primary = 0 }
+    END { exit (secret || primaries != 1 || fingerprint != expected) }
+  ' <<<"$key_info"; then
+    echo "Pinned Omarchy Mac key must contain only signing primary $omarchy_mac_signing_key, without secret key records." >&2
     exit 1
-  }
+  fi
   sudo pacman-key --add "$keyfile" || {
     echo "Could not import the pinned Omarchy Mac signing key; this migration remains pending." >&2
     exit 1
