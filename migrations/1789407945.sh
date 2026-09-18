@@ -1,19 +1,15 @@
-echo "Trust packages signed by Omarchy Mac"
+echo "Populate the finalized Omarchy Mac signing keyring"
 
+# A successor is required for clients that already marked earlier migrations
+# complete. Never remove existing keys or change repository signature policy.
 readonly omarchy_mac_signing_key='FBD6874D423C418DDB6D143EECE19CDDE306DBD2'
 
-# The package is a dependency of omarchy, but keep this self-repairing for a
-# partial/manual upgrade. Do not weaken the repository policy to fetch it.
-if omarchy-pkg-missing omarchy-mac-keyring; then
-  omarchy-pkg-add omarchy-mac-keyring || exit 1
-fi
-
 keyfile=""
-if installed_keyring=$(pacman -Q omarchy-mac-keyring); then
-  installed_version=${installed_keyring#* }
-  version_comparison=$(vercmp "$installed_version" 20260914-2) || exit 1
-  if (( version_comparison < 0 )); then
-    echo "Omarchy Mac keyring 20260914-2 or newer is required (installed: $installed_version); complete the reviewed RC4 package upgrade before retrying this migration." >&2
+if installed=$(pacman -Q omarchy-mac-keyring); then
+  version=${installed#* }
+  comparison=$(vercmp "$version" 20260914-2) || exit 1
+  if (( comparison < 0 )); then
+    echo "Omarchy Mac keyring 20260914-2 or newer is required." >&2
     exit 1
   fi
 
@@ -22,9 +18,8 @@ if installed_keyring=$(pacman -Q omarchy-mac-keyring); then
     exit 1
   }
 else
-  # ARM pkg-add skips packages with no repo; git-linked machines also have no
-  # packaged files under /usr/share/pacman/keyrings. Verify the checkout's only
-  # primary before importing it. Never use this fallback for an older package.
+  # Edge/git-linked ARM hosts may still have no packaged keyring. Apply the
+  # pinned checkout fallback even when their bootstrap marker already exists.
   keyfile="$OMARCHY_PATH/default/pacman/keyrings/omarchy-mac.gpg"
   [[ -f $keyfile && ! -L $keyfile ]] || {
     echo "Pinned Omarchy Mac signing key is missing or unsafe: $keyfile" >&2
@@ -55,7 +50,3 @@ if [[ -n $keyfile ]]; then
     exit 1
   }
 fi
-
-# Policy remains unchanged for this one disclosed bootstrap transaction. The
-# next, signed RC carries a successor migration that requires both package and
-# database signatures after this key is already durable.
