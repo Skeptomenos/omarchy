@@ -43,6 +43,10 @@ Entry points are QML `Item`s. Panel, overlay, and menu entry points expose `open
 
 A third-party replacement bar can render registered widget components, but widgets it hosts receive a service-less entry facade. Allowing the bar to manufacture an own-service facade for an arbitrary widget would also let it retrieve that plugin's live service object. Service-backed third-party widgets therefore retain their full integration only under the trusted built-in bar; a replacement bar may still provide their target-scoped lifecycle and settings operations.
 
+The own-plugin shell facade exposes `settings`, a detached JSON snapshot of that plugin's configured entry without its `id`. It refreshes when shell configuration changes. Editing the snapshot does not persist it; use the owner-scoped `updateEntryInline(id, settings)` method to write a complete settings entry. Service-less replacement-bar entry facades do not receive top-level plugin settings.
+
+Bar facades expose only their own click targets. `KeyboardPanel` forwards clicks on other bar buttons through `forwardBarClick(anchorItem, x, y, button)`, which returns a boolean. The built-in bar validates the caller's registered anchor and active popout, then hit-tests enabled, non-authentication bar UI in the anchor's window. Coordinates are local to that bar window. Foreign target objects remain inside the host.
+
 Full schema: [`shell/services/PluginRegistry.qml`](../shell/services/PluginRegistry.qml).
 
 ## Installing a third-party plugin

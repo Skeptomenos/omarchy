@@ -327,6 +327,17 @@ ShellRoot {
     return JSON.parse(JSON.stringify(shell.barConfig || {}))
   }
 
+  function pluginSettingsFor(pluginId) {
+    var config = shell.shellConfig
+    var location = shell.pluginRegistry.findEntryLocation(config, pluginId)
+    var entry = location.kind === "plugin" ? config.plugins[location.index]
+      : location.kind === "bar" ? config.bar.layout[location.section][location.index] : null
+    if (!Util.isPlainObject(entry)) return ({})
+    var settings = JSON.parse(JSON.stringify(entry))
+    delete settings.id
+    return settings
+  }
+
   function barConfigFor(manifest) {
     return !manifest || manifest.__isFirstParty
       ? shell.barConfig : shell.publicBarConfig()
@@ -597,6 +608,7 @@ ShellRoot {
       bar: shell.pluginBarStateFor(cacheKey, key),
       barConfig: shell.publicBarConfig(),
       idleConfig: shell.publicIdleConfigFor(manifest),
+      settings: shell.pluginSettingsFor(key),
       _serviceLookup: function(requestedId) {
         return allowOwnService ? shell.pluginServiceFor(key, requestedId) : null
       },
@@ -863,6 +875,7 @@ ShellRoot {
       var shellManifest = descriptor ? plugins[descriptor.pluginId] : null
       shellApi.barConfig = shell.publicBarConfig()
       shellApi.idleConfig = shell.publicIdleConfigFor(shellManifest)
+      shellApi.settings = shell.pluginSettingsFor(descriptor.pluginId)
     }
     for (var entryKey in _pluginBarEntryShellApis)
       _pluginBarEntryShellApis[entryKey].barConfig = shell.publicBarConfig()

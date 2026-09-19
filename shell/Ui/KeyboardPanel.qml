@@ -315,6 +315,10 @@ PanelWindow {
 
     function forwardBarClick(px, py, button) {
       if (button !== Qt.LeftButton && button !== Qt.RightButton && button !== Qt.MiddleButton) return false
+      if (root.bar && typeof root.bar.forwardBarClick === "function") {
+        var point = barPoint(px, py)
+        return root.bar.forwardBarClick(root.anchorItem, point.x, point.y, button)
+      }
       var target = pressTargetAt(px, py)
       if (!target) return false
       target.triggerPress(button)

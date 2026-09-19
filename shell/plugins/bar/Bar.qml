@@ -259,6 +259,13 @@ Item {
       _releasePopout: function(owner) { root.releasePluginPopout(key, owner) },
       _switchPanelFrom: function(owner, direction) { return root.switchPanelFrom(owner, direction) },
       _targetBelongsToWindow: function(target, window) { return root.targetBelongsToWindow(target, window) },
+      _forwardBarClick: function(anchorItem, x, y, button) {
+        var record = root.pluginObjectRecord(anchorItem)
+        if (!record || record.pluginId !== key || !record.clickTarget
+            || !root.pluginOwnsBarObject(key, root.activePopout)
+            || !root.sameWindow(root.targetWindow(anchorItem), root.targetWindow(root.activePopout))) return false
+        return root.forwardBarClick(anchorItem, x, y, button)
+      },
       _moduleWidgets: function(requestedId) {
         return String(requestedId || "") === String(moduleName || "")
           ? root.moduleWidgets(moduleName) : []
@@ -1027,6 +1034,43 @@ Item {
 
     target.triggerPress(button)
     return true
+  }
+
+  // Resolve only mounted bar UI. The trusted shell classifies authentication
+  // from host metadata; a replacement bar cannot grant this capability itself.
+  function barClickTargetAllowed(target) {
+    if (!root.shell || typeof root.shell.isAuthenticationService !== "function") return false
+    for (var i = 0; i < moduleSlots.length; i++) {
+      var slot = moduleSlots[i]
+      if (!slot || !slot.activeItem || !slot.visible || slot.width <= 0 || slot.height <= 0) continue
+      var item = target
+      while (item && item !== slot.activeItem) item = item.parent
+      if (!item) continue
+      if (!slot.registered) return !!slot.customType
+      var id = root.canonicalWidgetId(slot.moduleName)
+      var manifest = root.shell.pluginRegistry.installedPlugins[id]
+      return !!manifest && root.shell.pluginRegistry.isEnabled(id)
+        && !root.shell.isAuthenticationService(manifest, id)
+    }
+    return false
+  }
+
+  function forwardBarClick(anchorItem, x, y, button) {
+    if (button !== Qt.LeftButton && button !== Qt.RightButton && button !== Qt.MiddleButton) return false
+    if (typeof x !== "number" || typeof y !== "number" || !isFinite(x) || !isFinite(y)) return false
+    var window = root.targetWindow(anchorItem)
+    if (!window || !window.contentItem || x < 0 || y < 0 || x > window.width || y > window.height) return false
+    for (var i = root.clickTargets.length - 1; i >= 0; i--) {
+      var target = root.clickTargets[i]
+      if (!root.moduleTargetClickable(target) || !root.targetBelongsToWindow(target, window)
+          || !root.barClickTargetAllowed(target)) continue
+      var pos = window.itemPosition(target)
+      if (x >= pos.x && x <= pos.x + target.width && y >= pos.y && y <= pos.y + target.height) {
+        target.triggerPress(button)
+        return true
+      }
+    }
+    return false
   }
 
   function colorHex(colorValue) {
