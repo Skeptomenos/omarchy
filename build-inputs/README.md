@@ -6,4 +6,6 @@
 
 `OMARCHY_PKGS_PATH` accepts a repository checkout or its `pkgbuilds` directory. Release builds require the pinned revision and a clean recipe tree. For intentional development with a different or modified recipe tree, also set `OMARCHY_ALLOW_CUSTOM_RECIPES=1`; this emits a warning and records the custom input hashes. Custom recipes still must match the reviewed ARM overlay. Their output is not evidence for the pinned release build.
 
+Both settings recipes select network assignments from the current source's `etc/sysctl.d/99-omarchy-sysctl.conf` for ARM. They exclude `vm.*` tuning and retain the existing boot and memory exclusions. Migration `1789841147.sh` validates the installed network defaults before applying them and checking the running values. Missing or conflicting defaults leave it pending so local edits and `.pacnew` files can be reconciled.
+
 The settings builder retains the fork's Asahi mkinitcpio drop-ins and includes both paths in pacman's backup list so upgrades preserve administrator edits. Package archive checks and isolated old-package upgrade transactions must cover these files whenever the recipe pin or overlay changes.

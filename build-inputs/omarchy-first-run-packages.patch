@@ -93,3 +93,37 @@ diff --git a/pkgbuilds/omarchy-settings-dev/PKGBUILD b/pkgbuilds/omarchy-setting
 +  fi
 
    # Same for applications/** — used by omarchy-refresh-applications,
+diff --git a/pkgbuilds/omarchy-settings/PKGBUILD b/pkgbuilds/omarchy-settings/PKGBUILD
+--- a/pkgbuilds/omarchy-settings/PKGBUILD
++++ b/pkgbuilds/omarchy-settings/PKGBUILD
+@@ -225,10 +230,9 @@ package() {
+     # for zram would be wrong for it. Keep only the network tuning.
+     rm -rf "$pkgdir/etc/systemd/oomd.conf.d"
+     rm -f "$pkgdir/etc/systemd/zram-generator.conf" "$pkgdir/etc/tmpfiles.d/omarchy-zswap.conf"
+-    cat >"$pkgdir/etc/sysctl.d/99-omarchy-sysctl.conf" <<'EOF'
+-# Solve common flakiness with SSH (MTU discovery on flaky links).
+-net.ipv4.tcp_mtu_probing=1
+-EOF
++    # Follow the source's network defaults without enabling its VM tuning.
++    grep '^[[:space:]]*net[./]' etc/sysctl.d/99-omarchy-sysctl.conf \
++      >"$pkgdir/etc/sysctl.d/99-omarchy-sysctl.conf"
+     # USB autosuspend is left at the kernel default on Apple Silicon.
+     rm -f "$pkgdir/etc/modprobe.d/omarchy-usb-autosuspend.conf"
+     rmdir "$pkgdir/etc/modprobe.d" "$pkgdir/etc/tmpfiles.d" 2>/dev/null || true
+diff --git a/pkgbuilds/omarchy-settings-dev/PKGBUILD b/pkgbuilds/omarchy-settings-dev/PKGBUILD
+--- a/pkgbuilds/omarchy-settings-dev/PKGBUILD
++++ b/pkgbuilds/omarchy-settings-dev/PKGBUILD
+@@ -227,10 +235,9 @@ package() {
+     # for zram would be wrong for it. Keep only the network tuning.
+     rm -rf "$pkgdir/etc/systemd/oomd.conf.d"
+     rm -f "$pkgdir/etc/systemd/zram-generator.conf" "$pkgdir/etc/tmpfiles.d/omarchy-zswap.conf"
+-    cat >"$pkgdir/etc/sysctl.d/99-omarchy-sysctl.conf" <<'EOF'
+-# Solve common flakiness with SSH (MTU discovery on flaky links).
+-net.ipv4.tcp_mtu_probing=1
+-EOF
++    # Follow the source's network defaults without enabling its VM tuning.
++    grep '^[[:space:]]*net[./]' etc/sysctl.d/99-omarchy-sysctl.conf \
++      >"$pkgdir/etc/sysctl.d/99-omarchy-sysctl.conf"
+     # USB autosuspend is left at the kernel default on Apple Silicon.
+     rm -f "$pkgdir/etc/modprobe.d/omarchy-usb-autosuspend.conf"
+     rmdir "$pkgdir/etc/modprobe.d" "$pkgdir/etc/tmpfiles.d" 2>/dev/null || true
