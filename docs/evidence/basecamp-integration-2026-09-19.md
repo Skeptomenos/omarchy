@@ -107,3 +107,20 @@ Independent QA on `790ceaccc0c786c2c56d5834d8d3fdd7d08d7133` found two fixture d
 `python3 /tmp/opencode/basecamp-fixture-check.py before system-sleep-ownership-migration upgrade-to-quattro-mac` reproduced both defects. The sleep test exited 1. The upgrade test exited 0 despite an unexpected curl call, which made the runner fail. The matching `after` command returned 0 for both complete test files, including all sleep cases after the former failure. No external download or elevation guard was reached after the correction.
 
 The tests ran with disk-backed scratch bound at `/tmp`, `/usr/local/bin` on PATH, a private home and runtime, and isolated network and process namespaces. Logs are in `/tmp/opencode/basecamp-fixture-followup-20260919/`. The command and exit-status record remains `/tmp/opencode/basecamp-2026-09-19-commands.log`. Full assembled-candidate QA remains a separate gate.
+
+## Package-source follow-up, 2026-09-19
+
+Independent review of `790ceac` found that Perplexity and the Cam Link relay lacked explicit ARM source selection. With `Usage = Sync`, a bare `pacman -Si` lookup succeeds, but a bare install cannot select either package. Installed copies also lacked explicit update targets. The review is `/tmp/opencode/omarchy-sync-20260919/basecamp-review-790ceac-2026-09-19.md`, finding B1.
+
+This correction follows fixture commit `2cad97e04`. The package helper now maps `perplexity` and `v4l2-relayd` to `omarchy/<package>` on ARM, like OpenClaw. The shared update policy includes each package only while installed. `Usage = Sync`, signature policy, and intentionally removed packages remain preserved.
+
+The extended `arm-package-transaction-test.sh` failed before the source fix because installed optional packages lost their explicit source. After the fix, real pacman against disposable databases proves all of these outcomes for OpenClaw, Perplexity, and `v4l2-relayd`:
+
+- Explicit selection survives unchanged versions, upgrades, and downgrades while ordinary packages still update.
+- Removed packages stay removed.
+- Bare metadata lookup succeeds but bare install resolution fails in the Sync-only repository.
+- The real package helper selects the qualified source for a fresh install, passes its installed-state check, and skips a second transaction on repeat invocation. Its transaction shim uses pacman's print-only resolver and records only fixture metadata. It does not install packages on the host.
+
+`python3 /tmp/opencode/basecamp-fixture-check.py package-after arm-package-transaction arm-package-sources arm-ai-packages arm-dkms-gates update-package-conflict` returned 0 for all five files. No external guards were reached. The `package-before` and `package-after` logs are in `/tmp/opencode/basecamp-fixture-followup-20260919/`.
+
+`bin/omarchy commands --check` passed for 488 commands. `python3 /tmp/opencode/basecamp-syntax.py` passed all 1,116 Bash and Python parser checks on the assembled tree. Full-suite QA and the separate host plugin changes remain with the orchestrator.

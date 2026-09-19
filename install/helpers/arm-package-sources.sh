@@ -12,9 +12,9 @@ omarchy_arm_package_targets() {
 omarchy_arm_package_upgrade_args() {
   local target package names=() targets=()
   mapfile -t targets < <(omarchy_arm_package_targets)
-  # These defaults exist only in the explicit upstream repository. Continue
-  # updating installed copies, without reinstalling deliberately removed apps.
-  for package in asdcontrol tobi-try openclaw; do
+  # These packages exist only in the explicit upstream repository. Continue
+  # updating installed copies, without reinstalling deliberately removed ones.
+  for package in asdcontrol tobi-try openclaw perplexity v4l2-relayd; do
     if pacman --config "${OMARCHY_PACMAN_CONFIG:-/etc/pacman.conf}" -Q "$package" >/dev/null 2>&1; then
       targets+=("omarchy/$package")
     fi

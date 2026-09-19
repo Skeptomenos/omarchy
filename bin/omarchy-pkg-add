@@ -14,9 +14,9 @@ resolve_package_for_arch() {
 
   if [[ $(uname -m) == "aarch64" && $package == "tensaku" ]]; then
     printf '%s\n' "${OMARCHY_TENSAKU_PACKAGE:-tensaku-bin}"
-  elif [[ $(uname -m) == "aarch64" && $package == "openclaw" ]]; then
+  elif [[ $(uname -m) == "aarch64" && ( $package == "openclaw" || $package == "perplexity" || $package == "v4l2-relayd" ) ]]; then
     # The upstream ARM repository is explicit-target-only (Usage = Sync).
-    printf '%s\n' omarchy/openclaw
+    printf 'omarchy/%s\n' "$package"
   else
     printf '%s\n' "$package"
   fi
