@@ -33,6 +33,15 @@ jq -e '
 pass "default center is empty for the notch (no center anchor)"
 
 jq -e '
+  def ids: map(.id // .);
+  (.bar.layout.right | ids) as $ids |
+  ($ids | index("omacom.elsewhen")) as $elsewhen |
+  ($ids | index("omarchy.clock")) as $clock |
+  $elsewhen != null and $clock == $elsewhen + 1
+' "$ROOT/config/omarchy/shell.json" >/dev/null
+pass "default right layout puts elsewhen immediately before the clock"
+
+jq -e '
   any(.bar.layout.right[]; (.id // .) == "omarchy.clock" and (.formatAlt // "") == "d MMMM \u0027W\u0027ww yyyy")
 ' "$ROOT/config/omarchy/shell.json" >/dev/null
 pass "default clock date format has no leading zero"

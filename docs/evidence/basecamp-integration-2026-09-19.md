@@ -124,3 +124,46 @@ The extended `arm-package-transaction-test.sh` failed before the source fix beca
 `python3 /tmp/opencode/basecamp-fixture-check.py package-after arm-package-transaction arm-package-sources arm-ai-packages arm-dkms-gates update-package-conflict` returned 0 for all five files. No external guards were reached. The `package-before` and `package-after` logs are in `/tmp/opencode/basecamp-fixture-followup-20260919/`.
 
 `bin/omarchy commands --check` passed for 488 commands. `python3 /tmp/opencode/basecamp-syntax.py` passed all 1,116 Bash and Python parser checks on the assembled tree. Full-suite QA and the separate host plugin changes remain with the orchestrator.
+
+## Elsewhen candidate addendum, 2026-09-19
+
+The orchestrator approved an isolated feature candidate from released ARM commit `dd25a66d988d3c53b101aa22a40b3830c0346045`, with exact Basecamp merge source `60663faf8764253646f1d6166e864b608d4a0fa1`. The branch is `codex/sync-2026-09-19-elsewhen` in `/home/david/Work/omarchy-sync-2026-09-19-elsewhen`. Release qualification remains separate. Basecamp PR 12157 includes regression tests, but the orchestrator found no published GitHub CI checks for its merge.
+
+`git merge --no-ff --no-commit 60663faf8764253646f1d6166e864b608d4a0fa1` returned 1 with one conflict in `test/shell.d/config-test.sh`. The resolution checks Elsewhen immediately before the clock on the ARM right-side bar. The empty center and clock date format remain intact.
+
+The migration maxima were ARM `1789444045` and Basecamp `1789581661`. The imported migration is `1789581662.sh`. All 171 migration paths from the ARM parent retain their contents and modes. The candidate adds no duplicate migration under the upstream ID.
+
+### Package source and failure handling
+
+The host's `pacman -Si elsewhen` returned 1. The package agent then fetched the actual remote databases into `/tmp/opencode/omarchy-sync-20260919/elsewhen-package/repository-databases/`. Its `availability.json` records the observation at `2026-09-19T10:10:24.084377+00:00`.
+
+The writer independently checked the saved `https://pkgs.omarchy.org/edge/aarch64/omarchy.db` bytes against SHA-256 `991d64e4a65f7062676b4939a2b3a98cc8148073855210348c251774e3df1930` and extracted `elsewhen-1.0.0-1/desc`. The entry names `elsewhen-1.0.0-1-any.pkg.tar.zst`, with package SHA-256 `49f1a692b979487cb3adec0b0b063fbade56a6522776d7292e2b0872eeb75e01`. This confirms the configured upstream ARM repository contains the package. The decision does not depend on an installed copy or an x86 repository entry.
+
+The candidate maps Elsewhen to `omarchy/elsewhen` in both the package helper and the fresh-install default loop. Explicit updates include Elsewhen only while it is installed. The existing `Usage = Sync`, signature policy, repository lanes, and other package targets retain their behavior.
+
+The original migration could complete after the ARM helper skipped an unavailable package with status 0. The new migration checks the installed package and its packaged manifest before it creates a link or sends shell IPC. A missing package or payload now fails the migration and leaves its completion marker absent. Existing plugin checkouts and symlinks retain their contents and targets. The migration uses the upstream preserving `bar put` operation and leaves the shell restart to the update flow.
+
+### Focused verification
+
+The runner `/tmp/opencode/elsewhen-check.py` uses Bubblewrap with a read-only host, a private home and `/run`, isolated processes and network, and disk-backed scratch mounted at `/tmp`. The PATH includes `/usr/local/bin`. The package recipes stay at exact pin `19ef4b560ffd6f26df67665400394278065cf437`, without a custom-recipe override. No external guard fired. The command log is `/tmp/opencode/elsewhen-20260919-commands.log`; per-test logs are in `/tmp/opencode/elsewhen-20260919/`.
+
+| Command or log prefix | Result |
+| --- | --- |
+| `elsewhen-check.py upstream elsewhen-default-migration config settings-package-units` | All three files returned 0 before ARM hardening. |
+| `elsewhen-check.py guard-before elsewhen-default-migration` | Returned 1 and reproduced false completion after an unavailable ARM package. |
+| `elsewhen-check.py guard-after elsewhen-default-migration config settings-package-units arm-package-sources arm-package-transaction arm-ai-packages migrate bar bar-notch` | Eight existing files returned 0. The nonexistent `migrate-test.sh` returned 127, a runner selection error. |
+| `elsewhen-check.py migration-gates migrate-wrapper migrate-scope` | Both correct migration-runner files returned 0. |
+| `elsewhen-check.py mapping-before arm-package-sources arm-package-transaction` | Both files returned 1 and reproduced the unqualified fresh-install target and wrong update source. |
+| `elsewhen-check.py mapping-after arm-package-sources arm-package-transaction arm-ai-packages elsewhen-default-migration arm-channel-apply` | All five files returned 0. |
+| `elsewhen-check.py final-cli cli package-build-contract` | Both files returned 0. The build-contract test intentionally exercises custom-recipe warnings in its negative and opt-in cases. |
+| `elsewhen-check.py final-migration elsewhen-default-migration` | Returned 0 after the final fixture style corrections. |
+| `bin/omarchy commands --check` | Returned 0 for 488 commands. |
+| Parser-aware Bash and Python checks | All 1,119 checks returned 0. The runner reused `/tmp/opencode/basecamp-syntax.py` with its output redirected to `/tmp/opencode/elsewhen-20260919/syntax.log`. |
+
+The real-pacman fixture covers fresh qualified installation, installed-state checks, repeat installation, unchanged versions, upgrades, downgrades, and deliberate removal of Elsewhen. The real migration runner proves package and payload failures cannot write a completion marker. It also covers scan and placement failures, successful completion, and skipping a completed migration. Shell IPC responses are stubbed. The custom-config assertion proves the migration does not directly rewrite a custom bar, clock anchor, existing placement, or plugin settings; it is not runtime UI qualification.
+
+The settings-package fixture executes the pinned stable and development recipes for both architectures. It checks the Elsewhen link under `/etc/skel/.config` and `/usr/share/omarchy/config`, including staging when the absolute package target does not exist on the host.
+
+`git diff --cached --check` returned 0. The index audit confirmed the exact merge parents, all 171 preserved ARM migration blobs and modes, the single new migration with mode `0644`, and no unresolved conflicts.
+
+Independent full-suite QA, review, package delivery, and graphical acceptance remain with the orchestrator. No privileged command, dev-status call, live change, push, or release occurred in this feature worktree.

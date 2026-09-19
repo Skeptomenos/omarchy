@@ -85,6 +85,12 @@ for flavor in omarchy-settings omarchy-settings-dev; do
       magick() { :; }
       package >"$test_tmp/$flavor-$architecture.output" 2>&1
 
+      for seed in etc/skel/.config usr/share/omarchy/config; do
+        plugin_link="$pkgdir/$seed/omarchy/plugins/omacom.elsewhen"
+        [[ -L $plugin_link && $(readlink "$plugin_link") == "/usr/share/omarchy/plugins/omacom.elsewhen" ]] ||
+          fail "$flavor/$architecture preserves the packaged Elsewhen symlink in $seed"
+      done
+
       systemctl() {
         [[ $* != '--user daemon-reload' ]] || return 0
         [[ ${1:-} == '--user' && ${2:-} == 'enable' && ${3:-} == '--now' ]] || return 1

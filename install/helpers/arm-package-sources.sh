@@ -14,7 +14,7 @@ omarchy_arm_package_upgrade_args() {
   mapfile -t targets < <(omarchy_arm_package_targets)
   # These packages exist only in the explicit upstream repository. Continue
   # updating installed copies, without reinstalling deliberately removed ones.
-  for package in asdcontrol tobi-try openclaw perplexity v4l2-relayd; do
+  for package in asdcontrol tobi-try openclaw perplexity v4l2-relayd elsewhen; do
     if pacman --config "${OMARCHY_PACMAN_CONFIG:-/etc/pacman.conf}" -Q "$package" >/dev/null 2>&1; then
       targets+=("omarchy/$package")
     fi
@@ -26,7 +26,7 @@ omarchy_arm_package_upgrade_args() {
 
 omarchy_arm_default_package_target() {
   case "$1" in
-    asdcontrol | tobi-try) printf 'omarchy/%s\n' "$1" ;;
+    asdcontrol | tobi-try | elsewhen) printf 'omarchy/%s\n' "$1" ;;
     nvim) printf '%s\n' neovim ;;
     *) printf '%s\n' "$1" ;;
   esac

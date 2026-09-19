@@ -92,6 +92,12 @@ bar from the CLI — `use | reset | defaults | position | transparent | put |
 move | set`, with placement flags such as `--section` and `--index`.
 The lower-level IPC methods remain available through `omarchy-shell shell ...`.
 
+## Elsewhen
+
+Elsewhen (`omacom.elsewhen`) ships in the `elsewhen` package at `/usr/share/omarchy/plugins/omacom.elsewhen`. A symlink in `~/.config/omarchy/plugins/` makes it available to the shell. New installs place it immediately before the clock; the migration uses `omarchy bar put omacom.elsewhen --before omarchy.clock`, which preserves an existing placement and uses Elsewhen's normal right-side placement if the clock is absent. Existing plugin directories and symlinks are left intact. The normal update flow restarts the shell after migrations; the migration does not interrupt plugin loading with an immediate restart.
+
+On ARM, installation selects `omarchy/elsewhen` from the Sync-only upstream repository. Package updates select that target only while Elsewhen is installed. Migration `1789581662` checks the installed package and its manifest before linking or changing the bar. If either is missing, the migration fails and remains pending.
+
 ## IPC
 
 The shell exposes a `shell` target (the host also registers

@@ -25,7 +25,7 @@ write_package() {
   mkdir -p "$directory"
   write_desc "$2" "$3" > "$directory/desc"
 }
-for package in hyprland hyprtoolkit hyprland-guiutils asdcontrol openclaw perplexity v4l2-relayd normal; do
+for package in hyprland hyprtoolkit hyprland-guiutils asdcontrol openclaw perplexity v4l2-relayd elsewhen normal; do
   write_package "$test_tmp/db/local" "$package" '2-1'
   : > "$test_tmp/db/local/$package-2-1/files"
   write_package "$test_tmp/extra" "$package" '4-1'
@@ -52,7 +52,7 @@ export OMARCHY_PACMAN_CONFIG="$test_tmp/pacman.conf"
 mapfile -t targets < <(omarchy_arm_package_upgrade_args)
 for version in 2-1 3-1 1-1; do
   rm -rf "$test_tmp/omarchy"
-  for package in hyprland hyprtoolkit hyprland-guiutils asdcontrol openclaw perplexity v4l2-relayd tobi-try; do
+  for package in hyprland hyprtoolkit hyprland-guiutils asdcontrol openclaw perplexity v4l2-relayd elsewhen tobi-try; do
     write_package "$test_tmp/omarchy" "$package" "$version"
   done
   tar -czf "$test_tmp/db/sync/omarchy.db" -C "$test_tmp/omarchy" --transform='s|^\./||' .
@@ -60,7 +60,7 @@ for version in 2-1 3-1 1-1; do
   grep -qx 'extra/normal 4-1' <<< "$selected" || fail 'ordinary packages still upgrade'
   ! grep -q 'tobi-try' <<< "$selected" || fail 'removed optional defaults remain removed'
   ! grep -q '^extra/asdcontrol' <<< "$selected" || fail 'installed upstream-only optional defaults retain their selected source'
-  ! grep -qE '^extra/(openclaw|perplexity|v4l2-relayd) ' <<< "$selected" || fail 'installed optional packages retain their explicit source'
+  ! grep -qE '^extra/(openclaw|perplexity|v4l2-relayd|elsewhen) ' <<< "$selected" || fail 'installed optional packages retain their explicit source'
   ! grep -q '^extra/hypr' <<< "$selected" || fail 'regular repository cannot replace the selected stack'
   if [[ $version == "2-1" ]]; then
     [[ $selected == 'extra/normal 4-1' ]] || fail 'unchanged compositor packages are not reinstalled'
@@ -68,26 +68,26 @@ for version in 2-1 3-1 1-1; do
     baseline=$(select_packages "${unprotected[@]}")
     grep -qx 'extra/hyprtoolkit 4-1' <<< "$baseline" || fail 'fixture reproduces the original --needed sysupgrade bug'
   else
-    for package in hyprland hyprtoolkit hyprland-guiutils asdcontrol openclaw perplexity v4l2-relayd; do
+    for package in hyprland hyprtoolkit hyprland-guiutils asdcontrol openclaw perplexity v4l2-relayd elsewhen; do
       grep -qx "omarchy/$package $version" <<< "$selected" || fail 'changed packages use the explicit repository, including downgrades'
     done
   fi
   pass "real pacman preserves selected $version stack while upgrading ordinary packages"
 done
 
-for package in openclaw perplexity v4l2-relayd; do
+for package in openclaw perplexity v4l2-relayd elsewhen; do
   rm -rf "$test_tmp/db/local/$package-2-1"
 done
 mapfile -t targets < <(omarchy_arm_package_upgrade_args)
 selected=$(select_packages "${targets[@]}") || fail 'removed optional packages still permit updates'
-! grep -qE '(openclaw|perplexity|v4l2-relayd)' <<< "$selected" || fail 'intentionally removed optional packages stay removed'
-pass 'OpenClaw, Perplexity, and the Cam Link relay upgrade through the explicit repository only while installed'
+! grep -qE '(openclaw|perplexity|v4l2-relayd|elsewhen)' <<< "$selected" || fail 'intentionally removed optional packages stay removed'
+pass 'OpenClaw, Perplexity, the Cam Link relay, and Elsewhen upgrade through the explicit repository only while installed'
 
 # Model fresh installs where these packages exist only in the Sync-only repo.
 # Metadata lookup succeeds for a bare name, but transaction resolution must use
 # the qualified name. The shim resolves with real pacman, then records only the
 # selected metadata in the disposable local DB for the helper's post-check.
-for package in openclaw perplexity v4l2-relayd; do
+for package in openclaw perplexity v4l2-relayd elsewhen; do
   rm -rf "$test_tmp/extra/$package-4-1"
 done
 tar -czf "$test_tmp/db/sync/extra.db" -C "$test_tmp/extra" --transform='s|^\./||' .
@@ -126,7 +126,7 @@ esac
 SH
 chmod +x "$test_tmp/bin/"*
 
-for package in openclaw perplexity v4l2-relayd; do
+for package in openclaw perplexity v4l2-relayd elsewhen; do
   "$ARM_PACKAGE_TEST_PACMAN" --config "$test_tmp/pacman.conf" -Si "$package" >/dev/null ||
     fail "bare $package metadata is visible in the Sync-only repository"
   if "$ARM_PACKAGE_TEST_PACMAN" --config "$test_tmp/pacman.conf" -Sp "$package" >"$test_tmp/errors" 2>&1; then

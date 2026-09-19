@@ -57,7 +57,7 @@ for package in hyprland hyprtoolkit hyprland-guiutils; do
   ! grep -qE "(^| )$package( |$)" "$test_tmp/yay" || fail "$package must not be downgraded by yay"
 done
 grep -q 'wf-recorder' "$test_tmp/yay" || fail 'regular package path still runs'
-for package in asdcontrol tobi-try; do
+for package in asdcontrol tobi-try elsewhen; do
   grep -q -- "-S --needed --noconfirm omarchy/$package" "$test_tmp/yay" || fail "$package is explicitly sourced from the only available repository"
 done
 grep -q -- '-S --needed --noconfirm neovim' "$test_tmp/yay" || fail 'ARM nvim default uses its real package name'
