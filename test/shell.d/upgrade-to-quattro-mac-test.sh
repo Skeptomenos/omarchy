@@ -177,35 +177,100 @@ pass "the upgrade always ends up with Quickshell installed"
 # The default package pass records failures and continues, so the optional
 # Apple recording fallback must do the same. Otherwise a missing ARM build or a
 # transient AUR failure aborts after the checkout and system paths changed,
-# leaving the 3.x machine half-upgraded. Capture the warning rather than
-# relying on the subshell's exit status: Bash suppresses errexit in this
-# conditional context, so the old bare yay call falsely passed.
-optional_install_output=$(mktemp)
-if ! (
-  checkout="$ROOT"
-  unavailable_packages=()
-  load_unavailable_packages() { unavailable_packages=(); }
-  package_is_unavailable_here() { return 1; }
-  log() { :; }
-  warn() { printf '%s\n' "$*" >>"$optional_install_output"; }
-  yay() {
-    [[ $* == *wf-recorder* ]] && return 1
-    return 0
-  }
-  eval "install_quattro_packages() {
-$install_body
-}"
-  install_quattro_packages
-); then
-  rm -f "$optional_install_output"
-  fail "the Quattro upgrade continues when wf-recorder is unavailable"
+# leaving the 3.x machine half-upgraded. Run the real main and package step
+# in a new Bash process with errexit, as the executable does. A conditional
+# subshell in this test would suppress errexit throughout those functions.
+install_probe=$(mktemp -d)
+trap 'rm -rf "$install_probe"' EXIT
+mkdir -p "$install_probe/bin"
+export UPGRADE_TEST_GUARD_LOG="$install_probe/guards"
+export UPGRADE_TEST_MISE_CALLS="$install_probe/mise-calls"
+export UPGRADE_TEST_STEPS="$install_probe/steps"
+
+cat >"$install_probe/bin/mise" <<'SH'
+#!/bin/bash
+printf '%s\n' "$*" >>"$UPGRADE_TEST_MISE_CALLS"
+case "$*" in
+  --version) echo '2026.8.15 linux-arm64' ;;
+  'registry cursor-agent')
+    [[ ${UPGRADE_TEST_MISE_READY:-1} == "1" ]] || exit 1
+    echo 'http:cursor-agent'
+    ;;
+  *)
+    echo "mise $*" >>"$UPGRADE_TEST_GUARD_LOG"
+    exit 97
+    ;;
+esac
+SH
+cat >"$install_probe/bin/uname" <<'SH'
+#!/bin/bash
+echo aarch64
+SH
+for command in curl sudo pkexec; do
+  cat >"$install_probe/bin/$command" <<'SH'
+#!/bin/bash
+echo "${0##*/}" >>"$UPGRADE_TEST_GUARD_LOG"
+echo "Refusing fixture download or elevation: ${0##*/}" >&2
+exit 97
+SH
+done
+chmod +x "$install_probe/bin/"*
+
+{
+  cat <<'SH'
+#!/bin/bash
+set -euo pipefail
+checkout="$ROOT"
+yes=1
+auto_reboot=0
+load_unavailable_packages() { unavailable_packages=(); }
+package_is_unavailable_here() { return 1; }
+log() { printf '%s\n' "$*"; }
+warn() { printf '%s\n' "$*"; }
+yay() { [[ $* != *wf-recorder* ]]; }
+# Only the package step and its mise helper run real production code.
+for step in backup_user_config switch_checkout_to_quattro validate_quattro_tree \
+  ensure_arm_package_repo wire_system_paths update_bashrc replace_hyprland_config \
+  run_quattro_setup retire_legacy_packages switch_to_networkmanager; do
+  eval "$step() { echo '$step' >>\"\$UPGRADE_TEST_STEPS\"; }"
+done
+SH
+  printf 'install_quattro_packages() {\n%s\n}\n' "$install_body"
+  printf 'main() {\n%s\n}\nmain\n' "$main_body"
+} >"$install_probe/run.sh"
+
+: >"$UPGRADE_TEST_GUARD_LOG"
+: >"$UPGRADE_TEST_MISE_CALLS"
+: >"$UPGRADE_TEST_STEPS"
+if ! PATH="$install_probe/bin:$PATH" bash "$install_probe/run.sh" >"$install_probe/output" 2>&1; then
+  fail "the Quattro upgrade continues when wf-recorder is unavailable" "$(cat "$install_probe/output")"
 fi
-grep -qF 'wf-recorder' "$optional_install_output" || {
-  rm -f "$optional_install_output"
+[[ ! -s $UPGRADE_TEST_GUARD_LOG ]] ||
+  fail "the optional-package fixture never downloads or elevates" "$(cat "$UPGRADE_TEST_GUARD_LOG")"
+[[ $(cat "$UPGRADE_TEST_MISE_CALLS") == $'--version\nregistry cursor-agent' ]] ||
+  fail "the fixture satisfies both mise capability probes"
+grep -qF 'Could not install: wf-recorder' "$install_probe/output" ||
   fail "the Quattro upgrade reports wf-recorder when it is unavailable"
-}
-rm -f "$optional_install_output"
+grep -qxF 'wire_system_paths' "$UPGRADE_TEST_STEPS" ||
+  fail "the upgrade continues to system setup after an optional package failure"
+grep -qF 'Upgrade complete.' "$install_probe/output" || fail "the fixture reaches upgrade completion"
 pass "the Quattro upgrade continues and reports when wf-recorder is unavailable"
+
+# A missing registry forces the real helper down its failed-download path.
+# The executable's bare main call must stop before any later system changes.
+: >"$UPGRADE_TEST_GUARD_LOG"
+: >"$UPGRADE_TEST_STEPS"
+install_status=0
+UPGRADE_TEST_MISE_READY=0 PATH="$install_probe/bin:$PATH" \
+  bash "$install_probe/run.sh" >"$install_probe/output" 2>&1 || install_status=$?
+(( install_status == 1 )) || fail "the real upgrade call chain propagates mise bootstrap failure" "exit status: $install_status"
+[[ $(cat "$UPGRADE_TEST_GUARD_LOG") == "curl" ]] ||
+  fail "the bootstrap failure uses only the refused fixture download, without elevation"
+grep -qF 'Could not download mise' "$install_probe/output" || fail "the real mise helper reports the bootstrap failure"
+[[ $(cat "$UPGRADE_TEST_STEPS") == $'backup_user_config\nswitch_checkout_to_quattro\nvalidate_quattro_tree\nensure_arm_package_repo' ]] ||
+  fail "mise failure stops the upgrade before system setup"
+! grep -qF 'Upgrade complete.' "$install_probe/output" || fail "mise failure cannot report upgrade completion"
+pass "the real main and package call chain stops on mise failure before system setup"
 
 # Every other fatal step reports through fail(); a bare set -e abort here would
 # die silently after the checkout has already been switched.

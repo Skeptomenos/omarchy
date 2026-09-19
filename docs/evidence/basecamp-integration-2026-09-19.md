@@ -61,7 +61,7 @@ The maximum source IDs were `1789316115` on the ARM parent and `1789444024` on B
 | 1789325478 | 1789444044 | x86 Omarchy kernel |
 | 1789444024 | 1789444045 | x86 kernel headers |
 
-The original ARM files `1787760281.sh` and `1787843905.sh` remain byte-for-byte unchanged, including their modes. Read-only inspection found both live completion markers. There are no duplicate imports of those effects. This preserves user changes made after the original migrations. The earlier draft allocated duplicate IDs with marker guards; the assessor's equivalence finding and the user's correction replaced that draft before commit.
+The original ARM files `1787760281.sh` and `1787843905.sh` remain byte-for-byte unchanged, including their modes. Read-only inspection found both live completion markers. There are no duplicate imports of those effects. This preserves user changes made after the original migrations. The earlier draft allocated duplicate IDs with marker guards. The orchestrator relayed the assessor's equivalence finding, which replaced that draft before commit. This attribution was corrected on 2026-09-19.
 
 The system-sleep repair keeps its existing root quarantine and retry-marker names. The x86 kernel migration keeps its machine completion marker. Those names identify prior machine-wide work and prevent a new per-user filename from repeating it. Test references to imported files use the new IDs. Historical-marker tests retain their original marker names deliberately.
 
@@ -95,3 +95,15 @@ Initial fixture failures were corrected by exposing the real update wrapper to t
 The initial config failure was an input-path failure and is resolved by the pinned recipe checkout above. The contained native ARM channel transaction test skipped because it requires its dedicated root and disk-backed test runner. The prepared-transaction fixture does not replace that native test. Captive-portal and authentication-boundary static checks passed; their runtime checks skipped without a compositor. Full-suite QA and review remain required after the finalized Omarchy Mac lane is merged into this candidate.
 
 The orchestrator owns the enabled personal-plugin compatibility work, graphical and hardware acceptance, and delivery of the qualified `omarchy` and `omarchy-settings` package pair. A source fast-forward alone does not install the new fixed-path Kitty defaults, tmpfiles rule, udev rule, sysctl defaults, or font. This lane made no live configuration, package, plugin, deployment, or privileged changes.
+
+## Fixture follow-up, 2026-09-19
+
+Independent QA on `790ceaccc0c786c2c56d5834d8d3fdd7d08d7133` found two fixture defects. This follow-up starts from assembled commit `65e259cad1525cde379fd27280633ec656c4887a`. The QA report is `/tmp/opencode/omarchy-sync-20260919-basecamp-qa/SUMMARY.md`.
+
+- The sleep-hook test selected the first quarantined symlink, which could belong to an earlier case. It now selects the current case's target and retains the existing content and target assertions.
+- The optional wf-recorder test reached the host's mise and an unmocked download. Its conditional subshell suppressed `errexit`, so it reported success after the bootstrap failed. It now supplies a mise fixture for both `--version` and `registry cursor-agent`, rejects downloads and elevation, and runs in a separate Bash process with `errexit` enabled.
+- The new failure case runs the unchanged production `main` and package-install function bodies with the real mise helper. Other upgrade steps are mocked. A refused download returns status 1 through that chain, stops before `wire_system_paths`, and never reports upgrade completion. The swallowed failure was limited to the former conditional test context. No production failure-handling change was needed.
+
+`python3 /tmp/opencode/basecamp-fixture-check.py before system-sleep-ownership-migration upgrade-to-quattro-mac` reproduced both defects. The sleep test exited 1. The upgrade test exited 0 despite an unexpected curl call, which made the runner fail. The matching `after` command returned 0 for both complete test files, including all sleep cases after the former failure. No external download or elevation guard was reached after the correction.
+
+The tests ran with disk-backed scratch bound at `/tmp`, `/usr/local/bin` on PATH, a private home and runtime, and isolated network and process namespaces. Logs are in `/tmp/opencode/basecamp-fixture-followup-20260919/`. The command and exit-status record remains `/tmp/opencode/basecamp-2026-09-19-commands.log`. Full assembled-candidate QA remains a separate gate.
