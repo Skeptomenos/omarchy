@@ -2,15 +2,16 @@ diff --git a/pkgbuilds/omarchy-dev/PKGBUILD b/pkgbuilds/omarchy-dev/PKGBUILD
 index 58630ed..e79935f 100644
 --- a/pkgbuilds/omarchy-dev/PKGBUILD
 +++ b/pkgbuilds/omarchy-dev/PKGBUILD
-@@ -44,6 +44,7 @@ depends=(
+@@ -44,6 +44,8 @@ depends=(
 
    # System font (UI assumes it)
    'ttf-jetbrains-mono-nerd-basic'
 +  'snapper' # Root snapshots also apply to btrfs installations on Apple Silicon.
++  'zram-generator'
  )
 
  # Bootloader stack. Lives here rather than on omarchy-settings because
-@@ -57,11 +58,10 @@ depends_x86_64=(
+@@ -57,11 +59,10 @@ depends_x86_64=(
    'limine'
    'limine-mkinitcpio-hook'
    'limine-snapper-sync'
@@ -59,15 +60,16 @@ diff --git a/pkgbuilds/omarchy/PKGBUILD b/pkgbuilds/omarchy/PKGBUILD
 index 2e20a38..7ec3267 100644
 --- a/pkgbuilds/omarchy/PKGBUILD
 +++ b/pkgbuilds/omarchy/PKGBUILD
-@@ -58,6 +58,7 @@ depends=(
+@@ -58,6 +58,8 @@ depends=(
 
    # System font (UI assumes it)
    'ttf-jetbrains-mono-nerd-basic'
 +  'snapper' # Root snapshots also apply to btrfs installations on Apple Silicon.
++  'zram-generator'
  )
 
  # Bootloader stack. Lives here rather than on omarchy-settings because
-@@ -71,11 +72,10 @@ depends_x86_64=(
+@@ -71,11 +73,10 @@ depends_x86_64=(
    'limine'
    'limine-mkinitcpio-hook'
    'limine-snapper-sync'
