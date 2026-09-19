@@ -13,9 +13,10 @@ import re
 import subprocess
 import sys
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 
-def dependency_names(path: Path) -> set[str]:
+def dependency_names(path: Path, *, common_only: bool) -> set[str]:
   try:
     metadata = subprocess.run(
       ["makepkg", "--printsrcinfo"],
@@ -30,7 +31,7 @@ def dependency_names(path: Path) -> set[str]:
   dependencies = set()
   for line in metadata.splitlines():
     key, separator, value = line.strip().partition(" = ")
-    if separator and (key == "depends" or key.startswith("depends_")):
+    if separator and (key == "depends" or (not common_only and key.startswith("depends_"))):
       dependencies.add(re.split(r"[<>=]", value, maxsplit=1)[0])
   return dependencies
 
@@ -63,24 +64,36 @@ errors = []
 target_packages = ("omarchy", "omarchy-dev")
 settings_packages = ("omarchy-settings", "omarchy-settings-dev")
 
-for package in target_packages + settings_packages:
-  pkgbuild = pkgs_root / package / "PKGBUILD"
-  if not pkgbuild.is_file():
-    errors.append(f"missing PKGBUILD: {pkgbuild}")
-    continue
-
+with TemporaryDirectory(prefix="omarchy-zram-recipes-") as work:
+  prepared = Path(work) / "recipes"
   try:
-    dependencies = dependency_names(pkgbuild)
-  except ValueError as error:
-    errors.append(str(error))
-    continue
-
-  if package in target_packages and "zram-generator" not in dependencies:
-    errors.append(f"{package} must hard-depend on zram-generator")
-  if package in settings_packages and "zram-generator" in dependencies:
-    errors.append(
-      f"{package} must not hard-depend on zram-generator because it is installed in the live ISO"
+    subprocess.run(
+      ["bash", str(root / "build-inputs/prepare-recipes.sh"), str(pkgs_root), str(prepared)],
+      check=True,
+      env={**os.environ, "OMARCHY_ALLOW_CUSTOM_RECIPES": "0"},
     )
+  except subprocess.CalledProcessError:
+    print("not ok - pinned recipe preparation failed", file=sys.stderr)
+    sys.exit(1)
+
+  for package in target_packages + settings_packages:
+    pkgbuild = prepared / "pkgbuilds" / package / "PKGBUILD"
+    if not pkgbuild.is_file():
+      errors.append(f"missing PKGBUILD: {pkgbuild}")
+      continue
+
+    try:
+      dependencies = dependency_names(pkgbuild, common_only=package in target_packages)
+    except ValueError as error:
+      errors.append(str(error))
+      continue
+
+    if package in target_packages and "zram-generator" not in dependencies:
+      errors.append(f"{package} must hard-depend on zram-generator in common depends")
+    if package in settings_packages and "zram-generator" in dependencies:
+      errors.append(
+        f"{package} must not hard-depend on zram-generator because it is installed in the live ISO"
+      )
 
 other_packages = {
   line.split("#", 1)[0].strip()
@@ -95,4 +108,4 @@ if errors:
   sys.exit(1)
 PY
 
-pass "target packages require zram-generator without making settings unsafe for the live ISO"
+pass "pinned prepared target packages require zram-generator in common depends without making settings unsafe for the live ISO"

@@ -586,7 +586,10 @@ echo "=== arriving through a pipe, with no file behind the script ==="
 # has to actually pipe. Each assertion is a function, because `check` runs its
 # argument directly and a `bash -c` subshell would not inherit $TOOL.
 piped() {
-  cat "$TOOL" | bash -s -- "$@" 2>&1
+  # SELF has no environment override. Model a fresh bootstrap with no installed
+  # copy, while still piping the real script so BASH_SOURCE stays empty.
+  sed "s|^SELF=/usr/local/bin/omarchy-mac-setup$|SELF=\"$work/piped-self\"|" "$TOOL" |
+    bash -s -- "$@" 2>&1
 }
 
 # Every assertion captures the output before grepping it. Piping straight into

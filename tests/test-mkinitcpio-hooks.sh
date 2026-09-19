@@ -9,6 +9,8 @@ set -uo pipefail
 CONF="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)/etc/mkinitcpio.conf.d/omarchy_hooks.conf"
 WORK=$(mktemp -d)
 trap 'rm -rf "$WORK"' EXIT
+# Leave root topology unknown so the fixture retains the default encrypt hook.
+: >"$WORK/cmdline"
 pass=0
 failures=0
 
@@ -33,6 +35,7 @@ hooks_with() {
     MODULES=()
     OMARCHY_INITCPIO_INSTALL_PATH="$1"
     OMARCHY_PCI_DEVICES_PATH="$WORK/nopci"
+    OMARCHY_ROOT_CMDLINE_PATH="$WORK/cmdline"
     # shellcheck source=/dev/null
     source "$CONF" >/dev/null 2>&1
     echo "${HOOKS[*]}"
