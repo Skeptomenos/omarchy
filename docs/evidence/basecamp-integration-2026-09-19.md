@@ -167,3 +167,13 @@ The settings-package fixture executes the pinned stable and development recipes 
 `git diff --cached --check` returned 0. The index audit confirmed the exact merge parents, all 171 preserved ARM migration blobs and modes, the single new migration with mode `0644`, and no unresolved conflicts.
 
 Independent full-suite QA, review, package delivery, and graphical acceptance remain with the orchestrator. No privileged command, dev-status call, live change, push, or release occurred in this feature worktree.
+
+### Tracked-symlink QA correction, 2026-09-19
+
+The orchestrator reported that full QA on `b88c99316aa4e051cc91e9c432abe6e7ed47130a` failed only `tracked-symlinks-test.sh`. The other 338 files, independent source review, and package QA passed. The writer reproduced the failure with `elsewhen-check.py symlink-before tracked-symlinks`, which returned 1.
+
+The test now recognizes exactly `config/omarchy/plugins/omacom.elsewhen` with target `/usr/share/omarchy/plugins/omacom.elsewhen`. This upstream user default points to the installed Elsewhen package, not a source-checkout file. The exception also requires `elsewhen` in `install/omarchy-base.packages`. The existing package-staging test checks this link in both package seed locations. Every other tracked link retains the relative-target, shell-expansion, repository-boundary, and target-existence checks. Production files and the absolute default link are unchanged.
+
+The retained test uses a disposable Git repository and indexed symlink mutations. It accepts the legitimate package link and an ordinary relative link. It rejects a wrong Elsewhen target, the correct absolute target at another tracked path, a missing package default, an escaping relative target, a dangling relative target, and a target that needs shell expansion.
+
+`python3 /tmp/opencode/elsewhen-check.py symlink-after tracked-symlinks config settings-package-units` returned 0 for all three files. The package fixture used exact recipe pin `19ef4b560ffd6f26df67665400394278065cf437`. No external guard fired. `bash -n test/shell.d/tracked-symlinks-test.sh` and `git diff --check` both returned 0. Logs use the `symlink-before` and `symlink-after` prefixes in `/tmp/opencode/elsewhen-20260919/`. The orchestrator owns full-QA round two and retargeting the package build and apply script to the follow-up commit.
