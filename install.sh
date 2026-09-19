@@ -424,7 +424,7 @@ main() {
     # changes. Apply exactly the captured published pair and dependencies.
     omarchy_arm_channel_prepare "$channel_stage" "$install_channel" fresh
     ensure_utf8_locale
-    omarchy_arm_channel_apply_prepared "$channel_stage"
+    PATH="$checkout/bin:$PATH" omarchy_arm_channel_apply_prepared "$channel_stage"
     load_installed_environment
     protect_published_pair
     # Optional package setup uses the live keyring after the accepted core

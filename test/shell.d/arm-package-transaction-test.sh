@@ -25,7 +25,7 @@ write_package() {
   mkdir -p "$directory"
   write_desc "$2" "$3" > "$directory/desc"
 }
-for package in hyprland hyprtoolkit hyprland-guiutils asdcontrol normal; do
+for package in hyprland hyprtoolkit hyprland-guiutils asdcontrol openclaw normal; do
   write_package "$test_tmp/db/local" "$package" '2-1'
   : > "$test_tmp/db/local/$package-2-1/files"
   write_package "$test_tmp/extra" "$package" '4-1'
@@ -52,7 +52,7 @@ export OMARCHY_PACMAN_CONFIG="$test_tmp/pacman.conf"
 mapfile -t targets < <(omarchy_arm_package_upgrade_args)
 for version in 2-1 3-1 1-1; do
   rm -rf "$test_tmp/omarchy"
-  for package in hyprland hyprtoolkit hyprland-guiutils asdcontrol tobi-try; do
+  for package in hyprland hyprtoolkit hyprland-guiutils asdcontrol openclaw tobi-try; do
     write_package "$test_tmp/omarchy" "$package" "$version"
   done
   tar -czf "$test_tmp/db/sync/omarchy.db" -C "$test_tmp/omarchy" --transform='s|^\./||' .
@@ -60,6 +60,7 @@ for version in 2-1 3-1 1-1; do
   grep -qx 'extra/normal 4-1' <<< "$selected" || fail 'ordinary packages still upgrade'
   ! grep -q 'tobi-try' <<< "$selected" || fail 'removed optional defaults remain removed'
   ! grep -q '^extra/asdcontrol' <<< "$selected" || fail 'installed upstream-only optional defaults retain their selected source'
+  ! grep -q '^extra/openclaw' <<< "$selected" || fail 'installed OpenClaw retains its explicit source'
   ! grep -q '^extra/hypr' <<< "$selected" || fail 'regular repository cannot replace the selected stack'
   if [[ $version == "2-1" ]]; then
     [[ $selected == 'extra/normal 4-1' ]] || fail 'unchanged compositor packages are not reinstalled'
@@ -67,9 +68,15 @@ for version in 2-1 3-1 1-1; do
     baseline=$(select_packages "${unprotected[@]}")
     grep -qx 'extra/hyprtoolkit 4-1' <<< "$baseline" || fail 'fixture reproduces the original --needed sysupgrade bug'
   else
-    for package in hyprland hyprtoolkit hyprland-guiutils asdcontrol; do
+    for package in hyprland hyprtoolkit hyprland-guiutils asdcontrol openclaw; do
       grep -qx "omarchy/$package $version" <<< "$selected" || fail 'changed packages use the explicit repository, including downgrades'
     done
   fi
   pass "real pacman preserves selected $version stack while upgrading ordinary packages"
 done
+
+rm -rf "$test_tmp/db/local/openclaw-2-1"
+mapfile -t targets < <(omarchy_arm_package_upgrade_args)
+selected=$(select_packages "${targets[@]}") || fail 'removed OpenClaw still permits updates'
+! grep -q 'openclaw' <<< "$selected" || fail 'an intentionally removed OpenClaw stays removed'
+pass 'OpenClaw upgrades through the explicit repository only while installed'

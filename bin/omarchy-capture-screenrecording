@@ -15,7 +15,7 @@
 # start.
 #
 # Env: OMARCHY_SCREENRECORD_DEBUG=true appends the recorder's stderr (and the
-# picker target it was launched with) to /tmp/omarchy-screenrecord.log so users
+# picker target it was launched with) to $XDG_RUNTIME_DIR/omarchy-screenrecord.log so users
 # can attach a log when reporting capture failures.
 #
 # Backend: gpu-screen-recorder everywhere, except Apple Silicon (Asahi), where
@@ -45,12 +45,21 @@ WEBCAM_SIZE="medium"
 RESOLUTION=""
 FULLSCREEN="false"
 STOP_RECORDING="false"
-RECORDING_FILE="/tmp/omarchy-screenrecord-filename"
-REGION_FILE="${XDG_RUNTIME_DIR:-/tmp}/omarchy-screenrecord-region"
-LOG_FILE=$([[ ${OMARCHY_SCREENRECORD_DEBUG:-false} == "true" ]] && echo "/tmp/omarchy-screenrecord.log" || echo "/dev/null")
+# Both of these live in the per-user runtime directory, which is 0700. What
+# RECORDING_FILE holds is read back on stop and used as a path -- ffmpeg writes
+# beside it, `mv` replaces it, and `rm -f` deletes its preview -- so a name in
+# world-writable /tmp is a name any other local account can create first and
+# then point wherever it likes. The debug log carries the recorder's stderr and
+# the picked geometry, which is nobody else's business either. Fall back to
+# the state directory when there is no session runtime dir -- :-/tmp would put
+# both files back at the fixed names this comment describes.
+RUNTIME_DIR="${XDG_RUNTIME_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/omarchy}"
+RECORDING_FILE="$RUNTIME_DIR/omarchy-screenrecord-filename"
+REGION_FILE="$RUNTIME_DIR/omarchy-screenrecord-region"
+LOG_FILE=$([[ ${OMARCHY_SCREENRECORD_DEBUG:-false} == "true" ]] && echo "$RUNTIME_DIR/omarchy-screenrecord.log" || echo "/dev/null")
 
 # Records the PulseAudio module ids of a combined-audio null sink for cleanup.
-PA_MODULES_FILE="/tmp/omarchy-screenrecord-pa-modules"
+PA_MODULES_FILE="$RUNTIME_DIR/omarchy-screenrecord-pa-modules"
 REC_PID=""
 
 # gpu-screen-recorder can't initialize on Apple Silicon's Asahi GPU (see header),
@@ -253,6 +262,11 @@ launch_wf_recorder() {
 }
 
 start_screenrecording() {
+  mkdir -p "$RUNTIME_DIR" || return 1
+  # XDG_STATE_HOME may be outside a private home; protect existing fallbacks too.
+  if [[ -z ${XDG_RUNTIME_DIR:-} ]]; then
+    chmod 700 "$RUNTIME_DIR" || return 1
+  fi
   local capture_args=()
   local target
 

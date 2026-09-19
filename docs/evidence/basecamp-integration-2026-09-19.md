@@ -1,0 +1,97 @@
+# Basecamp integration, 2026-09-19
+
+This record covers the local Basecamp merge candidate. The orchestrator owns release, deployment, and the combined-lane QA decision.
+
+## Inputs
+
+| Role | Commit |
+| --- | --- |
+| ARM release parent | `fea5a848dd1dcefe2d08cb1a3d3e827c0df70edb` |
+| Approved Basecamp parent | `8675600e9ea0c6b6011de378b0625172b9cfdd46` |
+
+The candidate uses branch `codex/sync-2026-09-19-basecamp` in `/home/david/Work/omarchy-sync-2026-09-19-basecamp`. The merge command was `git merge --no-ff --no-commit 8675600e9ea0c6b6011de378b0625172b9cfdd46`. It returned 1 with 32 conflict paths. All conflicts were resolved before staging.
+
+The writer fetched `origin`, `upstream`, and `omarchy`. The ARM destination and Basecamp source still matched the approved commits. `/home/david/o-live` was clean on `quattro-arm`. `/home/david/o` had existing documentation changes. Neither checkout was edited. The separate Omarchy Mac candidate was not read.
+
+## Conflict decisions
+
+- Preserve the public ARM README, setup script, and `Skeptomenos/omarchy-mac` clone with `--branch quattro-arm --single-branch`.
+- Retain ARM package-source preparation, explicit repository targets, package filtering, and channel transactions. Use the new `omarchy-update-pacman` wrapper in the shared update, refresh, reinstall, and final staged-channel transactions. The fresh installer supplies the checkout's command path for that transaction.
+- Keep the ARM keyring path and apply Basecamp's fail-fast shell settings. The separate Omarchy Mac lane owns the new keyring import.
+- Keep `wf-recorder`, combined audio, 48 kHz AAC, and the shared recorder process detector. Keep Basecamp's private recording state directory. Move the ARM PulseAudio module receipt into that same directory.
+- Keep the fork's terminal presentation exit-status propagation and failure message.
+- Keep ARM package removal choices. Add the upstream Cursor, Muse, and OpenClaw agent behavior, menus, and tests. Keep Hermes setup in its existing shared user leaf, with its preinstall opt-out and ownership checks.
+- Upgrade the verified ARM mise pin to `2026.8.15` with SHA-256 `124ea8f7c8cb9a6a3c99c763cbf37ca48c9beaa816735f011d9fd99e6cd463e9`. An ARM-only migration upgrades existing binaries that lack the Cursor registry entry. It runs before the imported Cursor wrapper migration.
+- Install OpenClaw through `omarchy/openclaw` on ARM. Query installed state with its plain package name. Include installed OpenClaw in explicit update targets, and preserve its removal. Remove Claude's exact ARM provider package, `claude-desktop-extra`, with the desktop app. New Claude, OpenClaw, and T3 installers stop if the package helper skips an unavailable package.
+- Keep the ARM Node tarball selection and network fallback. Add upstream's `latest` setting after an offline bundled install. Remove automatic trust of project `bin` directories.
+- Keep Wi-Fi auto-connect controls and their keyboard action index. Add captive-portal state and navigation.
+- Keep the transactional factory-reset inventory, sanitized replacement baseline, boot rollback, and Asahi paths. Use Basecamp's fail-fast account scrub helper and remove subordinate-ID backup files. Do not modify the retained baseline in place. The account fixture follows this transaction and redirects its live-lock path into the fixture.
+- Keep the lock-screen theme denylist and add the new color-only templates.
+- Preserve historical migration tests, CLI coverage, and fork migration IDs. The retained locate migration is inert because Basecamp retired its helper. Its replacement service passes fixed indexing options without rewriting administrator configuration.
+- Preserve Basecamp's authentication-service isolation, privileged-file ownership repairs, Kitty remote-control repair, upgrade root-PATH separation, VM password transport, and other cleanly merged changes.
+
+The merge keeps Asahi hardware scripts, `fnmode=1`, keyboard brightness controls, the notch layout, and ARM install/package sources. The upstream kernel migration already excludes non-x86 hosts. The imported header repair now does too. Cam Link and Xbox controller setup on ARM requires headers for the running kernel before package or device changes. Missing relay packages leave the raw camera accessible.
+
+## Migration IDs
+
+The maximum source IDs were `1789316115` on the ARM parent and `1789444024` on Basecamp. The final candidate retains all 150 ARM migration paths. Nineteen imported migrations receive IDs above both maxima. Two equivalent Hermes migrations retain the original ARM IDs. The sequence preserves the relative order of new Basecamp work. New ARM migration `1789444027` upgrades mise before the Cursor migration. ID `1789444028` is unused.
+
+| Basecamp ID | Imported ID | Effect |
+| --- | --- | --- |
+| 1786609204 | 1789444025 | Video wallpaper dependencies |
+| 1787215483 | 1789444026 | Disable mise upgrade pruning |
+| 1787760281 | 1787760281, retained | Hermes CLI setup |
+| 1787843905 | 1787843905, retained | Hermes skill links |
+| New ARM repair | 1789444027 | Verified mise upgrade for Cursor registry support |
+| 1788577553 | 1789444029 | Cursor CLI wrapper |
+| 1788595060 | 1789444030 | Brave Origin native messaging |
+| 1788596255 | 1789444031 | vi package |
+| 1788619462 | 1789444032 | Hermes Desktop skin |
+| 1788662350 | 1789444033 | Privileged sleep-hook ownership repair |
+| 1788724825 | 1789444034 | Muse wrapper |
+| 1788745941 | 1789444035 | Kitty remote-control repair |
+| 1788848726 | 1789444036 | Retire the known legacy icon font |
+| 1788862626 | 1789444037 | Cam Link relay |
+| 1788941927 | 1789444038 | Basecamp CLI wrapper |
+| 1789091250 | 1789444039 | T3 Code theme |
+| 1789095456 | 1789444040 | Remove automatic project-bin PATH trust |
+| 1789130779 | 1789444041 | KEF USB sink suspend setting |
+| 1789294350 | 1789444042 | BBR and fq defaults |
+| 1789310715 | 1789444043 | Cloudflare CLI wrapper |
+| 1789325478 | 1789444044 | x86 Omarchy kernel |
+| 1789444024 | 1789444045 | x86 kernel headers |
+
+The original ARM files `1787760281.sh` and `1787843905.sh` remain byte-for-byte unchanged, including their modes. Read-only inspection found both live completion markers. There are no duplicate imports of those effects. This preserves user changes made after the original migrations. The earlier draft allocated duplicate IDs with marker guards; the assessor's equivalence finding and the user's correction replaced that draft before commit.
+
+The system-sleep repair keeps its existing root quarantine and retry-marker names. The x86 kernel migration keeps its machine completion marker. Those names identify prior machine-wide work and prevent a new per-user filename from repeating it. Test references to imported files use the new IDs. Historical-marker tests retain their original marker names deliberately.
+
+## Verification
+
+Focused tests ran in Bubblewrap with a read-only host filesystem, private home, private `/run`, isolated processes and network, and writable scratch space. The real `sudo` and `pkexec` executables were replaced by `false` inside the sandbox. No live migration or installer ran.
+
+Command records and actual exit statuses are in `/tmp/opencode/basecamp-2026-09-19-commands.log`. Each focused test also has `/tmp/opencode/basecamp-<test-name>.log`. The local runner is `/tmp/opencode/basecamp-focused.py`.
+
+The focused package, channel, Hermes, agent, menu, network, recording, theme, update, kernel, DKMS, and factory-reset tests passed. Security repair fixtures passed for Kitty, project PATH trust, system-sleep ownership, and legacy font retirement. CLI, retained historical migrations, systemd, provisioning, preinstall removal, and Hyprland binding-conflict checks also passed.
+
+- `arm-dkms-gates-test.sh` proves the architecture and missing-dependency gates.
+- `arm-ai-packages-test.sh` proves qualified OpenClaw installation, plain-name installed queries, repeat-run behavior, and installer failure after skipped packages.
+- `arm-package-transaction-test.sh` uses real pacman against synthetic databases. It proves OpenClaw stays on its explicit source while installed and stays removed afterward.
+- `aarch64-mise-migration-test.sh` covers an old Cursor-less registry, checksum rejection, the upgrade, repeated runs, and the x86 no-op.
+- `arm-channel-apply-test.sh` runs the prepared transaction and real wrapper with mocked system commands. Success, package failure, and hook failure pass both with and without a systemd boot marker. It checks the frozen config path, exact targets, locale, update authorization, and final configuration state.
+- `update-pacman-test.sh`, `update-file-conflict-test.sh`, and `update-package-conflict-test.sh` also pass with the systemd scope branch selected and its execution mocked.
+- `config-test.sh` returned 0 with `OMARCHY_PKGS_PATH=/tmp/opencode/omarchy-pkgs-pinned-20260919`, verified at recipe commit `19ef4b560ffd6f26df67665400394278065cf437`.
+- The downloaded mise binary matched the ARM asset digest in the [v2026.8.15 release](https://github.com/jdx/mise/releases/tag/v2026.8.15). In an isolated offline home it returned `2026.8.15 linux-arm64` and resolved `mise registry cursor-agent` to `http:cursor-agent`, both with exit 0.
+
+Initial fixture failures were corrected by exposing the real update wrapper to the ARM reinstaller test, mocking package metadata queries in kernel tests, and resolving mise from its actual executable directory. The corresponding reruns returned 0.
+
+- `bin/omarchy commands --check` returned 0: 488 commands.
+- `python3 /tmp/opencode/basecamp-syntax.py` returned 0: 1,109 Bash and Python parser checks, zero failures. Per-file statuses are in `/tmp/opencode/basecamp-syntax.log`.
+- `python3 /tmp/opencode/basecamp-final-check.py` returned 0. It checked the exact parents, retained migration paths, new IDs and modes, original Hermes bytes and modes, unchanged upstream migration contents except the header guard, and the downloaded mise binary.
+- `git diff --cached --check` returned 0.
+- `git diff --name-only --diff-filter=U` returned 0 with no paths.
+
+## Remaining gates
+
+The initial config failure was an input-path failure and is resolved by the pinned recipe checkout above. The contained native ARM channel transaction test skipped because it requires its dedicated root and disk-backed test runner. The prepared-transaction fixture does not replace that native test. Captive-portal and authentication-boundary static checks passed; their runtime checks skipped without a compositor. Full-suite QA and review remain required after the finalized Omarchy Mac lane is merged into this candidate.
+
+The orchestrator owns the enabled personal-plugin compatibility work, graphical and hardware acceptance, and delivery of the qualified `omarchy` and `omarchy-settings` package pair. A source fast-forward alone does not install the new fixed-path Kitty defaults, tmpfiles rule, udev rule, sysctl defaults, or font. This lane made no live configuration, package, plugin, deployment, or privileged changes.

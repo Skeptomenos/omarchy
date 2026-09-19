@@ -119,7 +119,7 @@ original_sync = sync_state()
 stub = work / 'bin'; stub.mkdir()
 (stub / 'sudo').write_text('#!/bin/bash\nexec "$@"\n')
 (stub / 'sudo').chmod(0o755)
-env = dict(os.environ, PATH=f'{stub}:' + os.environ['PATH'], OMARCHY_PACMAN_CONFIG=str(config))
+env = dict(os.environ, PATH=f'{stub}:{root}/bin:' + os.environ['PATH'], OMARCHY_PACMAN_CONFIG=str(config))
 # These native fixtures test resolver/transaction behavior with unsigned local
 # packages. Production's required graphics signatures remain unchanged.
 script = '''source "$2/install/helpers/arm-package-sources.sh"

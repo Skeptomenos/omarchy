@@ -14,7 +14,7 @@ omarchy_arm_package_upgrade_args() {
   mapfile -t targets < <(omarchy_arm_package_targets)
   # These defaults exist only in the explicit upstream repository. Continue
   # updating installed copies, without reinstalling deliberately removed apps.
-  for package in asdcontrol tobi-try; do
+  for package in asdcontrol tobi-try openclaw; do
     if pacman --config "${OMARCHY_PACMAN_CONFIG:-/etc/pacman.conf}" -Q "$package" >/dev/null 2>&1; then
       targets+=("omarchy/$package")
     fi

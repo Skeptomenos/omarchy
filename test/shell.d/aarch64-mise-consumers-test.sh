@@ -69,6 +69,9 @@ for command_name in \
   ln -s fake-command "$fake_bin/$command_name"
 done
 
+# Keep the real transaction wrapper, with sudo contained by fake-command.
+ln -s "$ROOT/bin/omarchy-update-pacman" "$fake_bin/omarchy-update-pacman"
+
 assert_no_mise_package_action() {
   local description="$1"
 
@@ -94,7 +97,7 @@ mkdir -p "$tmpdir/home"
 
 run_consumer aarch64 "$ROOT/bin/omarchy-reinstall-pkgs"
 assert_no_mise_package_action "the ARM package reinstaller excludes mise packages from pacman"
-grep -qF 'sudo env OMARCHY_UPDATE_PACMAN=1 pacman -Syu' "$log" ||
+grep -qE '^sudo env OMARCHY_UPDATE_PACMAN=1 (systemd-run --scope --quiet --collect )?pacman -Syu' "$log" ||
   fail "the ARM package reinstaller still submits the default package set" "$(<"$log")"
 grep -qE '^sudo .*([[:space:]])aether([[:space:]]|$)' "$log" ||
   fail "the ARM package reinstaller retains ordinary packages" "$(<"$log")"

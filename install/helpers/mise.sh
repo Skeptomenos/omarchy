@@ -17,12 +17,13 @@ omarchy_filter_mise_packages_for_arch() {
 }
 
 omarchy_ensure_arm_mise() (
-  if command -v mise >/dev/null 2>&1 && mise --version >/dev/null 2>&1; then
+  if command -v mise >/dev/null 2>&1 && mise --version >/dev/null 2>&1 &&
+    mise registry cursor-agent >/dev/null 2>&1; then
     return 0
   fi
 
-  local version="${OMARCHY_MISE_VERSION:-2026.8.6}"
-  local checksum="${OMARCHY_MISE_SHA256:-f9bd051912beb8861bf248289bfb2d8c281ff00fcdf1e44d730b8ea7e859e9a4}"
+  local version="${OMARCHY_MISE_VERSION:-2026.8.15}"
+  local checksum="${OMARCHY_MISE_SHA256:-124ea8f7c8cb9a6a3c99c763cbf37ca48c9beaa816735f011d9fd99e6cd463e9}"
   local url="${OMARCHY_MISE_URL:-https://github.com/jdx/mise/releases/download/v${version}/mise-v${version}-linux-arm64}"
   local download actual
 
@@ -55,8 +56,9 @@ omarchy_ensure_arm_mise() (
     echo "Could not install the verified ARM mise binary." >&2
     return 1
   fi
-  if ! command -v mise >/dev/null 2>&1 || ! mise --version >/dev/null 2>&1; then
-    echo "The verified ARM mise binary was installed but does not run." >&2
+  if ! command -v mise >/dev/null 2>&1 || ! mise --version >/dev/null 2>&1 ||
+    ! mise registry cursor-agent >/dev/null 2>&1; then
+    echo "The verified ARM mise binary does not run or lacks the Cursor CLI registry entry." >&2
     return 1
   fi
 )

@@ -9,8 +9,15 @@ set -e
 
 echo "Installing Xbox controller Bluetooth support..."
 
+# ARM installs keep their Asahi/custom kernel rather than the x86 ISO kernel.
+if [[ $(uname -m) == "aarch64" && ! -f /usr/lib/modules/$(uname -r)/build/Makefile ]]; then
+  echo "Install matching headers for $(uname -r) before enabling Xbox controller support." >&2
+  exit 1
+fi
+
 # Install xpadneo to ensure controllers work out of the box
-omarchy-pkg-add linux-headers xpadneo-dkms
+omarchy-pkg-add xpadneo-dkms
+omarchy-pkg-present xpadneo-dkms || exit 1
 
 # Prevent xpad/xpadneo driver conflict
 echo blacklist xpad | sudo tee /etc/modprobe.d/blacklist-xpad.conf >/dev/null

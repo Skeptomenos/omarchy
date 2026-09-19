@@ -14,6 +14,9 @@ resolve_package_for_arch() {
 
   if [[ $(uname -m) == "aarch64" && $package == "tensaku" ]]; then
     printf '%s\n' "${OMARCHY_TENSAKU_PACKAGE:-tensaku-bin}"
+  elif [[ $(uname -m) == "aarch64" && $package == "openclaw" ]]; then
+    # The upstream ARM repository is explicit-target-only (Usage = Sync).
+    printf '%s\n' omarchy/openclaw
   else
     printf '%s\n' "$package"
   fi
@@ -23,7 +26,7 @@ to_install=()
 for pkg in "$@"; do
   install_pkg=$(resolve_package_for_arch "$pkg")
 
-  if pacman -Q "$pkg" &>/dev/null; then
+  if pacman -Q "${pkg#*/}" &>/dev/null; then
     continue
   elif pacman -Si "$install_pkg" &>/dev/null; then
     to_install+=("$install_pkg")
@@ -50,7 +53,7 @@ fi
 
 for install_pkg in "${to_install[@]}"; do
   # Secondary check to handle states where pacman doesn't actually register an error
-  if ! pacman -Q "$install_pkg" &>/dev/null; then
+  if ! pacman -Q "${install_pkg#*/}" &>/dev/null; then
     echo -e "\033[31mError: Package '$install_pkg' did not install\033[0m" >&2
     exit 1
   fi

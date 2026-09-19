@@ -377,7 +377,7 @@ omarchy_arm_channel_apply_prepared() {
     echo "Installed package state changed during channel preparation. Retry; the active configuration is unchanged." >&2
     return 1
   fi
-  if ! sudo env LC_ALL=C OMARCHY_UPDATE_PACMAN=1 pacman --config "$stage/frozen.conf" -Syu --needed --noconfirm --ask 4 "${targets[@]}" 2>&1 | tee "$stage/transaction-output"; then
+  if ! LC_ALL=C omarchy-update-pacman --config "$stage/frozen.conf" -Syu --needed --noconfirm --ask 4 "${targets[@]}" 2>&1 | tee "$stage/transaction-output"; then
     echo "Channel transaction failed; no new channel configuration was committed. Package hooks may have run; installed pair:" >&2
     pacman --config "$stage/frozen.conf" -Q omarchy omarchy-settings >&2 || true
     return 1

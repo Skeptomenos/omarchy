@@ -122,6 +122,30 @@ second_action_count=$(wc -l <"$missing_log")
   fail "the ARM mise bootstrap is idempotent" "$(<"$missing_log")"
 pass "the ARM migration self-heals a missing mise idempotently"
 
+old_bin=$(make_fake_bin old-registry)
+old_log="$tmpdir/old-registry.log"
+cat >"$old_bin/mise" <<'SH'
+#!/bin/bash
+if [[ ${1:-} == "--version" ]]; then
+  echo "2026.8.6 linux-arm64"
+else
+  exit 1
+fi
+SH
+chmod +x "$old_bin/mise"
+old_migration="$migration"
+migration="$ROOT/migrations/1789444027.sh"
+run_migration "$old_bin" aarch64 "$payload_checksum" "$old_log"
+grep -qF 'sudo install -Dm0755' "$old_log" || fail "the new migration upgrades an old registry"
+"$old_bin/mise" registry cursor-agent || fail "the replacement supports Cursor"
+first_action_count=$(wc -l <"$old_log")
+run_migration "$old_bin" aarch64 "$payload_checksum" "$old_log"
+[[ $(wc -l <"$old_log") == "$first_action_count" ]] || fail "the registry upgrade is idempotent"
+run_migration "$old_bin" x86_64 "$payload_checksum" "$old_log"
+[[ $(wc -l <"$old_log") == "$first_action_count" ]] || fail "the registry migration leaves x86 mise to pacman"
+migration="$old_migration"
+pass "the new ARM migration upgrades the registry once and leaves x86 untouched"
+
 bad_checksum_bin=$(make_fake_bin bad-checksum)
 bad_checksum_log="$tmpdir/bad-checksum.log"
 if run_migration "$bad_checksum_bin" aarch64 "wrong-checksum" "$bad_checksum_log" 2>/dev/null; then

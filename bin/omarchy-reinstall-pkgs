@@ -13,11 +13,11 @@ source "$OMARCHY_PATH/install/helpers/mise.sh"
 omarchy-refresh-pacman
 
 # Downgrade any packages to the stable setup
-sudo env OMARCHY_UPDATE_PACMAN=1 pacman -Suu --noconfirm
+omarchy-update-pacman -Suu --noconfirm
 
 # Ensure all packages are installed
 mapfile -t packages < <(grep -v '^#' "$OMARCHY_PATH/install/omarchy-base.packages" | grep -v '^$')
 mapfile -t packages < <(omarchy_filter_mise_packages_for_arch "${packages[@]}")
-sudo env OMARCHY_UPDATE_PACMAN=1 pacman -Syu --noconfirm --needed "${packages[@]}"
+omarchy-update-pacman -Syu --noconfirm --needed "${packages[@]}"
 
 omarchy_ensure_mise_for_arch

@@ -362,8 +362,23 @@ prepare_reset_inventory() {
   reset_inventory_verify_sources "$TOP_MNT" "$RESET_STATE/inventory" || fail "Reset inventory is not stable"
 }
 
+# Both the staged system and the retained baseline must lose the old hashes.
+scrub_factory_accounts() {
+  local root="$1" user users
+
+  users=$(awk -F: '$3 >= 1000 && $3 < 60000 { print $1 }' "$root/etc/passwd") || return 1
+  for user in $users; do
+    userdel --root "$root" "$user" 2>>"$LOG_FILE" || return 1
+  done
+
+  # passwd --lock preserves the hash. Replace it, then remove the backups
+  # that userdel and usermod leave behind.
+  usermod --root "$root" --password '!' root >>"$LOG_FILE" 2>&1 || return 1
+  rm -f "$root/etc/"{shadow-,gshadow-,passwd-,group-,subuid-,subgid-}
+}
+
 stage_full_reset() {
-  local top="$TOP_MNT" next="$TOP_MNT/$NEXT_NAME" clean="$TOP_MNT/@omarchy-reset-factory" user
+  local top="$TOP_MNT" next="$TOP_MNT/$NEXT_NAME" clean="$TOP_MNT/@omarchy-reset-factory"
   reset_inventory_verify_sources "$top" "$RESET_STATE/inventory" || fail "Confirmed reset inventory changed"
   [[ ! -e $next && ! -L $next && ! -e $clean && ! -L $clean ]] || fail "A prior reset staging object needs inspection"
   reset_started=1
@@ -382,13 +397,7 @@ stage_full_reset() {
   find "$next$PROVISIONING_DIR" -mindepth 1 -maxdepth 1 ! -name packages ! -name groups -exec rm -rf -- {} +
   reset_closure_install "$OMARCHY_PATH" "$next" "$next$PROVISIONING_DIR/reset-closure.sha256" || fail "Current reset closure could not be delivered"
   log "Scrubbing identity from the staged factory system"
-  for user in $(awk -F: '$3 >= 1000 && $3 < 60000 { print $1 }' "$next/etc/passwd"); do
-    userdel --root "$next" "$user" 2>>"$LOG_FILE" || fail "Could not remove factory user $user"
-  done
-  # Locking prefixes the former hash with ! and retains it. Replace the root
-  # credential completely and remove shadow/passwd backups made by userdel.
-  usermod --root "$next" --password '!' root || fail "Could not clear former root credential"
-  rm -f "$next/etc/passwd-" "$next/etc/shadow-" "$next/etc/group-" "$next/etc/gshadow-"
+  scrub_factory_accounts "$next" || fail "Could not remove factory account credentials"
   rm -f "$next"/etc/ssh/ssh_host_* "$next"/etc/NetworkManager/system-connections/*
   rm -rf "$next"/var/lib/NetworkManager/* "$next/var/lib/tailscale" "$next/var/lib/iwd" "$next/var/lib/fprint"
   rm -f "$next/var/lib/sddm/state.conf" "$next/etc/sddm.conf.d/autologin.conf"

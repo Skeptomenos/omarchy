@@ -40,4 +40,4 @@ if [[ $(uname -m) == "aarch64" ]]; then
   omarchy_arm_prepare_package_sources /etc/pacman.conf preserve-backup || exit 1
   mapfile -t targets < <(omarchy_arm_package_targets)
 fi
-sudo env OMARCHY_UPDATE_PACMAN=1 pacman -Syyuu --noconfirm "${targets[@]}"
+omarchy-update-pacman -Syyuu --noconfirm "${targets[@]}"
