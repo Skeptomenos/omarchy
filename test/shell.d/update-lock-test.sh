@@ -85,7 +85,7 @@ pass "omarchy-update prevents overlapping top-level updates"
 inhibit_pid_file="$test_tmp/inhibit-pid"
 keyring_marker="$test_tmp/keyring-started"
 write_stub omarchy-snapshot 'exit 0'
-write_stub systemd-inhibit 'echo "$$" >"$INHIBIT_PID_FILE"; exec sleep 30'
+write_stub systemd-inhibit 'while [[ $1 == --* ]]; do shift; done; echo "$$" >"$INHIBIT_PID_FILE"; exec "$@"'
 write_stub omarchy-update-keyring 'echo started >"$TEST_MARKER"; sleep 3; exit 0'
 
 OMARCHY_UPDATE_LOGGED=1 TEST_MARKER="$keyring_marker" INHIBIT_PID_FILE="$inhibit_pid_file" \
@@ -205,10 +205,16 @@ unrelated_pid=$!
 unrelated_start_time=$(awk '{ print $22 }' "/proc/$unrelated_pid/stat")
 mkdir -p "$stay_awake_helper_state"
 printf '%s %s\n' "$unrelated_pid" "$((unrelated_start_time + 1))" >"$stay_awake_helper_state/inhibit-pid"
+mkfifo "$stay_awake_helper_state/inhibit-control"
+exec {stale_control_fd}<>"$stay_awake_helper_state/inhibit-control"
 
 run_with_lock_env "$ROOT/bin/omarchy-update-stay-awake" stop
 kill -0 "$unrelated_pid" 2>/dev/null ||
   fail "stale inhibitor state does not terminate a reused PID"
+if read -r -t 0.1 -u "$stale_control_fd"; then
+  fail "stale inhibitor state does not send a stop request to a reused PID"
+fi
+exec {stale_control_fd}>&-
 kill "$unrelated_pid"
 wait "$unrelated_pid" 2>/dev/null || true
 pass "stale inhibitor state does not terminate a reused PID"

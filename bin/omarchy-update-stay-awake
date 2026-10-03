@@ -9,6 +9,7 @@ set -e
 state_dir="${XDG_RUNTIME_DIR:-/tmp/omarchy-$UID}/omarchy-update-stay-awake"
 idle_owner_file="$state_dir/idle-owner"
 inhibit_pid_file="$state_dir/inhibit-pid"
+inhibit_control_file="$state_dir/inhibit-control"
 stay_awake_state="$HOME/.local/state/omarchy/indicators/stay-awake"
 
 process_start_time() {
@@ -58,9 +59,17 @@ stop() {
       current_start_time=$(process_start_time "$inhibit_pid" 2>/dev/null || true)
     fi
     if [[ -n $recorded_start_time && $current_start_time == "$recorded_start_time" ]]; then
-      kill "$inhibit_pid" >/dev/null 2>&1 || true
+      if [[ -p $inhibit_control_file && ! -L $inhibit_control_file ]]; then
+        # Ask the inhibited command to exit, rather than signalling a privileged
+        # wrapper. Read/write opening cannot block if the reader already exited.
+        printf '\n' <>"$inhibit_control_file" >&0
+      else
+        # State left by older versions has no control pipe.
+        kill "$inhibit_pid" >/dev/null 2>&1 || true
+      fi
 
-      for (( attempt = 0; attempt < 50; attempt++ )); do
+      # Allow wrapper closure and legacy sudo termination paths to complete.
+      for (( attempt = 0; attempt < 250; attempt++ )); do
         current_start_time=$(process_start_time "$inhibit_pid" 2>/dev/null || true)
         [[ $current_start_time == "$recorded_start_time" ]] || break
         [[ $(process_state "$inhibit_pid" 2>/dev/null || true) != "Z" ]] || break
@@ -77,17 +86,19 @@ stop() {
     rm -f "$inhibit_pid_file"
   fi
 
+  rm -f "$inhibit_control_file"
   rmdir "$state_dir" 2>/dev/null || true
 }
 
 start() {
   local inhibit_pid=""
   local inhibit_start_time=""
+  local inhibit_control_fd=""
   local inhibit_runner=()
   local idle_owner="$$:$RANDOM:$RANDOM"
 
   stop
-  mkdir -p "$state_dir"
+  mkdir -m 700 -p "$state_dir"
 
   if omarchy-cmd-present systemd-inhibit; then
     if (( EUID != 0 )); then
@@ -99,22 +110,26 @@ start() {
       fi
     fi
 
-    if [[ -n ${OMARCHY_UPDATE_LOCK_FD:-} ]]; then
-      "${inhibit_runner[@]}" systemd-inhibit \
+    mkfifo -m 600 "$inhibit_control_file"
+    # Open before forking so an immediate stop cannot write before any reader
+    # exists. The inherited stdin stays open even during authentication.
+    exec {inhibit_control_fd}<>"$inhibit_control_file"
+    (
+      # Close the update lock before creating any wrapper or inhibitor child.
+      if [[ -n ${OMARCHY_UPDATE_LOCK_FD:-} ]]; then
+        exec {OMARCHY_UPDATE_LOCK_FD}>&-
+      fi
+      exec 0<&"$inhibit_control_fd"
+      exec {inhibit_control_fd}>&-
+      exec "${inhibit_runner[@]}" systemd-inhibit \
         --what=sleep:idle \
         --who=omarchy-update \
         --why="Omarchy update in progress" \
         --mode=block \
-        sleep infinity >/dev/null 2>&1 {OMARCHY_UPDATE_LOCK_FD}>&- &
-    else
-      "${inhibit_runner[@]}" systemd-inhibit \
-        --what=sleep:idle \
-        --who=omarchy-update \
-        --why="Omarchy update in progress" \
-        --mode=block \
-        sleep infinity >/dev/null 2>&1 &
-    fi
+        bash -c 'read -r' >/dev/null 2>&1
+    ) &
     inhibit_pid=$!
+    exec {inhibit_control_fd}>&-
     inhibit_start_time=$(process_start_time "$inhibit_pid" 2>/dev/null || true)
     if [[ -n $inhibit_start_time ]]; then
       printf '%s %s\n' "$inhibit_pid" "$inhibit_start_time" >"$inhibit_pid_file"
