@@ -8,7 +8,7 @@ detector="$ROOT/bin/omarchy-hw-macbook10"
 apply="$ROOT/bin/omarchy-hw-macbook10-power-envelope"
 leaf="$ROOT/install/hardware/apple/fix-macbook10-power-envelope.sh"
 all="$ROOT/install/hardware/all.sh"
-migration="$ROOT/migrations/1788380505.sh"
+migration="$ROOT/migrations/1791324032.sh"
 
 grep -q 'apple/fix-macbook10-power-envelope.sh' "$all" ||
   fail "the MacBook10,1 power envelope runs during hardware setup"
@@ -118,9 +118,7 @@ pass "status reports the applied envelope"
 
 unit="$test_tmp/omarchy-macbook10-power-envelope.service"
 hook="$test_tmp/sleep-hook"
-envelope_copy="$test_tmp/omarchy-hw-macbook10-power-envelope"
-cp "$apply" "$envelope_copy"
-chmod +x "$envelope_copy"
+packaged_bin="/usr/bin/omarchy-hw-macbook10-power-envelope"
 
 run_leaf() {
   : >"$calls"
@@ -130,7 +128,6 @@ run_leaf() {
     OMARCHY_PATH="$ROOT" \
     OMARCHY_MACBOOK10_ENVELOPE_UNIT="$unit" \
     OMARCHY_MACBOOK10_ENVELOPE_SLEEP_HOOK="$hook" \
-    OMARCHY_MACBOOK10_ENVELOPE_BIN="$envelope_copy" \
     bash -eE -o pipefail -c 'source "$1"' bash "$leaf"
 }
 
@@ -142,30 +139,46 @@ pass "setup skips unrelated hardware"
 
 run_leaf "MacBook10,1"
 [[ -f $unit ]] || fail "setup writes the systemd unit"
-grep -Fq "ExecStart=$envelope_copy" "$unit" ||
-  fail "the unit runs the envelope command" "$(cat "$unit")"
+grep -Fq "ExecStart=$packaged_bin" "$unit" ||
+  fail "the unit runs the packaged envelope command" "$(cat "$unit")"
 [[ -x $hook ]] || fail "setup installs an executable resume hook"
-grep -Fq "exec \"$envelope_copy\"" "$hook" ||
+grep -Fq "exec $packaged_bin" "$hook" ||
   fail "the resume hook re-applies the envelope" "$(cat "$hook")"
-grep -Fq $'systemctl\tenable\t--now\tomarchy-macbook10-power-envelope.service' "$calls" ||
-  fail "setup enables the envelope service" "$(cat "$calls")"
+grep -Fq $'systemctl\tenable\tomarchy-macbook10-power-envelope.service' "$calls" ||
+  fail "setup enables the envelope service without starting it in the installer" "$(cat "$calls")"
+! grep -Fq $'enable\t--now' "$calls" ||
+  fail "setup does not start the service inside the installer chroot" "$(cat "$calls")"
 pass "setup installs the boot unit and resume hook"
 
 : >"$calls"
 run_leaf "MacBook10,1"
-grep -Fq $'systemctl\tenable\t--now\tomarchy-macbook10-power-envelope.service' "$calls" ||
+grep -Fq $'systemctl\tenable\tomarchy-macbook10-power-envelope.service' "$calls" ||
   fail "setup remains idempotent" "$(cat "$calls")"
 pass "setup remains idempotent"
 
+# The migration applies the envelope immediately on existing installs by
+# calling the packaged binary. It is not present in this test root, so the
+# migration run stubs sudo as log-only and asserts the attempt was made.
+norun="$test_tmp/norun"
+mkdir -p "$norun"
+cat >"$norun/sudo" <<'SH'
+#!/bin/bash
+printf 'sudo' >>"$TEST_LOG"
+printf '\t%s' "$@" >>"$TEST_LOG"
+printf '\n' >>"$TEST_LOG"
+SH
+chmod +x "$norun/sudo"
+
 : >"$calls"
-PATH="$stub_bin:$ROOT/bin:$PATH" \
+PATH="$norun:$stub_bin:$ROOT/bin:$PATH" \
   TEST_PRODUCT_NAME="MacBook10,1" \
   TEST_LOG="$calls" \
   OMARCHY_PATH="$ROOT" \
   OMARCHY_MACBOOK10_ENVELOPE_UNIT="$unit" \
   OMARCHY_MACBOOK10_ENVELOPE_SLEEP_HOOK="$hook" \
-  OMARCHY_MACBOOK10_ENVELOPE_BIN="$envelope_copy" \
   bash -euo pipefail "$migration"
-grep -Fq $'systemctl\tenable\t--now\tomarchy-macbook10-power-envelope.service' "$calls" ||
+grep -Fq $'systemctl\tenable\tomarchy-macbook10-power-envelope.service' "$calls" ||
   fail "the migration runs hardware setup" "$(cat "$calls")"
-pass "the migration runs hardware setup"
+grep -Fq "$packaged_bin" "$calls" ||
+  fail "the migration applies the envelope on existing installs" "$(cat "$calls")"
+pass "the migration runs hardware setup and applies the envelope"
