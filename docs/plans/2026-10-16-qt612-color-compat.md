@@ -14,7 +14,8 @@ Source: branch `fix/qt612-color-compat` in `/home/david/o/.worktrees/qt612-color
 - [x] Complete independent code review, including the corrected plugin assertions.
 - [x] Complete independent full-suite QA. Targeted checks pass. The full gate fails on eight unchanged baseline failures.
 - [x] Obtain approval for deployment and the repair-only baseline-test waiver.
-- [ ] Deploy, restart the shell once, and verify the real launcher, bar, panels, and theme changes.
+- [x] Deploy, restart the shell once, and verify the real launcher and bar. David confirmed both are restored.
+- [ ] Check persistence after David reboots. Broader panel and third-party plugin behavior remains outside the completed visual checks.
 
 ## Progress (LIVING)
 
@@ -40,7 +41,7 @@ Independent review passed the staged source and final plugin bundle. It confirme
 
 Independent QA is complete. `env -u WAYLAND_DISPLAY -u HYPRLAND_INSTANCE_SIGNATURE QT_QPA_PLATFORMTHEME=basic ./test/all` exited 1. CLI passed. Eight of 342 shell test files failed, with no new failures and all eight normalized failure blocks identical to baseline. Evidence is in `/tmp/opencode/qt612-independent-qa/{all.log,all.exit,failure-comparison.json}`. Independent bundle-v2 replay, patch application, hashes, and the three affected plugin test files also passed. Production Quickshell remained PID 2968, with no probe processes left. David explicitly waived these eight unchanged failures for this repair only. The raw suite result remains FAIL.
 
-No live rendering acceptance has run. The source repair is not deployed. The native regression does not prove that every third-party plugin works end to end.
+The source repair and final plugin bundle are deployed. The running shell was restarted once. David confirmed the restored bar and app launcher, and the inspected screenshot shows the theme colors, labels, card, border, and selection highlight. Read [the deployment evidence](../evidence/qt612-color-deployment-2026-10-16.md) for commands, backups, and acceptance limits. Not every third-party plugin was tested end to end. No reboot has occurred.
 
 The eight recorded baseline failures are `arm-channel-staging-test.sh`, `config-test.sh`, `locate-test.sh`, `network-package-test.sh`, `package-build-contract-test.sh`, `settings-package-units-test.sh`, `unowned-system-paths-test.sh`, and `zram-package-contract-test.sh`. They concern missing package recipes, the disk-backed-cache requirement, and Python bytecode read as UTF-8. Independent QA reproduced these conditions on the baseline. `locate-test.sh` passes in a clean archive and fails after bytecode caches exist.
 
@@ -59,6 +60,7 @@ Recovery must undo only this repair. The plugin snapshots preserve each file's p
 - 2026-10-16: independent review found six source-text assertions that would fail after a QML-only plugin repair. Stage exactly those six assertion updates in three files. Preserve unrelated test guards.
 - 2026-10-16: QA found no new failures. Recommend a repair-scoped waiver of the eight unchanged baseline failures rather than unrelated changes in this QML-only patch. Deployment and one controlled shell restart still require approval. Rebooting does not apply the staged repair. Verify the live desktop after deployment before using a reboot to test persistence.
 - 2026-10-16: David approved the proposed deployment, shell restart, and repair-scoped waiver. Recheck source and plugin hashes before release. Live visual acceptance remains required.
+- 2026-10-16: deployed source `2d7be42d8` through `origin/quattro-arm` and applied the reviewed plugin bundle with before and after hash checks. Preserved backups in the user's Omarchy state directory. The controlled shell restart succeeded, the bar and launcher are visually restored, and David confirmed the result. A reboot is now the persistence check, not the mechanism that applies this repair.
 - 2026-10-16: a new Personal Linear issue could not be created because the workspace has reached its issue limit. The implementation and pending-QA handoff is recorded in [DEV-131](https://linear.app/helmus/issue/DEV-131/bug-reports#comment-e35d2f79) instead.
 
 — drafted by David Helmus's agent
