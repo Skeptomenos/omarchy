@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 
 // Keyboard backlight settings overlay. The slider reads and writes percentages
@@ -171,9 +172,9 @@ Item {
         width: Math.min(Style.space(420), keyCatcher.width - Style.space(32))
         height: content.implicitHeight + Style.space(48)
         radius: Style.cornerRadius
-        color: Color.background
+        color: Commons.Color.background
         border.width: Math.max(1, Style.space(2))
-        border.color: Color.popups.border
+        border.color: Commons.Color.popups.border
 
         // Swallow clicks so only the scrim outside the card dismisses.
         MouseArea { anchors.fill: parent; onClicked: {} }
@@ -186,7 +187,7 @@ Item {
 
           Text {
             text: "KEYBOARD BACKLIGHT"
-            color: Color.foreground
+            color: Commons.Color.foreground
             font.family: Style.font.family
             font.pixelSize: Style.font.caption
             font.bold: true
@@ -198,7 +199,7 @@ Item {
 
             Text {
               text: "Brightness"
-              color: Color.foreground
+              color: Commons.Color.foreground
               font.family: Style.font.family
               font.pixelSize: Style.font.bodySmall
               Layout.fillWidth: true
@@ -209,7 +210,7 @@ Item {
               text: root.applying ? "Applying…"
                 : root.loading ? "Loading…"
                 : root.loaded ? root.currentPercent + "%" : "Unavailable"
-              color: root.loaded && !root.loading ? Color.accent : Qt.darker(Color.foreground, 1.6)
+              color: root.loaded && !root.loading ? Commons.Color.accent : Qt.darker(Commons.Color.foreground, 1.6)
               font.family: Style.font.family
               font.pixelSize: Style.font.bodySmall
               font.bold: true
@@ -237,7 +238,7 @@ Item {
             visible: root.errorMessage !== ""
             textFormat: Text.PlainText
             text: root.errorMessage
-            color: Color.urgent
+            color: Commons.Color.urgent
             font.family: Style.font.family
             font.pixelSize: Style.font.caption
             Layout.alignment: Qt.AlignHCenter
@@ -246,7 +247,7 @@ Item {
           Rectangle {
             Layout.fillWidth: true
             implicitHeight: 1
-            color: Color.popups.border
+            color: Commons.Color.popups.border
           }
 
           RowLayout {
@@ -255,7 +256,7 @@ Item {
 
             Text {
               text: "Shift+F1"
-              color: Color.accent
+              color: Commons.Color.accent
               font.family: Style.font.family
               font.pixelSize: Style.font.bodySmall
               font.bold: true
@@ -264,7 +265,7 @@ Item {
 
             Text {
               text: "Backlight down"
-              color: Color.foreground
+              color: Commons.Color.foreground
               font.family: Style.font.family
               font.pixelSize: Style.font.bodySmall
               Layout.fillWidth: true
@@ -277,7 +278,7 @@ Item {
 
             Text {
               text: "Shift+F2"
-              color: Color.accent
+              color: Commons.Color.accent
               font.family: Style.font.family
               font.pixelSize: Style.font.bodySmall
               font.bold: true
@@ -286,7 +287,7 @@ Item {
 
             Text {
               text: "Backlight up"
-              color: Color.foreground
+              color: Commons.Color.foreground
               font.family: Style.font.family
               font.pixelSize: Style.font.bodySmall
               Layout.fillWidth: true
@@ -295,7 +296,7 @@ Item {
 
           Text {
             text: "Esc or click outside to close"
-            color: Qt.darker(Color.foreground, 1.6)
+            color: Qt.darker(Commons.Color.foreground, 1.6)
             font.family: Style.font.family
             font.pixelSize: Style.font.caption
             Layout.alignment: Qt.AlignHCenter
