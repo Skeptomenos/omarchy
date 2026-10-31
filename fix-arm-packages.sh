@@ -15,7 +15,7 @@
 set -euo pipefail
 
 readonly HELPER_RELATIVE_PATH="install/helpers/arm-package-sources.sh"
-readonly HELPER_URL="${OMARCHY_ARM_HELPER_URL:-https://raw.githubusercontent.com/omarchy-mac/omarchy-mac/quattro/$HELPER_RELATIVE_PATH}"
+readonly HELPER_URL="${OMARCHY_ARM_HELPER_URL:-https://raw.githubusercontent.com/Skeptomenos/omarchy/quattro-arm/$HELPER_RELATIVE_PATH}"
 readonly PACMAN_CONF="${OMARCHY_ARM_PACMAN_CONF:-/etc/pacman.conf}"
 
 dry_run=0
@@ -73,23 +73,20 @@ if [[ ! -f $PACMAN_CONF ]]; then
   exit 1
 fi
 
-# One source of truth for what the repository and key must be. A checkout has
-# the helper next to this script; an installed machine has it under the package
-# once it is new enough. Neither is guaranteed on the machines this script
-# exists for, so fall back to fetching it rather than restating its contents.
+# A helper alongside the script belongs to the same checkout. Installed copies
+# may be precisely what needs recovery, so never fall back to those: fetch the
+# published helper instead, and stop if it cannot be fetched.
 resolve_helper() {
-  local script_dir="" candidate
+  local script_dir=""
 
   if [[ -f ${BASH_SOURCE[0]} ]]; then
     script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
   fi
 
-  for candidate in "$script_dir" "${OMARCHY_PATH:-}" /usr/share/omarchy; do
-    if [[ -n $candidate && -f "$candidate/$HELPER_RELATIVE_PATH" ]]; then
-      helper="$candidate/$HELPER_RELATIVE_PATH"
-      return 0
-    fi
-  done
+  if [[ -n $script_dir && -f "$script_dir/$HELPER_RELATIVE_PATH" ]]; then
+    helper="$script_dir/$HELPER_RELATIVE_PATH"
+    return 0
+  fi
 
   downloaded_helper=$(mktemp)
   if curl -fsSL "$HELPER_URL" -o "$downloaded_helper"; then

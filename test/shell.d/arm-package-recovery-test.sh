@@ -29,7 +29,7 @@ pass 'dry run changes nothing on the machine'
 grep -q '^+\[omarchy\]$' <<<"$output" || fail 'dry run adds the edge section' "$output"
 grep -q '^+Usage = Sync$' <<<"$output" || fail 'dry run keeps edge out of automatic selection' "$output"
 grep -q '^+SigLevel = Required DatabaseOptional$' <<<"$output" || fail 'dry run requires signed packages' "$output"
-grep -q 'would run: sudo env OMARCHY_UPDATE_PACMAN=1 pacman -Syu --noconfirm omarchy/hyprland omarchy/hyprtoolkit omarchy/hyprland-guiutils' <<<"$output" ||
+grep -q 'would run: sudo env OMARCHY_UPDATE_PACMAN=1 pacman -Syu --noconfirm omarchy/hyprland extra/hyprtoolkit extra/hyprland-guiutils' <<<"$output" ||
   fail 'dry run reports the selected packages' "$output"
 grep -q 'would run: sudo pacman-key' <<<"$output" || fail 'dry run reports the key import' "$output"
 pass 'dry run reports the restricted signed edge section and the transaction'
@@ -54,29 +54,56 @@ grep -q 'Server = https://regular.example' <<<"$(cat "$conf")" || fail 'regular 
 ! grep -q '^-' <<<"$(grep -v '^---' <<<"$output")" || fail 'dry run removes nothing from a configuration without an edge section' "$output"
 pass 'recovery only adds to a configuration that has no edge section'
 
-# This script exists for machines whose installed package predates the helper,
-# so a checkout must never be the only place it can find one. Point every local
-# candidate at an empty directory and let it fall back to the published copy,
-# served from a file here so the test needs no network.
+# An installed helper can be stale. A standalone script must fetch the current
+# helper even when OMARCHY_PATH contains an older one.
 cp "$ROOT/install/helpers/arm-package-sources.sh" "$test_tmp/published-helper.sh"
-mkdir -p "$test_tmp/empty"
+mkdir -p "$test_tmp/empty" "$test_tmp/stale/install/helpers"
+printf '%s\n' 'echo STALE_HELPER >&2; exit 98' > "$test_tmp/stale/install/helpers/arm-package-sources.sh"
 cp "$recovery" "$test_tmp/empty/fix-arm-packages.sh"
 cp "$test_tmp/original" "$conf"
 download_tmp="$test_tmp/downloads"
 mkdir -p "$download_tmp"
 
+# Capture the default fetch without network access or installed helper state.
+mkdir -p "$test_tmp/route-bin"
+cat > "$test_tmp/route-bin/curl" <<'STUB'
+#!/bin/bash
+[[ $1 == "-fsSL" && $3 == "-o" ]] || exit 97
+printf '%s\n' "$2" > "$OMARCHY_TEST_ROUTE"
+cp "$OMARCHY_TEST_HELPER" "$4"
+STUB
+chmod +x "$test_tmp/route-bin/curl"
+output=$(env -u OMARCHY_ARM_HELPER_URL PATH="$test_tmp/route-bin:$PATH" \
+  OMARCHY_TEST_ROUTE="$test_tmp/route" OMARCHY_TEST_HELPER="$test_tmp/published-helper.sh" \
+  OMARCHY_ARM_PACMAN_CONF="$conf" OMARCHY_PATH="$test_tmp/stale" \
+  bash "$test_tmp/empty/fix-arm-packages.sh" --dry-run 2>&1) || fail 'default helper fetch succeeds' "$output"
+route='https://raw.githubusercontent.com/Skeptomenos/omarchy/quattro-arm'
+[[ $(cat "$test_tmp/route") == "$route/install/helpers/arm-package-sources.sh" ]] || fail 'default helper comes from the ARM fork'
+[[ $(grep -Fc "curl -fsSL $route/fix-arm-packages.sh | bash" "$ROOT/docs/arm-package-sources.md") == 3 ]] || fail 'all documented recovery commands use the same ARM fork and branch'
+pass 'documented recovery script and default helper use the same ARM fork and branch'
+
 output=$(
   TMPDIR="$download_tmp" \
   OMARCHY_ARM_PACMAN_CONF="$conf" \
-    OMARCHY_PATH="$test_tmp/empty" \
+    OMARCHY_PATH="$test_tmp/stale" \
     OMARCHY_ARM_HELPER_URL="file://$test_tmp/published-helper.sh" \
     bash "$test_tmp/empty/fix-arm-packages.sh" --dry-run 2>&1
 ) || fail 'dry run without a local helper succeeds' "$output"
-grep -q 'omarchy/hyprland omarchy/hyprtoolkit omarchy/hyprland-guiutils' <<<"$output" ||
+grep -q 'omarchy/hyprland extra/hyprtoolkit extra/hyprland-guiutils' <<<"$output" ||
   fail 'fetched helper supplies the selected packages' "$output"
 [[ -z $(find "$download_tmp" -mindepth 1 -print -quit) ]] ||
   fail 'fetched helper is removed after use' "$(find "$download_tmp" -mindepth 1 -maxdepth 1 -printf '%f\n')"
-pass 'recovery falls back to the published helper when no checkout is installed'
+! grep -q STALE_HELPER <<<"$output" || fail 'installed stale helper was sourced' "$output"
+pass 'standalone recovery fetches the helper instead of using an installed stale copy'
+
+output=$(TMPDIR="$download_tmp" OMARCHY_ARM_PACMAN_CONF="$conf" \
+  OMARCHY_PATH="$test_tmp/stale" OMARCHY_ARM_HELPER_URL="file://$test_tmp/missing-helper" \
+  bash "$test_tmp/empty/fix-arm-packages.sh" --dry-run 2>&1) && fail 'failed helper fetch must stop recovery'
+grep -q 'Could not find or fetch' <<<"$output" || fail 'failed fetch is reported' "$output"
+! grep -q STALE_HELPER <<<"$output" || fail 'failed fetch falls back to stale helper' "$output"
+cmp -s "$test_tmp/original" "$conf" || fail 'failed helper fetch changes nothing'
+[[ -z $(find "$download_tmp" -mindepth 1 -print -quit) ]] || fail 'failed download is cleaned up'
+pass 'failed helper fetch stops safely without falling back to installed state'
 
 # The documented pipe puts the script itself on stdin. A pacman invocation
 # that asks questions can consume the rest of that script as answers. Run the
@@ -125,12 +152,12 @@ output=$(
     PATH="$stub_bin:$PATH" \
     TMPDIR="$pipe_tmp" \
     OMARCHY_ARM_PACMAN_CONF="$conf" \
-    OMARCHY_PATH="$test_tmp/empty" \
+    OMARCHY_PATH="$test_tmp/stale" \
     OMARCHY_ARM_HELPER_URL="file://$test_tmp/published-helper.sh" \
     OMARCHY_TEST_CALL_LOG="$call_log" \
     bash -s -- --no-snapshot 2>&1
 ) || fail 'piped recovery succeeds without reading script text as prompt answers' "$output"
-grep -q $'^pacman\t-Syu\t--noconfirm\tomarchy/hyprland\tomarchy/hyprtoolkit\tomarchy/hyprland-guiutils$' "$call_log" ||
+grep -q $'^pacman\t-Syu\t--noconfirm\tomarchy/hyprland\textra/hyprtoolkit\textra/hyprland-guiutils$' "$call_log" ||
   fail 'piped recovery runs the noninteractive package transaction' "$(cat "$call_log")"
 ! grep -q '^answers' "$call_log" || fail 'piped recovery lets pacman prompt on script input' "$(cat "$call_log")"
 grep -q '^\[omarchy\]$' "$conf" || fail 'piped recovery prepares the package source' "$(cat "$conf")"
