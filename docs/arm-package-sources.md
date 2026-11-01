@@ -8,6 +8,8 @@ The shared policy lives in `install/helpers/arm-package-sources.sh`. Package sig
 
 For the missing-target and mirror failure investigation, see [the 2026-10-31 repair evidence](evidence/arm-update-package-sources-2026-10-31.md).
 
+For the subsequent installed-package and running-desktop checks, see [the 2026-11-01 acceptance evidence](evidence/arm-update-acceptance-2026-11-01.md).
+
 Use `omarchy update` for system upgrades. A bare `pacman -Syu` does not update the explicitly selected edge packages and can fail when their regular-repository dependencies change ABI. Edge is rolling; versions are resolved together at transaction time rather than pinned.
 
 ## ARM package channels
